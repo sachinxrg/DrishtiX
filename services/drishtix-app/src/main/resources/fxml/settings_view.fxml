@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.drishtix.controller.SettingsController"
+            styleClass="view-pane">
+    <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
+
+    <top>
+        <Label text="SETTINGS" styleClass="view-title"/>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="settings-scroll">
+            <VBox spacing="20" maxWidth="600">
+                <padding><Insets top="15" right="20" bottom="15" left="20"/></padding>
+
+                <!-- Detection Settings -->
+                <VBox spacing="10" styleClass="settings-group">
+                    <Label text="Detection Settings" styleClass="settings-group-title"/>
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Label text="Confidence Threshold:" styleClass="setting-label" prefWidth="200"/>
+                        <Slider fx:id="thresholdSlider" min="10" max="200" value="80" prefWidth="200"/>
+                        <Label fx:id="lblThreshold" text="80" styleClass="setting-value"/>
+                    </HBox>
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Label text="Detection Method:" styleClass="setting-label" prefWidth="200"/>
+                        <ComboBox fx:id="detectionMethod" prefWidth="150" styleClass="control-combo"/>
+                    </HBox>
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Label text="Min Face Size (px):" styleClass="setting-label" prefWidth="200"/>
+                        <Spinner fx:id="minFaceSize" prefWidth="100" styleClass="control-spinner"/>
+                    </HBox>
+                </VBox>
+
+                <!-- Alert Settings -->
+                <VBox spacing="10" styleClass="settings-group">
+                    <Label text="Alert Settings" styleClass="settings-group-title"/>
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Label text="Cooldown (seconds):" styleClass="setting-label" prefWidth="200"/>
+                        <Spinner fx:id="cooldownSpinner" prefWidth="100" styleClass="control-spinner"/>
+                    </HBox>
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Label text="Audio Alerts:" styleClass="setting-label" prefWidth="200"/>
+                        <CheckBox fx:id="audioEnabled" text="Enabled" styleClass="setting-checkbox"/>
+                    </HBox>
+                </VBox>
+
+                <!-- System Settings -->
+                <VBox spacing="10" styleClass="settings-group">
+                    <Label text="System Settings" styleClass="settings-group-title"/>
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Label text="Auto-Start Camera:" styleClass="setting-label" prefWidth="200"/>
+                        <CheckBox fx:id="autoStartCamera" text="Enabled" styleClass="setting-checkbox"/>
+                    </HBox>
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Label text="Snapshot Retention (days):" styleClass="setting-label" prefWidth="200"/>
+                        <Spinner fx:id="retentionDays" prefWidth="100" styleClass="control-spinner"/>
+                    </HBox>
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Label text="Database Status:" styleClass="setting-label" prefWidth="200"/>
+                        <Label fx:id="lblDbStatus" text="Checking..." styleClass="indicator-value"/>
+                    </HBox>
+                </VBox>
+
+                <!-- Danger Zone -->
+                <VBox spacing="10" styleClass="settings-group" style="-fx-border-color: #ef4444;">
+                    <Label text="Danger Zone" styleClass="settings-group-title" style="-fx-text-fill: #ef4444;"/>
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Label text="Clear All Records:" styleClass="setting-label" prefWidth="200"/>
+                        <Button text="⚠️ Clear System Data" onAction="#handleClearData"
+                                style="-fx-background-color: #ef4444; -fx-text-fill: white; -fx-font-weight: bold;" prefWidth="200"/>
+                    </HBox>
+                </VBox>
+
+                <Button text="💾 Save Settings" onAction="#handleSaveSettings"
+                        styleClass="btn-primary" prefWidth="200"/>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

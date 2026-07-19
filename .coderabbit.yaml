@@ -1,0 +1,77 @@
+# ==========================================
+# UNIVERSAL CODERABBIT CONFIGURATION
+# Optimized for: Java, Python, SQL, JS/TS, & Documentation
+# ==========================================
+
+language: "en-US"
+
+reviews:
+  profile: "comprehensive"
+  incremental: true
+  auto_review:
+    enabled: true
+    drafts: false
+  
+  # Enabling multi-language scanning tools
+  tools:
+    shellcheck:
+      enabled: true
+    linter:
+      enabled: true
+    ast-grep:
+      enabled: true
+
+  # UNIVERSAL INSTRUCTIONS (The Core Logic)
+  instructions: >
+    You are an expert Polyglot Software Architect. Your goal is to ensure the 
+    codebase is production-ready, secure, and maintainable.
+    
+    1. CONTEXT: Always search the repository for a 'Master_Blueprint.md', 'README.md', 
+       or any file in 'artifacts/task_lists/' to understand the project intent.
+    2. SECURITY: Flag any hardcoded secrets, SQL injection risks, or weak 
+       authentication patterns regardless of the language.
+    3. PATTERNS: Enforce idiomatic patterns (e.g., PEP 8 for Python, 
+       Effective Java standards for Spring Boot, Hooks best practices for React).
+    4. PERFORMANCE: Identify O(n^2) loops, unnecessary database queries, 
+       and memory leaks.
+    5. CLEAN CODE: Suggest better naming conventions and ensure functions 
+       follow the Single Responsibility Principle.
+
+chat:
+  enabled: true
+  # Friendly but direct tone, matching an expert peer
+  reply_instructions: "Be concise. Provide code diffs for suggestions. Focus on 'Why' a change is needed."
+
+# ==========================================
+# GLOBAL IGNORE LIST (Covers all major stacks)
+# ==========================================
+ignore:
+  paths:
+    # Build & Dependency Artifacts
+    - "node_modules/**"
+    - "target/**"
+    - "build/**"
+    - "bin/**"
+    - "out/**"
+    - "dist/**"
+    - ".next/**"
+    - "venv/**"
+    - ".venv/**"
+    - "__pycache__/**"
+    
+    # IDE & OS Junk
+    - ".vscode/**"
+    - ".idea/**"
+    - ".DS_Store"
+    - "Thumbs.db"
+    
+    # Agent/Internal Logic (Don't review the 'brains')
+    - ".agents/**"
+    - "app_build/**"
+    - "artifacts/task_lists/**"
+    
+    # Lock files (too noisy for AI review)
+    - "package-lock.json"
+    - "yarn.lock"
+    - "pom.xml.tag"
+    - "poetry.lock"

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.drishtix.controller.RegistryController"
+            styleClass="view-pane">
+    <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
+
+    <top>
+        <VBox spacing="10">
+            <Label text="TARGET REGISTRY" styleClass="view-title"/>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <TextField fx:id="searchField" promptText="🔍 Search by name or case number..."
+                           prefWidth="300" styleClass="search-field"/>
+                <ComboBox fx:id="categoryFilter" prefWidth="150" styleClass="control-combo"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="➕ Add Target" onAction="#handleAddTarget" styleClass="btn-primary"/>
+                <Button text="🚫 Deactivate" onAction="#handleDeactivate" styleClass="btn-danger"/>
+                <Button text="🔄 Refresh" onAction="#handleRefresh" styleClass="btn-secondary"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <HBox spacing="15">
+            <padding><Insets top="10"/></padding>
+            <TableView fx:id="targetTable" HBox.hgrow="ALWAYS" styleClass="data-table">
+                <columns>
+                    <TableColumn fx:id="colId" text="ID" prefWidth="50"/>
+                    <TableColumn fx:id="colName" text="Full Name" prefWidth="180"/>
+                    <TableColumn fx:id="colCategory" text="Category" prefWidth="130"/>
+                    <TableColumn fx:id="colCaseNumber" text="Case #" prefWidth="130"/>
+                    <TableColumn fx:id="colActive" text="Active" prefWidth="70"/>
+                    <TableColumn fx:id="colCreatedAt" text="Registered" prefWidth="160"/>
+                </columns>
+            </TableView>
+            <VBox prefWidth="220" spacing="10" alignment="TOP_CENTER" styleClass="preview-panel">
+                <Label text="PROFILE" styleClass="panel-header"/>
+                <ImageView fx:id="profilePreview" fitWidth="200" fitHeight="200" preserveRatio="true"/>
+            </VBox>
+        </HBox>
+    </center>
+</BorderPane>

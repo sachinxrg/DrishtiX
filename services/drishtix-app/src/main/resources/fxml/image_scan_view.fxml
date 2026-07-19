@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.drishtix.controller.ImageScanController"
+            styleClass="view-pane">
+    <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
+
+    <top>
+        <VBox spacing="10">
+            <Label text="IMAGE SCANNER" styleClass="view-title"/>
+            <HBox spacing="15" alignment="CENTER_LEFT">
+                <Button fx:id="btnUpload" text="📁 Upload &amp; Scan Image" onAction="#handleUploadAndScan"
+                        styleClass="btn-primary"/>
+                <Button fx:id="btnSave" text="💾 Save Result" onAction="#handleSaveResult"
+                        styleClass="btn-secondary" disable="true"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="lblResults" text="Upload an image to begin scanning" styleClass="results-label"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <SplitPane dividerPositions="0.5" styleClass="scan-split">
+            <VBox alignment="CENTER" spacing="5" styleClass="image-panel">
+                <Label text="ORIGINAL" styleClass="panel-header"/>
+                <ScrollPane fitToWidth="true" fitToHeight="true">
+                    <ImageView fx:id="originalImageView" fitWidth="500" fitHeight="400" preserveRatio="true"/>
+                </ScrollPane>
+            </VBox>
+            <VBox alignment="CENTER" spacing="5" styleClass="image-panel">
+                <Label text="ANNOTATED" styleClass="panel-header"/>
+                <ScrollPane fitToWidth="true" fitToHeight="true">
+                    <ImageView fx:id="annotatedImageView" fitWidth="500" fitHeight="400" preserveRatio="true"/>
+                </ScrollPane>
+            </VBox>
+        </SplitPane>
+    </center>
+</BorderPane>

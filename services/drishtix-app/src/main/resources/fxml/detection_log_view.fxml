@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.drishtix.controller.DetectionLogController"
+            styleClass="view-pane">
+    <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
+
+    <top>
+        <VBox spacing="10">
+            <Label text="DETECTION LOGS" styleClass="view-title"/>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="From:" styleClass="control-label"/>
+                <DatePicker fx:id="dateFrom" styleClass="control-date"/>
+                <Label text="To:" styleClass="control-label"/>
+                <DatePicker fx:id="dateTo" styleClass="control-date"/>
+                <ComboBox fx:id="categoryFilter" prefWidth="140" styleClass="control-combo"/>
+                <Button text="🔍 Filter" onAction="#handleFilter" styleClass="btn-primary"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="📥 Export CSV" onAction="#handleExportCSV" styleClass="btn-secondary"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <HBox spacing="15">
+            <padding><Insets top="10"/></padding>
+            <TableView fx:id="logTable" HBox.hgrow="ALWAYS" styleClass="data-table">
+                <columns>
+                    <TableColumn fx:id="colTimestamp" text="Timestamp" prefWidth="160"/>
+                    <TableColumn fx:id="colTargetName" text="Target Name" prefWidth="150"/>
+                    <TableColumn fx:id="colCategory" text="Category" prefWidth="120"/>
+                    <TableColumn fx:id="colCaseNum" text="Case #" prefWidth="120"/>
+                    <TableColumn fx:id="colConfidence" text="Confidence" prefWidth="100"/>
+                    <TableColumn fx:id="colCamera" text="Camera" prefWidth="100"/>
+                </columns>
+            </TableView>
+            <VBox prefWidth="320" spacing="10" alignment="TOP_CENTER" styleClass="preview-panel">
+                <Label text="SNAPSHOT PREVIEW" styleClass="panel-header"/>
+                <ImageView fx:id="snapshotPreview" fitWidth="300" fitHeight="300" preserveRatio="true"/>
+            </VBox>
+        </HBox>
+    </center>
+</BorderPane>

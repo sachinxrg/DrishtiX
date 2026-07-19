@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.drishtix.controller.DashboardController"
+            styleClass="dashboard-pane">
+
+    <center>
+        <HBox spacing="15">
+            <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
+
+            <!-- Camera Feed Area (70%) -->
+            <VBox HBox.hgrow="ALWAYS" spacing="10" styleClass="camera-section">
+                <!-- Video Feed -->
+                <StackPane VBox.vgrow="ALWAYS" styleClass="camera-container">
+                    <ImageView fx:id="cameraFeed" fitWidth="640" fitHeight="480"
+                               preserveRatio="true" smooth="true"/>
+                    <!-- Alert Overlay (hidden by default) -->
+                    <StackPane fx:id="alertOverlay" visible="false" styleClass="alert-overlay"/>
+                </StackPane>
+
+                <!-- Camera Controls -->
+                <HBox spacing="15" alignment="CENTER_LEFT" styleClass="camera-controls">
+                    <padding><Insets top="8" bottom="8" left="12" right="12"/></padding>
+
+                    <Label text="Camera:" styleClass="control-label"/>
+                    <ComboBox fx:id="cameraSelector" prefWidth="150" styleClass="control-combo"/>
+
+                    <Button fx:id="btnStartStop" text="▶ Start" onAction="#handleStartStop"
+                            styleClass="btn-primary"/>
+
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <Label text="Threshold:" styleClass="control-label"/>
+                    <Slider fx:id="confidenceSlider" min="10" max="200" value="80"
+                            prefWidth="120" styleClass="threshold-slider"/>
+                    <Label fx:id="lblConfidence" text="80" styleClass="control-value"/>
+
+                    <Region prefWidth="15"/>
+
+                    <ToggleButton fx:id="btnMute" text="🔊" styleClass="btn-mute"/>
+                    <Label fx:id="lblFps" text="FPS: 0" styleClass="fps-label"/>
+                </HBox>
+            </VBox>
+
+            <!-- Stats Panel (30%) -->
+            <VBox prefWidth="280" spacing="12" styleClass="stats-panel">
+                <padding><Insets top="5" right="5" bottom="5" left="5"/></padding>
+
+                <Label text="SYSTEM STATUS" styleClass="panel-header"/>
+
+                <!-- Stats Cards -->
+                <VBox spacing="8" styleClass="stats-grid">
+                    <HBox spacing="8">
+                        <VBox HBox.hgrow="ALWAYS" styleClass="stat-card">
+                            <Label text="Total Targets" styleClass="stat-title"/>
+                            <Label fx:id="lblTotalTargets" text="0" styleClass="stat-value"/>
+                        </VBox>
+                        <VBox HBox.hgrow="ALWAYS" styleClass="stat-card">
+                            <Label text="Today" styleClass="stat-title"/>
+                            <Label fx:id="lblDetectionsToday" text="0" styleClass="stat-value-accent"/>
+                        </VBox>
+                    </HBox>
+                    <HBox spacing="8">
+                        <VBox HBox.hgrow="ALWAYS" styleClass="stat-card-criminal">
+                            <Label text="🔴 Criminals" styleClass="stat-title"/>
+                            <Label fx:id="lblCriminals" text="0" styleClass="stat-value-red"/>
+                        </VBox>
+                        <VBox HBox.hgrow="ALWAYS" styleClass="stat-card-missing">
+                            <Label text="🔵 Missing" styleClass="stat-title"/>
+                            <Label fx:id="lblMissing" text="0" styleClass="stat-value-blue"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <!-- System Indicators -->
+                <VBox spacing="4" styleClass="indicators-box">
+                    <HBox spacing="8" alignment="CENTER_LEFT">
+                        <Label text="Camera:" styleClass="indicator-label"/>
+                        <Label fx:id="lblCameraStatus" text="○ Inactive" styleClass="indicator-value"/>
+                    </HBox>
+                    <HBox spacing="8" alignment="CENTER_LEFT">
+                        <Label text="Recognizer:" styleClass="indicator-label"/>
+                        <Label fx:id="lblRecognizerStatus" text="○ Not Trained" styleClass="indicator-value"/>
+                    </HBox>
+                </VBox>
+
+                <Separator/>
+
+                <Label text="RECENT ALERTS" styleClass="panel-header"/>
+                <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="alerts-scroll">
+                    <VBox fx:id="recentAlertsBox" spacing="6"/>
+                </ScrollPane>
+
+                <Separator/>
+
+                <!-- Quick Add Target -->
+                <Button text="➕ Add Target" onAction="#handleQuickAddTarget"
+                        styleClass="btn-add-target" maxWidth="Infinity"/>
+            </VBox>
+        </HBox>
+    </center>
+</BorderPane>

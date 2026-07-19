@@ -1,0 +1,30 @@
+# DrishtiX Configuration
+# Copy this file to config.properties and update values
+
+# ==================== Database ====================
+db.url=jdbc:mysql://localhost:3306/drishtix_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+db.username=root
+db.password=YOUR_PASSWORD_HERE
+db.pool.size=10
+db.pool.timeout=30000
+
+# ==================== File Paths ====================
+data.uploads.dir=data/uploads
+data.templates.dir=data/templates
+data.snapshots.dir=data/snapshots
+
+# ==================== OpenCV ====================
+opencv.cascade.path=cascades/haarcascade_frontalface_alt2.xml
+opencv.face.width=200
+opencv.face.height=200
+opencv.detection.method=HAAR
+
+# ==================== Alert ====================
+alert.confidence.threshold=80.0
+alert.cooldown.seconds=30
+alert.audio.enabled=true
+alert.auto.start.camera=true
+
+# ==================== Video ====================
+video.fps.target=15
+video.camera.index=0
