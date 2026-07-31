@@ -22,6 +22,7 @@ import static com.mongodb.client.model.Filters.eq;
  */
 public class CameraSourceDAO {
 
+    @SuppressWarnings("unused") // Will be used when logging is added to CRUD operations
     private static final Logger log = LoggerFactory.getLogger(CameraSourceDAO.class);
     private static final String COLLECTION = "camera_sources";
 

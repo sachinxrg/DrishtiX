@@ -18,6 +18,7 @@
                 <Region HBox.hgrow="ALWAYS"/>
                 <Button text="➕ Add Target" onAction="#handleAddTarget" styleClass="btn-primary"/>
                 <Button text="🚫 Deactivate" onAction="#handleDeactivate" styleClass="btn-danger"/>
+                <Button text="🗑️ Delete" onAction="#handleDeleteTarget" styleClass="btn-danger"/>
                 <Button text="🔄 Refresh" onAction="#handleRefresh" styleClass="btn-secondary"/>
             </HBox>
         </VBox>

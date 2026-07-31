@@ -1,3 +1,10 @@
 {
-    "java.configuration.updateBuildConfiguration": "automatic"
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.project.sourcePaths": [],
+    "java.project.referencedLibraries": [],
+    "maven.pomfile.autoDetect": true,
+    "java.import.maven.enabled": true,
+    "java.configuration.maven.userSettings": "",
+    "java.project.importOnFirstTimeStartup": "automatic",
+    "java.autobuild.enabled": true
 }

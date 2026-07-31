@@ -13,8 +13,10 @@
 
             <!-- Camera Feed Area (70%) -->
             <VBox HBox.hgrow="ALWAYS" spacing="10" styleClass="camera-section">
-                <!-- Video Feed -->
+                <!-- Video Feed with blurred background fill -->
                 <StackPane VBox.vgrow="ALWAYS" styleClass="camera-container">
+                    <ImageView fx:id="cameraFeedBg" smooth="true" opacity="0.3"
+                               preserveRatio="false"/>
                     <ImageView fx:id="cameraFeed" fitWidth="640" fitHeight="480"
                                preserveRatio="true" smooth="true"/>
                     <!-- Alert Overlay (hidden by default) -->
@@ -45,8 +47,8 @@
                 </HBox>
             </VBox>
 
-            <!-- Stats Panel (30%) -->
-            <VBox prefWidth="280" spacing="12" styleClass="stats-panel">
+            <!-- Stats + Alert Panel (30%) -->
+            <VBox prefWidth="300" spacing="12" styleClass="stats-panel">
                 <padding><Insets top="5" right="5" bottom="5" left="5"/></padding>
 
                 <Label text="SYSTEM STATUS" styleClass="panel-header"/>
@@ -89,14 +91,15 @@
 
                 <Separator/>
 
-                <Label text="RECENT ALERTS" styleClass="panel-header"/>
+                <!-- Live Alert Queue (replaces modal popups) -->
+                <Label text="LIVE ALERTS" styleClass="panel-header"/>
                 <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="alerts-scroll">
-                    <VBox fx:id="recentAlertsBox" spacing="6"/>
+                    <VBox fx:id="alertQueueBox" spacing="8"/>
                 </ScrollPane>
 
                 <Separator/>
 
-                <!-- Quick Add Target -->
+                <!-- Quick Add Target (sole primary CTA) -->
                 <Button text="➕ Add Target" onAction="#handleQuickAddTarget"
                         styleClass="btn-add-target" maxWidth="Infinity"/>
             </VBox>

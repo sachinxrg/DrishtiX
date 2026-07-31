@@ -115,3 +115,55 @@ print("✓ Counter sequences initialized");
 
 print("\n=== DrishtiX MongoDB initialization complete ===");
 print("Collections: targets, target_images, camera_sources, detection_logs, alert_config, audit_log, counters");
+
+// =============================================================
+// DrishtiX v2.0: ReID & Push Engine Schema Updates
+// Incremental — appended without modifying existing schema above
+// =============================================================
+
+print("\n=== DrishtiX v2.0 Schema Updates ===");
+
+// -----------------------------------------------------------
+// Create indexes for the person_embeddings collection (ReID)
+// -----------------------------------------------------------
+db.person_embeddings.createIndex({ "camera_id": 1 });
+db.person_embeddings.createIndex({ "timestamp": -1 });
+db.person_embeddings.createIndex({ "target_id": 1 });
+print("✓ person_embeddings indexes created");
+
+// -----------------------------------------------------------
+// Initialize counter for person_embeddings auto-increment IDs
+// -----------------------------------------------------------
+db.counters.updateOne(
+    { _id: "person_embeddings" },
+    { $setOnInsert: { seq: 0 } },
+    { upsert: true }
+);
+print("✓ person_embeddings counter initialized");
+
+// -----------------------------------------------------------
+// Seed: New configuration entries for ReID and Telegram
+// -----------------------------------------------------------
+const v2Configs = [
+    { config_key: "reid_service_url", config_value: "http://localhost:8100", description: "URL of the Python ReID microservice" },
+    { config_key: "reid_enabled", config_value: "false", description: "Enable/disable Person Re-Identification" },
+    { config_key: "reid_similarity_threshold", config_value: "0.85", description: "Cosine similarity threshold for ReID match (0.0 to 1.0)" },
+    { config_key: "reid_match_window", config_value: "100", description: "Number of recent embeddings to compare against" },
+    { config_key: "telegram_enabled", config_value: "false", description: "Enable/disable Telegram alerts" },
+    { config_key: "telegram_bot_token", config_value: "", description: "Telegram Bot API token (from @BotFather)" },
+    { config_key: "telegram_chat_id", config_value: "", description: "Telegram chat/group ID for alerts" },
+    { config_key: "notification_mode", config_value: "toast", description: "Desktop notification mode: toast (ControlsFX) or popup (blocking overlay)" }
+];
+
+v2Configs.forEach(cfg => {
+    db.alert_config.updateOne(
+        { config_key: cfg.config_key },
+        { $setOnInsert: cfg },
+        { upsert: true }
+    );
+});
+print("✓ v2.0 configuration entries seeded (" + v2Configs.length + " entries)");
+
+print("\n=== DrishtiX v2.0 schema updates complete ===");
+print("New collections: person_embeddings");
+print("New config keys: reid_service_url, reid_enabled, reid_similarity_threshold, reid_match_window, telegram_enabled, telegram_bot_token, telegram_chat_id, notification_mode");

@@ -1,6 +1,5 @@
 package com.drishtix.dao;
 
-import com.drishtix.exception.DatabaseException;
 import com.drishtix.model.AuditLogEntry;
 import com.mongodb.client.MongoCollection;
 import org.bson.Document;

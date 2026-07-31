@@ -5,8 +5,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.sound.sampled.*;
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 /**
  * Utility to generate simple alert WAV sounds at startup

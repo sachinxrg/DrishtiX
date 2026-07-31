@@ -180,6 +180,58 @@ public class DetectionLogDAO {
         }
     }
 
+    /**
+     * Finds a single detection log entry by its ID.
+     */
+    public Optional<DetectionLog> findById(long logId) {
+        try {
+            Document doc = collection().find(eq("_id", logId)).first();
+            if (doc != null) {
+                DetectionLog dl = mapDocument(doc);
+                enrichWithTargetData(List.of(dl));
+                return Optional.of(dl);
+            }
+            return Optional.empty();
+        } catch (Exception e) {
+            throw new DatabaseException("Failed to find detection log by id: " + logId, e);
+        }
+    }
+
+    /**
+     * Deletes a single detection log entry by its ID.
+     *
+     * @return true if a document was deleted, false if not found
+     */
+    public boolean deleteById(long logId) {
+        try {
+            long deleted = collection().deleteOne(eq("_id", logId)).getDeletedCount();
+            if (deleted > 0) {
+                log.info("Detection log deleted: logId={}", logId);
+                return true;
+            }
+            log.warn("Detection log not found for deletion: logId={}", logId);
+            return false;
+        } catch (Exception e) {
+            throw new DatabaseException("Failed to delete detection log: " + logId, e);
+        }
+    }
+
+    /**
+     * Deletes all detection log entries for a specific target.
+     * Used during cascading target deletion.
+     *
+     * @return number of logs deleted
+     */
+    public int deleteByTargetId(int targetId) {
+        try {
+            long deleted = collection().deleteMany(eq("target_id", targetId)).getDeletedCount();
+            log.info("Deleted {} detection logs for target: {}", deleted, targetId);
+            return (int) deleted;
+        } catch (Exception e) {
+            throw new DatabaseException("Failed to delete detection logs for target: " + targetId, e);
+        }
+    }
+
     // ==================== Private Helpers ====================
 
     /**

@@ -112,4 +112,53 @@ public class DetectionLogController {
             }
         }
     }
+
+    @FXML
+    public void handleDeleteLog() {
+        DetectionLog selected = logTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            Platform.runLater(() -> {
+                Alert info = new Alert(Alert.AlertType.INFORMATION);
+                info.setTitle("DrishtiX");
+                info.setContentText("Please select a log entry to delete.");
+                info.showAndWait();
+            });
+            return;
+        }
+
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Delete Detection Log");
+        confirm.setHeaderText("🗑️ Delete Log Entry");
+        confirm.setContentText(
+                "Delete this detection log entry?\n\n" +
+                "  Target: " + (selected.getTargetName() != null ? selected.getTargetName() : "ID " + selected.getTargetId()) + "\n" +
+                "  Timestamp: " + selected.getDetectionTimestamp() + "\n" +
+                "  Confidence: " + String.format("%.2f", selected.getMatchConfidenceScore()) + "\n\n" +
+                "The associated snapshot file will also be deleted.\n" +
+                "This action cannot be undone.");
+        confirm.getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
+
+        confirm.showAndWait().ifPresent(btn -> {
+            if (btn == ButtonType.OK) {
+                try {
+                    logService.deleteLog(selected.getLogId());
+                    handleFilter(); // Refresh the table
+                    Platform.runLater(() -> {
+                        Alert success = new Alert(Alert.AlertType.INFORMATION);
+                        success.setTitle("DrishtiX");
+                        success.setContentText("Detection log entry deleted successfully.");
+                        success.showAndWait();
+                    });
+                } catch (Exception e) {
+                    log.error("Failed to delete detection log: {}", selected.getLogId(), e);
+                    Platform.runLater(() -> {
+                        Alert error = new Alert(Alert.AlertType.ERROR);
+                        error.setTitle("Delete Failed");
+                        error.setContentText("Failed to delete log entry: " + e.getMessage());
+                        error.showAndWait();
+                    });
+                }
+            }
+        });
+    }
 }

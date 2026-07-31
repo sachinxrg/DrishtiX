@@ -66,6 +66,25 @@ public class ConfigurationService {
         cache.putIfAbsent(AppConstants.CFG_MIN_FACE_SIZE, String.valueOf(AppConstants.MIN_FACE_SIZE));
         cache.putIfAbsent(AppConstants.CFG_AUTO_START_CAMERA, "true");
         cache.putIfAbsent(AppConstants.CFG_SNAPSHOT_RETENTION, "90");
+        cache.putIfAbsent(AppConstants.CFG_REID_SERVICE_URL, AppConstants.DEFAULT_REID_SERVICE_URL);
+        cache.putIfAbsent(AppConstants.CFG_REID_ENABLED, "false");
+        cache.putIfAbsent(AppConstants.CFG_REID_SIMILARITY_THRESHOLD, String.valueOf(AppConstants.DEFAULT_REID_SIMILARITY_THRESHOLD));
+        cache.putIfAbsent(AppConstants.CFG_REID_MATCH_WINDOW, String.valueOf(AppConstants.DEFAULT_REID_MATCH_WINDOW));
+        cache.putIfAbsent(AppConstants.CFG_TELEGRAM_ENABLED, "false");
+        cache.putIfAbsent(AppConstants.CFG_TELEGRAM_BOT_TOKEN, "");
+        cache.putIfAbsent(AppConstants.CFG_TELEGRAM_CHAT_ID, "");
+        cache.putIfAbsent(AppConstants.CFG_NOTIFICATION_MODE, "toast");
+        // DNN defaults
+        cache.putIfAbsent(AppConstants.CFG_DNN_SCORE_THRESHOLD, String.valueOf(AppConstants.DEFAULT_DNN_SCORE_THRESHOLD));
+        cache.putIfAbsent(AppConstants.CFG_DNN_NMS_THRESHOLD, String.valueOf(AppConstants.DEFAULT_DNN_NMS_THRESHOLD));
+        cache.putIfAbsent(AppConstants.CFG_DNN_COSINE_THRESHOLD, String.valueOf(AppConstants.DEFAULT_DNN_COSINE_THRESHOLD));
+        cache.putIfAbsent(AppConstants.CFG_DNN_MODEL_DIR, AppConstants.MODELS_DIR);
+        // Ingestion defaults
+        cache.putIfAbsent(AppConstants.CFG_INGESTION_ENABLED, "false");
+        cache.putIfAbsent(AppConstants.CFG_INGESTION_INTERVAL_HOURS, String.valueOf(AppConstants.DEFAULT_INGESTION_INTERVAL_HOURS));
+        // Tracking defaults
+        cache.putIfAbsent(AppConstants.CFG_INFERENCE_FRAME_INTERVAL, String.valueOf(AppConstants.DEFAULT_INFERENCE_FRAME_INTERVAL));
+        cache.putIfAbsent(AppConstants.CFG_TRACKER_TYPE, AppConstants.DEFAULT_TRACKER_TYPE);
         log.info("Configuration defaults loaded — {} entries", cache.size());
     }
 
@@ -112,6 +131,66 @@ public class ConfigurationService {
         return getInt(AppConstants.CFG_SNAPSHOT_RETENTION, 90);
     }
 
+    // ==================== ReID Accessors ====================
+
+    public String getReIDServiceUrl() {
+        return getString(AppConstants.CFG_REID_SERVICE_URL, AppConstants.DEFAULT_REID_SERVICE_URL);
+    }
+
+    public boolean isReIDEnabled() {
+        return getBoolean(AppConstants.CFG_REID_ENABLED, false);
+    }
+
+    public double getReIDSimilarityThreshold() {
+        return getDouble(AppConstants.CFG_REID_SIMILARITY_THRESHOLD, AppConstants.DEFAULT_REID_SIMILARITY_THRESHOLD);
+    }
+
+    public int getReIDMatchWindow() {
+        return getInt(AppConstants.CFG_REID_MATCH_WINDOW, AppConstants.DEFAULT_REID_MATCH_WINDOW);
+    }
+
+    // ==================== Telegram Accessors ====================
+
+    public boolean isTelegramEnabled() {
+        return getBoolean(AppConstants.CFG_TELEGRAM_ENABLED, false);
+    }
+
+    public String getTelegramBotToken() {
+        return getString(AppConstants.CFG_TELEGRAM_BOT_TOKEN, "");
+    }
+
+    public String getTelegramChatId() {
+        return getString(AppConstants.CFG_TELEGRAM_CHAT_ID, "");
+    }
+
+    // ==================== Notification Accessors ====================
+
+    public String getNotificationMode() {
+        return getString(AppConstants.CFG_NOTIFICATION_MODE, "toast");
+    }
+
+    // ==================== DNN Accessors ====================
+
+    public double getDnnScoreThreshold() {
+        return getDouble(AppConstants.CFG_DNN_SCORE_THRESHOLD, AppConstants.DEFAULT_DNN_SCORE_THRESHOLD);
+    }
+
+    public double getDnnNmsThreshold() {
+        return getDouble(AppConstants.CFG_DNN_NMS_THRESHOLD, AppConstants.DEFAULT_DNN_NMS_THRESHOLD);
+    }
+
+    public double getDnnCosineThreshold() {
+        return getDouble(AppConstants.CFG_DNN_COSINE_THRESHOLD, AppConstants.DEFAULT_DNN_COSINE_THRESHOLD);
+    }
+
+    public String getDnnModelDir() {
+        return getString(AppConstants.CFG_DNN_MODEL_DIR, AppConstants.MODELS_DIR);
+    }
+
+    public boolean isDnnMode() {
+        return "DNN".equalsIgnoreCase(getDetectionMethod());
+    }
+
     // ==================== Generic Accessors ====================
 
     public String getString(String key, String defaultValue) {
@@ -144,5 +223,25 @@ public class ConfigurationService {
         String value = cache.get(key);
         if (value == null) return defaultValue;
         return Boolean.parseBoolean(value);
+    }
+
+    // ==================== Ingestion Accessors ====================
+
+    public boolean isIngestionEnabled() {
+        return getBoolean(AppConstants.CFG_INGESTION_ENABLED, false);
+    }
+
+    public int getIngestionIntervalHours() {
+        return getInt(AppConstants.CFG_INGESTION_INTERVAL_HOURS, AppConstants.DEFAULT_INGESTION_INTERVAL_HOURS);
+    }
+
+    // ==================== Tracking Accessors ====================
+
+    public int getInferenceFrameInterval() {
+        return getInt(AppConstants.CFG_INFERENCE_FRAME_INTERVAL, AppConstants.DEFAULT_INFERENCE_FRAME_INTERVAL);
+    }
+
+    public String getTrackerType() {
+        return getString(AppConstants.CFG_TRACKER_TYPE, AppConstants.DEFAULT_TRACKER_TYPE);
     }
 }

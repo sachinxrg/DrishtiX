@@ -1,0 +1,16 @@
+# DrishtiX ReID Service — Python Dependencies
+# Install: pip install -r requirements.txt
+
+# --- Web Framework ---
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.19
+
+# --- Deep Learning ---
+torch>=2.0.0
+torchvision>=0.15.0
+torchreid==0.2.5
+
+# --- Image Processing ---
+Pillow>=10.0.0
+numpy>=1.24.0

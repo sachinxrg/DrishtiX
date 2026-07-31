@@ -1,6 +1,7 @@
 package com.drishtix;
 
 import com.drishtix.dao.DatabaseManager;
+import com.drishtix.service.ingestion.BackgroundIngestionEngine;
 import com.drishtix.util.AppConstants;
 import com.drishtix.util.SoundGenerator;
 import com.drishtix.util.ThreadPools;
@@ -72,6 +73,14 @@ public class DrishtiXApp extends Application {
             primaryStage.show();
             log.info("{} started successfully — window: {}x{}", AppConstants.APP_NAME, 1280, 800);
 
+            // Start the background ingestion engine (FBI/CBI/TrackChild scrapers)
+            // Runs on a separate low-priority thread pool with a 60-second startup delay
+            try {
+                BackgroundIngestionEngine.getInstance().start();
+            } catch (Exception e) {
+                log.warn("Background ingestion engine failed to start — continuing without ingestion", e);
+            }
+
         } catch (Exception e) {
             log.error("FATAL: Failed to start {}", AppConstants.APP_NAME, e);
             Platform.exit();
@@ -83,6 +92,13 @@ public class DrishtiXApp extends Application {
      */
     private void shutdown() {
         log.info("Shutting down {}...", AppConstants.APP_NAME);
+
+        // Stop the background ingestion engine
+        try {
+            BackgroundIngestionEngine.getInstance().stop();
+        } catch (Exception e) {
+            log.error("Error stopping ingestion engine", e);
+        }
 
         // Shutdown thread pools
         ThreadPools.shutdownAll();

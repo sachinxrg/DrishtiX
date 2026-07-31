@@ -1,8 +1,13 @@
 package com.drishtix.util;
 
+import com.drishtix.service.DnnFaceRecognitionService;
+import org.bytedeco.opencv.opencv_core.Mat;
+import static org.bytedeco.opencv.global.opencv_core.CV_8UC3;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.*;
 
 /**
@@ -19,7 +24,9 @@ public final class ThreadPools {
 
     private static volatile ExecutorService videoInferencePool;
     private static volatile ExecutorService audioAlertPool;
+    private static volatile ExecutorService recognitionInferencePool;
     private static volatile ScheduledExecutorService scheduledPool;
+    private static volatile ScheduledExecutorService ingestionPool;
 
     private ThreadPools() {
         // Utility class — no instantiation
@@ -85,6 +92,86 @@ public final class ThreadPools {
     }
 
     /**
+     * Returns the Background Ingestion thread pool (2 threads, scheduled).
+     * Used for periodic web scraping and REST API polling (FBI, CBI, TrackChild).
+     * Kept separate from the main scheduled pool to avoid contention.
+     */
+    public static ScheduledExecutorService getIngestionPool() {
+        if (ingestionPool == null) {
+            synchronized (ThreadPools.class) {
+                if (ingestionPool == null) {
+                    ingestionPool = Executors.newScheduledThreadPool(2, r -> {
+                        Thread t = new Thread(r, "DrishtiX-Ingestion");
+                        t.setDaemon(true);
+                        t.setPriority(Thread.MIN_PRIORITY); // Low priority — don't steal CPU from inference
+                        return t;
+                    });
+                    log.info("Ingestion thread pool initialized (2 threads, low priority)");
+                }
+            }
+        }
+        return ingestionPool;
+    }
+
+    /**
+     * Returns the DNN Recognition Inference thread pool (4 threads).
+     * Used for heavy DNN embedding extraction (SFace/ArcFace) to keep
+     * the main capture loop responsive.
+     */
+    public static ExecutorService getRecognitionInferencePool() {
+        if (recognitionInferencePool == null) {
+            synchronized (ThreadPools.class) {
+                if (recognitionInferencePool == null) {
+                    recognitionInferencePool = Executors.newFixedThreadPool(4, r -> {
+                        Thread t = new Thread(r, "DrishtiX-RecognitionInference");
+                        t.setDaemon(true);
+                        return t;
+                    });
+                    log.info("Recognition Inference thread pool initialized (4 threads)");
+                }
+            }
+        }
+        return recognitionInferencePool;
+    }
+
+    /**
+     * Pre-warms the recognition pool by triggering ThreadLocal FaceRecognizerSF
+     * initialization on all pool threads. Eliminates the ~200ms cold-start
+     * penalty when the first face appears on camera.
+     * <p>
+     * Each pool thread creates a dummy 112x112 Mat and runs extractEmbedding()
+     * to force the ThreadLocal SFace model to load.
+     * </p>
+     */
+    public static void preWarmRecognitionPool() {
+        ExecutorService pool = getRecognitionInferencePool();
+        DnnFaceRecognitionService recogService = DnnFaceRecognitionService.getInstance();
+        if (!recogService.isInitialized()) {
+            log.warn("Cannot pre-warm recognition pool — DNN recognizer not initialized");
+            return;
+        }
+
+        List<CompletableFuture<Void>> warmups = new ArrayList<>();
+        for (int i = 0; i < 4; i++) {
+            warmups.add(CompletableFuture.runAsync(() -> {
+                Mat dummy = new Mat(112, 112, CV_8UC3);
+                try {
+                    recogService.extractEmbedding(dummy);
+                } finally {
+                    dummy.release();
+                }
+                log.debug("Recognition pool thread pre-warmed: {}", Thread.currentThread().getName());
+            }, pool));
+        }
+        try {
+            CompletableFuture.allOf(warmups.toArray(new CompletableFuture[0])).join();
+            log.info("Recognition inference pool pre-warmed (4 threads ready)");
+        } catch (Exception e) {
+            log.warn("Recognition pool pre-warming failed (non-fatal)", e);
+        }
+    }
+
+    /**
      * Gracefully shuts down all thread pools.
      * Called during application shutdown to release resources.
      */
@@ -92,7 +179,9 @@ public final class ThreadPools {
         log.info("Shutting down all DrishtiX thread pools...");
         shutdownPool("VideoInference", videoInferencePool);
         shutdownPool("AudioAlert", audioAlertPool);
+        shutdownPool("RecognitionInference", recognitionInferencePool);
         shutdownPool("Scheduled", scheduledPool);
+        shutdownPool("Ingestion", ingestionPool);
         log.info("All thread pools shut down successfully");
     }
 

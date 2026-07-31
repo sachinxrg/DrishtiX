@@ -47,3 +47,12 @@ buildNumber.properties
 # Application Data
 data/
 services/drishtix-app/data/
+
+# Python Virtual Environment
+services/reid-service/venv/
+__pycache__/
+*.pyc
+
+# Runtime
+.reid_service.pid
+services/drishtix-app/config.properties

@@ -36,7 +36,6 @@ public class MainController {
 
     private final Map<String, Node> viewCache = new HashMap<>();
     private final Map<String, Object> controllerCache = new HashMap<>();
-    private VBox activeNavItem;
 
     @FXML
     public void initialize() {
@@ -133,6 +132,5 @@ public class MainController {
             default -> navDashboard;
         };
         target.getStyleClass().add("nav-active");
-        activeNavItem = target;
     }
 }

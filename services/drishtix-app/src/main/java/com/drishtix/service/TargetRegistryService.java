@@ -1,6 +1,7 @@
 package com.drishtix.service;
 
 import com.drishtix.dao.AuditLogDAO;
+import com.drishtix.dao.DetectionLogDAO;
 import com.drishtix.dao.TargetDAO;
 import com.drishtix.dao.TargetImageDAO;
 import com.drishtix.exception.FaceNotFoundException;
@@ -165,6 +166,95 @@ public class TargetRegistryService {
 
         auditLogDAO.insert(AuditLogEntry.targetAction(
                 AppConstants.AUDIT_TARGET_DEACTIVATED, targetId, "Target deactivated"));
+    }
+
+    /**
+     * Permanently deletes a target and all associated data.
+     * <p>
+     * Cascading delete workflow:
+     * 1. Verify target exists
+     * 2. Delete physical image/template files
+     * 3. Delete physical snapshot files from detection logs
+     * 4. Delete detection_logs documents for this target
+     * 5. Delete target_images documents for this target
+     * 6. Delete the target document itself
+     * 7. Retrain LBPH model
+     * 8. Record audit log
+     * </p>
+     *
+     * @param targetId the ID of the target to delete
+     * @throws IllegalArgumentException if the target is not found
+     */
+    public void deleteTarget(int targetId) {
+        // Step 1: Verify target exists
+        Optional<TargetRegistry> targetOpt = targetDAO.findById(targetId);
+        if (targetOpt.isEmpty()) {
+            throw new IllegalArgumentException("Target not found: " + targetId);
+        }
+        TargetRegistry target = targetOpt.get();
+        String targetName = target.getFullName();
+
+        log.info("Starting cascading delete for target: id={}, name={}", targetId, targetName);
+
+        // Step 2: Delete physical image and template files
+        List<TargetImage> images = targetImageDAO.findByTargetId(targetId);
+        for (TargetImage img : images) {
+            deleteFileQuietly(img.getImagePath());
+            deleteFileQuietly(img.getTemplatePath());
+        }
+
+        // Step 3: Delete physical snapshot files from detection logs
+        DetectionLogDAO detectionLogDAO = new DetectionLogDAO();
+        List<DetectionLog> logs = detectionLogDAO.findByTargetId(targetId);
+        for (DetectionLog dl : logs) {
+            deleteFileQuietly(dl.getSnapshotPath());
+        }
+
+        // Step 4: Delete detection_logs documents
+        int logsDeleted = detectionLogDAO.deleteByTargetId(targetId);
+        log.info("Deleted {} detection logs for target: {}", logsDeleted, targetId);
+
+        // Step 5: Delete target_images documents
+        targetImageDAO.deleteByTargetId(targetId);
+
+        // Step 6: Delete the target document
+        targetDAO.delete(targetId);
+
+        // Also delete the profile image file
+        deleteFileQuietly(target.getProfileImagePath());
+
+        // Step 7: Retrain LBPH model asynchronously
+        CompletableFuture.runAsync(() -> {
+            try {
+                recognitionService.trainModel();
+                log.info("LBPH model retrained after deleting target: {}", targetId);
+            } catch (Exception e) {
+                log.error("Failed to retrain model after target deletion", e);
+            }
+        }, ThreadPools.getVideoInferencePool());
+
+        // Step 8: Audit log
+        auditLogDAO.insert(AuditLogEntry.targetAction(
+                AppConstants.AUDIT_TARGET_DELETED, targetId,
+                String.format("{\"name\":\"%s\",\"category\":\"%s\",\"case\":\"%s\"}",
+                        targetName, target.getCategory(), target.getCaseNumber())));
+
+        log.info("Target permanently deleted: id={}, name={}", targetId, targetName);
+    }
+
+    /**
+     * Quietly deletes a file without throwing exceptions.
+     */
+    private void deleteFileQuietly(String path) {
+        if (path == null || path.isBlank()) return;
+        try {
+            File file = new File(path);
+            if (file.exists() && file.delete()) {
+                log.debug("Deleted file: {}", path);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to delete file: {}", path, e);
+        }
     }
 
     /**

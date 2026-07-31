@@ -97,6 +97,23 @@ public class TargetDAO {
     }
 
     /**
+     * Permanently deletes a target from the database.
+     * Callers must handle cascading deletes (images, logs, files) before calling this.
+     */
+    public void delete(int targetId) {
+        try {
+            long deleted = collection().deleteOne(eq("_id", targetId)).getDeletedCount();
+            if (deleted > 0) {
+                log.info("Target permanently deleted: id={}", targetId);
+            } else {
+                log.warn("Target not found for deletion: id={}", targetId);
+            }
+        } catch (Exception e) {
+            throw new DatabaseException("Failed to delete target: " + targetId, e);
+        }
+    }
+
+    /**
      * Finds a target by its primary key.
      */
     public Optional<TargetRegistry> findById(int targetId) {

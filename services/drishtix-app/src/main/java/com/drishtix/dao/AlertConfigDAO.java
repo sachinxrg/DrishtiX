@@ -1,7 +1,6 @@
 package com.drishtix.dao;
 
 import com.drishtix.exception.DatabaseException;
-import com.drishtix.model.AlertConfig;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import org.bson.Document;

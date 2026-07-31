@@ -1,6 +1,8 @@
 package com.drishtix.service;
 
+import com.drishtix.model.RecognitionResult;
 import com.drishtix.model.TargetCategory;
+import com.drishtix.model.TargetRegistry;
 import com.drishtix.util.AppConstants;
 import com.drishtix.util.ThreadPools;
 import org.slf4j.Logger;
@@ -58,12 +60,42 @@ public class AlertService {
     /**
      * Triggers an alert for a detected target, respecting the cooldown window.
      * Plays the audio asynchronously on the Audio Alert thread pool.
+     * <p>
+     * This is the original method signature preserved for backward compatibility.
+     * Use {@link #triggerAlert(int, TargetCategory, TargetRegistry, RecognitionResult, String)}
+     * for full multi-channel alert orchestration.
+     * </p>
      *
      * @param targetId the ID of the detected target
      * @param category the category (determines sound type)
      * @return true if the alert was triggered, false if suppressed by cooldown
      */
     public boolean triggerAlert(int targetId, TargetCategory category) {
+        return triggerAlert(targetId, category, null, null, null);
+    }
+
+    /**
+     * Triggers a multi-channel alert for a detected target, respecting the cooldown window.
+     * <p>
+     * Orchestrates three independent alert channels in parallel:
+     * <ol>
+     *   <li><strong>Audio</strong> — plays category-specific sound on the Audio Alert thread pool</li>
+     *   <li><strong>Desktop Notification</strong> — shows a ControlsFX sliding toast (non-blocking)</li>
+     *   <li><strong>Telegram</strong> — sends a photo message to the configured chat/group</li>
+     * </ol>
+     * Each channel is independent — one channel failing does not prevent others from firing.
+     * </p>
+     *
+     * @param targetId     the ID of the detected target
+     * @param category     the category (determines sound type and notification style)
+     * @param target       the full target entity (for notification details, may be null)
+     * @param result       the recognition result (for confidence display, may be null)
+     * @param snapshotPath path to the detection snapshot (for Telegram photo, may be null)
+     * @return true if the alert was triggered, false if suppressed by cooldown
+     */
+    public boolean triggerAlert(int targetId, TargetCategory category,
+                                 TargetRegistry target, RecognitionResult result,
+                                 String snapshotPath) {
         if (!shouldAlert(targetId)) {
             log.debug("Alert suppressed for target {} (cooldown active)", targetId);
             return false;
@@ -72,7 +104,7 @@ public class AlertService {
         // Record alert time
         lastAlertTimes.put(targetId, Instant.now());
 
-        // Play sound asynchronously on the audio thread pool
+        // === Channel 1: Audio Alert (existing) ===
         if (audioEnabled) {
             CompletableFuture.runAsync(() -> playSound(category), ThreadPools.getAudioAlertPool())
                     .exceptionally(ex -> {
@@ -81,7 +113,31 @@ public class AlertService {
                     });
         }
 
-        log.info("ALERT TRIGGERED: targetId={}, category={}", targetId, category);
+        // === Channel 2: Desktop Notification (ControlsFX toast) ===
+        if (target != null) {
+            try {
+                NotificationService.getInstance().showDetectionAlert(target, result, snapshotPath);
+            } catch (Exception e) {
+                log.warn("Desktop notification failed: {}", e.getMessage());
+            }
+        }
+
+        // === Channel 3: Telegram Alert ===
+        if (target != null && ConfigurationService.getInstance().isTelegramEnabled()) {
+            String confidence = result != null ? result.getConfidencePercentage() : "N/A";
+            CompletableFuture.runAsync(() -> {
+                try {
+                    TelegramAlertService.getInstance().sendDetectionAlert(
+                            target, confidence, snapshotPath, null, null);
+                } catch (Exception e) {
+                    log.warn("Telegram alert failed: {}", e.getMessage());
+                }
+            }, ThreadPools.getAudioAlertPool()); // Reuse audio pool for async I/O
+        }
+
+        log.info("ALERT TRIGGERED: targetId={}, category={}, channels=[audio={}, notification={}, telegram={}]",
+                targetId, category, audioEnabled, target != null, 
+                ConfigurationService.getInstance().isTelegramEnabled());
         return true;
     }
 

@@ -19,6 +19,7 @@
                 <ComboBox fx:id="categoryFilter" prefWidth="140" styleClass="control-combo"/>
                 <Button text="🔍 Filter" onAction="#handleFilter" styleClass="btn-primary"/>
                 <Region HBox.hgrow="ALWAYS"/>
+                <Button text="🗑️ Delete Log" onAction="#handleDeleteLog" styleClass="btn-danger"/>
                 <Button text="📥 Export CSV" onAction="#handleExportCSV" styleClass="btn-secondary"/>
             </HBox>
         </VBox>

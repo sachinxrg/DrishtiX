@@ -130,6 +130,61 @@ public class RegistryController {
     }
 
     @FXML
+    public void handleDeleteTarget() {
+        TargetRegistry selected = targetTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showInfo("Please select a target to delete.");
+            return;
+        }
+
+        // Step 1: Initial warning
+        Alert warning = new Alert(Alert.AlertType.WARNING);
+        warning.setTitle("Delete Target — Warning");
+        warning.setHeaderText("⚠ Permanent Deletion");
+        warning.setContentText(
+                "You are about to permanently delete:\n\n" +
+                "  Target: " + selected.getFullName() + "\n" +
+                "  Case #: " + selected.getCaseNumber() + "\n" +
+                "  Category: " + selected.getCategory() + "\n\n" +
+                "This will also delete ALL associated:\n" +
+                "  • Uploaded photos & face templates\n" +
+                "  • Detection log entries & snapshots\n\n" +
+                "This action CANNOT be undone. Continue?");
+        warning.getButtonTypes().setAll(ButtonType.YES, ButtonType.CANCEL);
+
+        warning.showAndWait().ifPresent(btn -> {
+            if (btn == ButtonType.YES) {
+                // Step 2: Final confirmation
+                Alert finalConfirm = new Alert(Alert.AlertType.CONFIRMATION);
+                finalConfirm.setTitle("Final Confirmation");
+                finalConfirm.setHeaderText("🗑️ Last Chance");
+                finalConfirm.setContentText(
+                        "Are you absolutely sure you want to permanently delete \"" +
+                        selected.getFullName() + "\"?");
+                finalConfirm.getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
+
+                finalConfirm.showAndWait().ifPresent(finalBtn -> {
+                    if (finalBtn == ButtonType.OK) {
+                        try {
+                            registryService.deleteTarget(selected.getTargetId());
+                            loadTargets();
+                            showInfo("Target \"" + selected.getFullName() + "\" has been permanently deleted.");
+                        } catch (Exception e) {
+                            log.error("Failed to delete target: {}", selected.getTargetId(), e);
+                            Platform.runLater(() -> {
+                                Alert error = new Alert(Alert.AlertType.ERROR);
+                                error.setTitle("Delete Failed");
+                                error.setContentText("Failed to delete target: " + e.getMessage());
+                                error.showAndWait();
+                            });
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    @FXML
     public void handleRefresh() {
         loadTargets();
     }

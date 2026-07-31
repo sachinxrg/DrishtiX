@@ -82,66 +82,68 @@ public class RecognitionService {
 
             MatVector images = new MatVector();
             Mat labels = new Mat(templates.size(), 1, org.bytedeco.opencv.global.opencv_core.CV_32SC1);
+            Mat trimmedLabels = null;
 
-            int loadedCount = 0;
-            for (int i = 0; i < templates.size(); i++) {
-                TargetImage ti = templates.get(i);
-                String templatePath = ti.getTemplatePath();
+            try {
+                int loadedCount = 0;
+                for (int i = 0; i < templates.size(); i++) {
+                    TargetImage ti = templates.get(i);
+                    String templatePath = ti.getTemplatePath();
 
-                if (templatePath == null || !new File(templatePath).exists()) {
-                    log.warn("Template file missing for image_id={}: {}", ti.getImageId(), templatePath);
-                    continue;
+                    if (templatePath == null || !new File(templatePath).exists()) {
+                        log.warn("Template file missing for image_id={}: {}", ti.getImageId(), templatePath);
+                        continue;
+                    }
+
+                    Mat templateMat = imread(templatePath, IMREAD_GRAYSCALE);
+                    if (templateMat.empty()) {
+                        log.warn("Failed to load template: {}", templatePath);
+                        templateMat.release();
+                        continue;
+                    }
+
+                    // Lookup the recognizer_label from the parent target
+                    Optional<TargetRegistry> targetOpt = targetDAO.findById(ti.getTargetId());
+                    if (targetOpt.isEmpty()) {
+                        log.warn("Target not found for image_id={}", ti.getImageId());
+                        templateMat.release();
+                        continue;
+                    }
+
+                    images.push_back(templateMat);
+                    labels.ptr(loadedCount).putInt(targetOpt.get().getRecognizerLabel());
+                    loadedCount++;
                 }
 
-                Mat templateMat = imread(templatePath, IMREAD_GRAYSCALE);
-                if (templateMat.empty()) {
-                    log.warn("Failed to load template: {}", templatePath);
-                    templateMat.release();
-                    continue;
+                if (loadedCount == 0) {
+                    log.warn("No valid templates could be loaded — recognizer not trained");
+                    trained = false;
+                    return;
                 }
 
-                // Lookup the recognizer_label from the parent target
-                Optional<TargetRegistry> targetOpt = targetDAO.findById(ti.getTargetId());
-                if (targetOpt.isEmpty()) {
-                    log.warn("Target not found for image_id={}", ti.getImageId());
-                    templateMat.release();
-                    continue;
+                // Trim the labels Mat to the actual loaded count
+                trimmedLabels = new Mat(loadedCount, 1, org.bytedeco.opencv.global.opencv_core.CV_32SC1);
+                for (int i = 0; i < loadedCount; i++) {
+                    trimmedLabels.ptr(i).putInt(labels.ptr(i).getInt());
                 }
 
-                images.push_back(templateMat);
-                labels.ptr(loadedCount).putInt(targetOpt.get().getRecognizerLabel());
-                loadedCount++;
-            }
+                // Recreate recognizer to clear previous model
+                recognizer = LBPHFaceRecognizer.create(1, 8, 8, 8, 200.0);
+                recognizer.train(images, trimmedLabels);
+                trained = true;
 
-            if (loadedCount == 0) {
-                log.warn("No valid templates could be loaded — recognizer not trained");
-                trained = false;
-                images.close();
+                log.info("LBPH model trained successfully with {} templates from {} targets",
+                        loadedCount, templates.stream().map(TargetImage::getTargetId).distinct().count());
+
+            } finally {
+                // Guaranteed cleanup of native resources
                 labels.release();
-                return;
+                if (trimmedLabels != null) trimmedLabels.release();
+                for (long i = 0; i < images.size(); i++) {
+                    images.get(i).release();
+                }
+                images.close();
             }
-
-            // Trim the labels Mat to the actual loaded count
-            Mat trimmedLabels = new Mat(loadedCount, 1, org.bytedeco.opencv.global.opencv_core.CV_32SC1);
-            for (int i = 0; i < loadedCount; i++) {
-                trimmedLabels.ptr(i).putInt(labels.ptr(i).getInt());
-            }
-
-            // Recreate recognizer to clear previous model
-            recognizer = LBPHFaceRecognizer.create(1, 8, 8, 8, 200.0);
-            recognizer.train(images, trimmedLabels);
-            trained = true;
-
-            log.info("LBPH model trained successfully with {} templates from {} targets",
-                    loadedCount, templates.stream().map(TargetImage::getTargetId).distinct().count());
-
-            // Cleanup
-            labels.release();
-            trimmedLabels.release();
-            for (long i = 0; i < images.size(); i++) {
-                images.get(i).release();
-            }
-            images.close();
 
         } catch (Exception e) {
             trained = false;
@@ -199,6 +201,44 @@ public class RecognitionService {
      * Returns true if the recognizer has been trained with at least one template.
      */
     public boolean isTrained() {
+        if (ConfigurationService.getInstance().isDnnMode()) {
+            return DnnFaceRecognitionService.getInstance().isInitialized()
+                    && DnnFaceRecognitionService.getInstance().getGallerySize() > 0;
+        }
         return trained;
     }
+
+    /**
+     * Performs DNN-based recognition using SFace feature embeddings.
+     * Delegates to DnnFaceRecognitionService for embedding extraction and gallery matching.
+     *
+     * @param alignedFace the 112×112 BGR aligned face image
+     * @param dynamicThreshold the dynamically calculated similarity threshold (based on quality)
+     * @return RecognitionResult with cosine similarity score
+     */
+    public RecognitionResult predictDnn(Mat alignedFace, double dynamicThreshold) {
+        DnnFaceRecognitionService dnnService = DnnFaceRecognitionService.getInstance();
+        if (!dnnService.isInitialized()) {
+            return RecognitionResult.unknownDnn(0);
+        }
+
+        float[] embedding = dnnService.extractEmbedding(alignedFace);
+        if (embedding == null) {
+            return RecognitionResult.unknownDnn(0);
+        }
+
+        return dnnService.matchAgainstGallery(embedding, dynamicThreshold);
+    }
+
+    /**
+     * Rebuilds the DNN embedding gallery from the database.
+     * Called after target registration/deletion to keep the gallery in sync.
+     */
+    public void rebuildDnnGallery() {
+        DnnFaceRecognitionService dnnService = DnnFaceRecognitionService.getInstance();
+        if (dnnService.isInitialized()) {
+            dnnService.rebuildGallery();
+        }
+    }
 }
+

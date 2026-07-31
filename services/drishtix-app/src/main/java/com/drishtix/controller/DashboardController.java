@@ -6,7 +6,11 @@ import com.drishtix.util.AppConstants;
 import com.drishtix.util.AutoCloseableMat;
 import com.drishtix.util.FxImageConverter;
 import com.drishtix.util.ThreadPools;
+import com.drishtix.util.VectorMathUtil;
+import com.drishtix.dao.PersonEmbeddingDAO;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -14,6 +18,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
+import javafx.scene.shape.Rectangle;
 
 import javafx.stage.FileChooser;
 import org.bytedeco.javacv.OpenCVFrameGrabber;
@@ -26,9 +31,11 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.bytedeco.opencv.global.opencv_imgcodecs.imwrite;
@@ -37,21 +44,24 @@ import static org.bytedeco.opencv.global.opencv_imgproc.*;
 /**
  * HERO CONTROLLER — manages the main dashboard with:
  * 1. Live camera feed (70% of screen)
- * 2. Stats panel with target counts and recent alerts (30%)
- * 3. Pop-up alert notifications for matches
+ * 2. Stats panel with reactive IntegerProperty-bound counters (30%)
+ * 3. Dynamic sidebar alert queue (no modal popups)
  * 4. Quick-add target capability
  *
- * Implements the three-pool threading model:
- * - UI Thread: JavaFX rendering, pop-up alerts, status updates
- * - Video Inference Thread: frame capture, face detection, recognition
+ * Implements the four-pool threading model:
+ * - UI Thread: JavaFX rendering, alert card injection, status updates
+ * - Video Inference Thread: frame capture, face detection (YuNet DNN)
+ * - Recognition Inference Thread (NEW): DNN embedding extraction (SFace)
  * - Audio Alert Thread: sound playback (via AlertService)
  */
 public class DashboardController {
 
     private static final Logger log = LoggerFactory.getLogger(DashboardController.class);
+    private static final int MAX_ALERT_QUEUE_SIZE = 50;
 
     // ==================== FXML Bindings ====================
     @FXML private ImageView cameraFeed;
+    @FXML private ImageView cameraFeedBg;
     @FXML private ComboBox<CameraSource> cameraSelector;
     @FXML private Button btnStartStop;
     @FXML private Slider confidenceSlider;
@@ -63,9 +73,15 @@ public class DashboardController {
     @FXML private Label lblDetectionsToday;
     @FXML private Label lblCameraStatus;
     @FXML private Label lblRecognizerStatus;
-    @FXML private VBox recentAlertsBox;
+    @FXML private VBox alertQueueBox;
     @FXML private StackPane alertOverlay;
     @FXML private Label lblFps;
+
+    // ==================== Reactive Dashboard Metrics ====================
+    private final IntegerProperty totalTargetsProperty = new SimpleIntegerProperty(0);
+    private final IntegerProperty criminalsProperty = new SimpleIntegerProperty(0);
+    private final IntegerProperty missingProperty = new SimpleIntegerProperty(0);
+    private final IntegerProperty detectionsProperty = new SimpleIntegerProperty(0);
 
     // ==================== Services ====================
     private final TargetRegistryService registryService = TargetRegistryService.getInstance();
@@ -74,6 +90,9 @@ public class DashboardController {
     private final AlertService alertService = AlertService.getInstance();
     private final DetectionLogService detectionLogService = DetectionLogService.getInstance();
     private final ConfigurationService configService = ConfigurationService.getInstance();
+    private final ReIDService reidService = ReIDService.getInstance();
+    private final DnnBodyReIdService bodyReIdService = DnnBodyReIdService.getInstance();
+    private final PersonEmbeddingDAO embeddingDAO = new PersonEmbeddingDAO();
 
     // ==================== Camera State ====================
     private final AtomicBoolean cameraRunning = new AtomicBoolean(false);
@@ -86,9 +105,22 @@ public class DashboardController {
     private long lastFpsTime = System.currentTimeMillis();
     private int currentFps = 0;
 
+    // ==================== Frame-Skip & Tracking (Phase 3) ====================
+    private final AtomicLong globalFrameIndex = new AtomicLong(0);
+    private FaceTrackingManager trackingManager;
+
     @FXML
     public void initialize() {
-        log.info("DashboardController initializing — HERO SCREEN");
+        log.info("DashboardController initializing — HERO SCREEN (v4.0 Parallel Inference Pipeline)");
+
+        // Initialize face tracking manager
+        trackingManager = new FaceTrackingManager();
+
+        // Bind reactive metric properties to UI labels
+        if (lblTotalTargets != null) lblTotalTargets.textProperty().bind(totalTargetsProperty.asString());
+        if (lblCriminals != null) lblCriminals.textProperty().bind(criminalsProperty.asString());
+        if (lblMissing != null) lblMissing.textProperty().bind(missingProperty.asString());
+        if (lblDetectionsToday != null) lblDetectionsToday.textProperty().bind(detectionsProperty.asString());
 
         // Initialize confidence slider
         double threshold = configService.getConfidenceThreshold();
@@ -108,21 +140,43 @@ public class DashboardController {
             btnMute.setOnAction(e -> alertService.toggleMute());
         }
 
-        // Update dashboard stats
-        refreshStats();
+        // Bind camera feed background to fill the container (anti-letterbox)
+        if (cameraFeedBg != null && cameraFeed != null) {
+            StackPane parent = (StackPane) cameraFeedBg.getParent();
+            
+            // CRITICAL FIX: Prevent infinite layout loops by stopping the StackPane
+            // from calculating its preferred size based on the ImageViews.
+            parent.setMinSize(0, 0);
+            parent.setPrefSize(0, 0);
 
-        // Load recent alerts
-        refreshRecentAlerts();
+            cameraFeedBg.fitWidthProperty().bind(parent.widthProperty());
+            cameraFeedBg.fitHeightProperty().bind(parent.heightProperty());
+            
+            cameraFeed.fitWidthProperty().bind(parent.widthProperty());
+            cameraFeed.fitHeightProperty().bind(parent.heightProperty());
+        }
+
+        // Update dashboard stats via properties
+        refreshStats();
 
         // Initialize recognizer on startup
         registryService.initializeRecognizer();
+
+        // Also rebuild DNN gallery if in DNN mode
+        if (configService.isDnnMode()) {
+            CompletableFuture.runAsync(
+                    () -> recognitionService.rebuildDnnGallery(),
+                    ThreadPools.getRecognitionInferencePool()
+            ).thenRun(ThreadPools::preWarmRecognitionPool);
+        }
 
         // Auto-start camera if configured
         if (configService.isAutoStartCamera()) {
             Platform.runLater(() -> startCamera());
         }
 
-        log.info("DashboardController initialized");
+        log.info("DashboardController initialized (mode={})",
+                configService.isDnnMode() ? "DNN" : "HAAR+LBPH");
     }
 
     // ==================== Camera Control ====================
@@ -168,7 +222,10 @@ public class DashboardController {
                 cameraRunning.set(true);
 
                 Platform.runLater(() -> {
-                    if (btnStartStop != null) btnStartStop.setText("⏹ Stop");
+                    if (btnStartStop != null) {
+                        btnStartStop.setText("⏹ Stop");
+                        btnStartStop.getStyleClass().setAll("btn-stop");
+                    }
                     if (lblCameraStatus != null) {
                         lblCameraStatus.setText("● Active");
                         lblCameraStatus.setStyle("-fx-text-fill: #22C55E;");
@@ -185,7 +242,10 @@ public class DashboardController {
                 cameraRunning.set(false);
                 Platform.runLater(() -> {
                     showErrorToast("Camera Error: " + e.getMessage());
-                    if (btnStartStop != null) btnStartStop.setText("▶ Start");
+                    if (btnStartStop != null) {
+                        btnStartStop.setText("▶ Start");
+                        btnStartStop.getStyleClass().setAll("btn-primary");
+                    }
                 });
             }
         }, ThreadPools.getVideoInferencePool());
@@ -205,14 +265,25 @@ public class DashboardController {
             log.error("Error stopping camera", e);
         }
 
+        // Release all face trackers AND body locks (CSRT native memory)
+        if (trackingManager != null) {
+            trackingManager.clearAll();
+        }
+
         Platform.runLater(() -> {
-            if (btnStartStop != null) btnStartStop.setText("▶ Start");
+            if (btnStartStop != null) {
+                btnStartStop.setText("▶ Start");
+                btnStartStop.getStyleClass().setAll("btn-primary");
+            }
             if (lblCameraStatus != null) {
                 lblCameraStatus.setText("○ Inactive");
                 lblCameraStatus.setStyle("-fx-text-fill: #EF4444;");
             }
             if (cameraFeed != null) {
                 cameraFeed.setImage(FxImageConverter.createPlaceholder(640, 480));
+            }
+            if (cameraFeedBg != null) {
+                cameraFeedBg.setImage(null);
             }
         });
 
@@ -306,7 +377,10 @@ public class DashboardController {
             cameraRunning.set(false);
             Platform.runLater(() -> {
                 showErrorToast("Camera stopped: too many consecutive errors. Please check your camera connection.");
-                if (btnStartStop != null) btnStartStop.setText("▶ Start");
+                if (btnStartStop != null) {
+                    btnStartStop.setText("▶ Start");
+                    btnStartStop.getStyleClass().setAll("btn-primary");
+                }
                 if (lblCameraStatus != null) {
                     lblCameraStatus.setText("⚠ Error");
                     lblCameraStatus.setStyle("-fx-text-fill: #EF4444;");
@@ -327,9 +401,315 @@ public class DashboardController {
     }
 
     /**
-     * Processes a single frame: detect faces, recognize, annotate, alert.
+     * Processes a single frame: detect faces → recognize → annotate → alert.
+     * <p>
+     * DNN mode: Uses FaceDetectorYN (fast, on capture thread) + SFace (async, on recognition pool)
+     * LBPH mode (fallback): Uses Haar Cascade + LBPH (synchronous)
+     * </p>
      */
     private void processFrame(Mat frame) {
+        if (configService.isDnnMode()) {
+            processFrameDnn(frame);
+        } else {
+            processFrameLbph(frame);
+        }
+    }
+
+    /**
+     * DNN pipeline with frame-skip heuristic and parallel inference.
+     * <p>
+     * Every Nth frame (N=3 default): Full YuNet detection → parallel SFace
+     * embedding extraction on 4-thread pool → initialize KCF/CSRT trackers.
+     * Intermediate frames: Lightweight tracker.update() for smooth bounding
+     * box interpolation at 30+ FPS without running heavy DNN.
+     * </p>
+     */
+    private void processFrameDnn(Mat frame) {
+        DnnFaceDetectionService dnnDetector = DnnFaceDetectionService.getInstance();
+        if (!dnnDetector.isInitialized()) {
+            processFrameLbph(frame);
+            return;
+        }
+
+        long currentFrameIdx = globalFrameIndex.getAndIncrement();
+        int inferenceInterval = configService.getInferenceFrameInterval();
+        boolean isInferenceFrame = (currentFrameIdx % inferenceInterval == 0);
+
+        // ===== BODY LOCK UPDATES — run on EVERY frame (inference + intermediate) =====
+        // Body locks are persistent CSRT trackers that survive face tracker re-initialization.
+        // They update independently of the face detection cycle.
+        List<Rect> currentFaceBoxes = null; // Populated on inference frames for face re-confirmation
+
+        if (isInferenceFrame) {
+            // ===== FULL INFERENCE FRAME =====
+            List<FaceDetection> faces = dnnDetector.detectFaces(frame);
+
+            // Extract face boxes for body lock face re-confirmation
+            currentFaceBoxes = new ArrayList<>();
+            for (FaceDetection face : faces) {
+                currentFaceBoxes.add(face.getBoundingBox());
+            }
+
+            // Initialize face trackers from fresh detections (with IoU label carry-over)
+            trackingManager.initTrackers(frame, faces, currentFrameIdx);
+
+            if (!faces.isEmpty()) {
+                // Clone the frame ONCE so async threads can safely read pixels
+                final Mat asyncFrame = frame.clone();
+                List<CompletableFuture<Void>> futures = new ArrayList<>();
+
+                int trackerIdx = 0;
+                for (FaceDetection detection : faces) {
+                    final int trackId = trackerIdx++;
+                    final Rect box = detection.getBoundingBox();
+
+                    // === GATE 1: Resolution check (main thread, ~0ms) ===
+                    if (box.width() < 48 || box.height() < 48) {
+                        trackingManager.updateTrackLabel(trackId, "Too Small", AppConstants.COLOR_UNKNOWN_BGR);
+                        drawBoundingBox(frame, box, null, "Too Small", AppConstants.COLOR_UNKNOWN_BGR);
+                        continue;
+                    }
+
+                    // === GATE 2: FQA on main thread (~3ms, NOT on pool) ===
+                    int cx = Math.max(0, box.x());
+                    int cy = Math.max(0, box.y());
+                    int cw = Math.min(box.width(), frame.cols() - cx);
+                    int ch = Math.min(box.height(), frame.rows() - cy);
+                    if (cw <= 0 || ch <= 0) continue;
+
+                    Mat rawCrop = new Mat(frame, new Rect(cx, cy, cw, ch));
+                    FaceQuality fqa = faceService.assessFaceQuality(rawCrop, detection);
+                    rawCrop.release();
+
+                    if (fqa.isSpoofAttempt()) {
+                        trackingManager.updateTrackLabel(trackId, "SPOOF", new int[]{0, 165, 255});
+                        drawBoundingBox(frame, box, null, "SPOOF", new int[]{0, 165, 255});
+                        continue;
+                    }
+                    if (fqa.isUnfavorable()) {
+                        trackingManager.updateTrackLabel(trackId, "Unfavorable", AppConstants.COLOR_UNKNOWN_BGR);
+                        drawBoundingBox(frame, box, null, "Unfavorable", AppConstants.COLOR_UNKNOWN_BGR);
+                        continue;
+                    }
+
+                    // === GATE 3: Dynamic threshold computation (main thread, ~0ms) ===
+                    double baseThreshold = configService.getDnnCosineThreshold();
+                    double dynamicThreshold = baseThreshold;
+                    if (box.width() < 80) dynamicThreshold += 0.05;
+                    if (fqa.getLaplacianVariance() < 80.0) dynamicThreshold += 0.05;
+                    dynamicThreshold = Math.min(dynamicThreshold, 0.95);
+                    final double threshold = dynamicThreshold;
+
+                    // Draw initial bounding box
+                    drawBoundingBox(frame, box, null, "Analyzing...", AppConstants.COLOR_UNKNOWN_BGR);
+
+                    // === SUBMIT: alignCrop + SFace embedding → pool (~8ms per face) ===
+                    final float[] detRow = detection.getDetectionRow();
+                    // Capture detection confidence + frame index for body lock handoff gating
+                    final float yunetConfidence = detection.getDetectionScore();
+                    final long frameIdx = currentFrameIdx;
+
+                    CompletableFuture<Void> future = CompletableFuture.supplyAsync(() -> {
+                        DnnFaceRecognitionService dnnRecog = DnnFaceRecognitionService.getInstance();
+                        float[] embedding = dnnRecog.alignAndExtractEmbedding(asyncFrame, detRow);
+                        if (embedding == null) return null;
+                        RecognitionResult result = dnnRecog.matchAgainstGallery(embedding, threshold);
+                        // Package both result and embedding for body lock handoff
+                        if (result != null) {
+                            result.setProbeEmbedding(embedding);
+                        }
+                        return result;
+                    }, ThreadPools.getRecognitionInferencePool())
+                    .thenAcceptAsync(result -> {
+                        if (result == null) return;
+
+                        handleRecognitionResult(result, box);
+                        if (result.isMatched() && result.getMatchedTarget() != null) {
+                            TargetRegistry target = result.getMatchedTarget();
+                            boolean isCriminal = target.getCategory() == TargetCategory.CRIMINAL;
+                            String label = target.getFullName() + " | " + target.getCaseNumber();
+                            int[] color = isCriminal ? AppConstants.COLOR_CRIMINAL_BGR : AppConstants.COLOR_MISSING_BGR;
+                            trackingManager.updateTrackLabel(trackId, label, color);
+
+                            // === GATE 4: YuNet confidence > 0.8 for body lock ===
+                            // Only acquire persistent CSRT body locks on high-confidence
+                            // detections. This prevents false body locks on phantom faces
+                            // where YuNet reports partial landmarks (head partially visible).
+                            // The 200% torso expansion amplifies any spatial error, so
+                            // the face detection itself must be strong.
+                            if (yunetConfidence > 0.8f && !trackingManager.hasActiveBodyLock(target.getTargetId())) {
+                                // BODY LOCK HANDOFF: expand face box 200% downward → torso ROI
+                                // → initialize dedicated TrackerCSRT on the expanded region
+                                LockedTarget lock = trackingManager.acquireBodyLock(
+                                        asyncFrame, box,
+                                        target.getTargetId(), label, color,
+                                        result.getProbeEmbedding(), result.getSimilarity(),
+                                        frameIdx
+                                );
+
+                                // Async: Extract OSNet body embedding on recognition pool
+                                if (lock != null && bodyReIdService.isInitialized()) {
+                                    final LockedTarget lockRef = lock;
+                                    CompletableFuture.runAsync(() -> {
+                                        Rect torsoBox = lockRef.getBodyBox();
+                                        int tx = Math.max(0, torsoBox.x());
+                                        int ty = Math.max(0, torsoBox.y());
+                                        int tw = Math.min(torsoBox.width(), asyncFrame.cols() - tx);
+                                        int th = Math.min(torsoBox.height(), asyncFrame.rows() - ty);
+                                        if (tw <= 0 || th <= 0) return;
+
+                                        Mat torsoCrop = null;
+                                        try {
+                                            torsoCrop = new Mat(asyncFrame, new Rect(tx, ty, tw, th));
+                                            float[] bodyEmbed = bodyReIdService.extractEmbedding(torsoCrop);
+                                            if (bodyEmbed != null) {
+                                                lockRef.setBodyEmbedding(bodyEmbed);
+                                                lockRef.setLastBodySimilarity(1.0); // Self-similarity at lock time
+                                                log.debug("OSNet body embedding extracted for targetId={}",
+                                                        lockRef.getTargetId());
+                                            }
+                                        } finally {
+                                            if (torsoCrop != null) torsoCrop.release();
+                                        }
+                                    }, ThreadPools.getRecognitionInferencePool());
+                                }
+                            }
+                        } else {
+                            trackingManager.updateTrackLabel(trackId, "Unknown", AppConstants.COLOR_UNKNOWN_BGR);
+                        }
+                    }, ThreadPools.getVideoInferencePool());
+
+                    futures.add(future);
+                }
+
+                // Memory-safe frame release — fires on BOTH success and exception
+                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                        .whenCompleteAsync((ignored, throwable) -> {
+                            asyncFrame.release();
+                            if (throwable != null) {
+                                log.warn("Async frame released after exception in {} futures",
+                                        futures.size(), throwable);
+                            } else {
+                                log.trace("Async frame clone released after {} parallel inferences",
+                                        futures.size());
+                            }
+                        }, ThreadPools.getVideoInferencePool());
+            }
+
+            // === ReID Pipeline (runs for ALL detected faces, async) ===
+            if (configService.isReIDEnabled()) {
+                for (FaceDetection detection : faces) {
+                    Rect faceRect = detection.getBoundingBox();
+                    Mat personCrop = faceService.extractPersonCrop(frame, faceRect);
+                    if (personCrop != null) {
+                        try {
+                            byte[] jpegBytes = matToJpegBytes(personCrop);
+                            if (jpegBytes != null) {
+                                reidService.extractEmbedding(jpegBytes, "person_crop.jpg")
+                                        .thenAcceptAsync(embedding -> {
+                                            if (embedding != null) {
+                                                handleReIDEmbedding(embedding, null, 1, null);
+                                            }
+                                        }, ThreadPools.getVideoInferencePool());
+                            }
+                        } finally {
+                            personCrop.release();
+                        }
+                    }
+                }
+            }
+
+        } else {
+            // ===== INTERMEDIATE FRAME — lightweight tracker update =====
+            List<TrackedFace> trackedFaces = trackingManager.updateTrackers(frame);
+
+            for (TrackedFace tracked : trackedFaces) {
+                // Append [T] suffix and use dashed bounding box for tracker-predicted frames
+                String trackerLabel = tracked.getLabel();
+                if (tracked.isTrackerPredicted() && !trackerLabel.endsWith(" [T]")) {
+                    trackerLabel = trackerLabel + " [T]";
+                }
+                drawBoundingBox(frame, tracked.getBoundingBox(), null,
+                        trackerLabel, tracked.getColor(), tracked.isTrackerPredicted());
+            }
+        }
+
+        // ===== BODY LOCK DRAWING — runs EVERY frame (both inference + intermediate) =====
+        // Body locks are independent of the face tracker lifecycle.
+        List<LockedTarget> activeLocks = trackingManager.updateBodyLocks(
+                frame, currentFrameIdx, currentFaceBoxes);
+
+        for (LockedTarget lock : activeLocks) {
+            // Draw body lock bounding box (dashed when face is lost)
+            boolean faceLost = !lock.isFaceCurrentlyVisible();
+            drawBoundingBox(frame, lock.getBodyBox(), null,
+                    lock.getDisplayLabel(), lock.getDisplayColor(), faceLost);
+        }
+
+        // === PERIODIC OSNet RE-VERIFICATION (shared frame clone, async) ===
+        // First pass: check if ANY lock needs re-verification
+        boolean anyNeedsReverify = false;
+        for (LockedTarget lock : activeLocks) {
+            if (lock.needsBodyReverification(currentFrameIdx) && bodyReIdService.isInitialized()) {
+                anyNeedsReverify = true;
+                break;
+            }
+        }
+
+        if (anyNeedsReverify) {
+            // Clone frame ONCE for ALL re-verification futures
+            final Mat sharedVerifyFrame = frame.clone();
+            List<CompletableFuture<Void>> reverifyFutures = new ArrayList<>();
+
+            for (LockedTarget lock : activeLocks) {
+                if (lock.needsBodyReverification(currentFrameIdx) && bodyReIdService.isInitialized()) {
+                    lock.setLastBodyVerifyFrame(currentFrameIdx);
+                    final LockedTarget lockRef = lock;
+                    final Rect torsoBox = lockRef.getBodyBox();
+
+                    reverifyFutures.add(CompletableFuture.runAsync(() -> {
+                        Mat torsoCrop = null;
+                        try {
+                            int tx = Math.max(0, torsoBox.x());
+                            int ty = Math.max(0, torsoBox.y());
+                            int tw = Math.min(torsoBox.width(), sharedVerifyFrame.cols() - tx);
+                            int th = Math.min(torsoBox.height(), sharedVerifyFrame.rows() - ty);
+                            if (tw <= 0 || th <= 0) return;
+
+                            torsoCrop = new Mat(sharedVerifyFrame, new Rect(tx, ty, tw, th));
+                            float[] currentBodyEmbed = bodyReIdService.extractEmbedding(torsoCrop);
+                            if (currentBodyEmbed != null && lockRef.getBodyEmbedding() != null) {
+                                double sim = bodyReIdService.similarity(
+                                        currentBodyEmbed, lockRef.getBodyEmbedding());
+                                lockRef.setLastBodySimilarity(sim);
+                                log.trace("OSNet re-verify: targetId={}, similarity={}",
+                                        lockRef.getTargetId(), String.format("%.3f", sim));
+                            }
+                        } finally {
+                            if (torsoCrop != null) torsoCrop.release();
+                        }
+                    }, ThreadPools.getRecognitionInferencePool()));
+                }
+            }
+
+            // Release the shared clone when ALL re-verifications complete
+            CompletableFuture.allOf(reverifyFutures.toArray(new CompletableFuture[0]))
+                    .whenCompleteAsync((v, t) -> {
+                        sharedVerifyFrame.release();
+                        if (t != null) {
+                            log.warn("OSNet re-verify frame released after error", t);
+                        }
+                    }, ThreadPools.getRecognitionInferencePool());
+        }
+
+        // Push annotated frame to the UI thread
+        pushFrameToUI(frame);
+    }
+
+    /**
+     * Legacy LBPH pipeline (fallback mode).
+     */
+    private void processFrameLbph(Mat frame) {
         // Detect all faces in the frame
         RectVector faces = faceService.detectFaces(frame);
 
@@ -355,13 +735,13 @@ public class DashboardController {
 
                 label = target.getFullName() + " | " + target.getCaseNumber();
 
-                // Trigger alert (respects cooldown)
-                boolean alertTriggered = alertService.triggerAlert(target.getTargetId(), category);
+                // Trigger multi-channel alert (respects cooldown)
+                String snapshotPath = saveSnapshot(frame, target.getTargetId());
+
+                boolean alertTriggered = alertService.triggerAlert(
+                        target.getTargetId(), category, target, result, snapshotPath);
 
                 if (alertTriggered) {
-                    // Save detection snapshot
-                    String snapshotPath = saveSnapshot(frame, target.getTargetId());
-
                     // Log detection
                     DetectionLog detection = new DetectionLog(
                             target.getTargetId(),
@@ -375,187 +755,407 @@ public class DashboardController {
                             ThreadPools.getVideoInferencePool()
                     );
 
-                    // Show pop-up alert on UI thread
-                    Platform.runLater(() -> showAlertPopup(target, result, snapshotPath));
+                    // Inject sidebar alert card (replaces modal popup)
+                    injectAlertCard(target, result, snapshotPath);
+
+                    // Update dashboard metrics
+                    refreshStats();
                 }
             } else {
                 color = AppConstants.COLOR_UNKNOWN_BGR;
                 label = "Unknown";
             }
 
-            // Draw bounding box
-            rectangle(frame,
-                    new Point(faceRect.x(), faceRect.y()),
-                    new Point(faceRect.x() + faceRect.width(), faceRect.y() + faceRect.height()),
-                    new Scalar(color[0], color[1], color[2], 255),
-                    2, LINE_AA, 0);
+            // === ReID Pipeline (runs for ALL detected faces, async) ===
+            if (configService.isReIDEnabled()) {
+                Mat personCrop = faceService.extractPersonCrop(frame, faceRect);
+                if (personCrop != null) {
+                    final Integer targetId = (result.isMatched() && result.getMatchedTarget() != null)
+                            ? result.getMatchedTarget().getTargetId() : null;
+                    try {
+                        byte[] jpegBytes = matToJpegBytes(personCrop);
+                        if (jpegBytes != null) {
+                            reidService.extractEmbedding(jpegBytes, "person_crop.jpg")
+                                    .thenAcceptAsync(embedding -> {
+                                        if (embedding != null) {
+                                            handleReIDEmbedding(embedding, targetId, 1, null);
+                                        }
+                                    }, ThreadPools.getVideoInferencePool());
+                        }
+                    } finally {
+                        personCrop.release();
+                    }
+                }
+            }
 
-            // Draw label background (approximate text dimensions since JavaCV lacks getTextSize)
-            int textHeight = 14;
-            int textWidth = label.length() * 7;
-            rectangle(frame,
-                    new Point(faceRect.x(), faceRect.y() - textHeight - 10),
-                    new Point(faceRect.x() + textWidth + 4, faceRect.y()),
-                    new Scalar(color[0], color[1], color[2], 200),
-                    FILLED, LINE_AA, 0);
-
-            // Draw label text
-            putText(frame, label,
-                    new Point(faceRect.x() + 2, faceRect.y() - 5),
-                    FONT_HERSHEY_SIMPLEX, 0.5,
-                    new Scalar(255, 255, 255, 255),
-                    1, LINE_AA, false);
+            // Draw bounding box with WCAG-compliant label
+            drawBoundingBox(frame, faceRect, null, label, color);
         }
 
         // Push annotated frame to the UI thread
+        pushFrameToUI(frame);
+    }
+
+    /**
+     * Handles a recognition result from the DNN async pipeline.
+     * Called on the video inference thread after SFace embedding matching completes.
+     */
+    private void handleRecognitionResult(RecognitionResult result, Rect faceRect) {
+        if (result.isMatched() && result.getMatchedTarget() != null) {
+            TargetRegistry target = result.getMatchedTarget();
+            TargetCategory category = target.getCategory();
+
+            // Trigger multi-channel alert
+            // Note: snapshot is saved from the frame that was current at detection time
+            boolean alertTriggered = alertService.triggerAlert(
+                    target.getTargetId(), category, target, result, null);
+
+            if (alertTriggered) {
+                DetectionLog detection = new DetectionLog(
+                        target.getTargetId(),
+                        result.getMatchScore(),
+                        null,
+                        1,
+                        null
+                );
+                CompletableFuture.runAsync(
+                        () -> detectionLogService.logDetection(detection),
+                        ThreadPools.getVideoInferencePool()
+                );
+
+                // Inject sidebar alert card
+                injectAlertCard(target, result, null);
+
+                // Update reactive metrics
+                refreshStats();
+            }
+        }
+    }
+
+    /**
+     * Draws a bounding box with a WCAG AA-compliant label background.
+     * The text label sits on a dark semi-transparent rectangle for readability.
+     * Color coding: Red = Criminal, Blue = Missing, Green = Unknown.
+     * <p>
+     * Overload that defaults to a solid (non-dashed) bounding box.
+     * </p>
+     */
+    private void drawBoundingBox(Mat frame, Rect faceRect, TargetCategory category,
+                                  String label, int[] color) {
+        drawBoundingBox(frame, faceRect, category, label, color, false);
+    }
+
+    /**
+     * Draws a bounding box with a WCAG AA-compliant label background.
+     * <p>
+     * When {@code dashed} is true, the rectangle is rendered as spaced line segments
+     * to visually indicate a tracker-predicted (interpolated) bounding box.
+     * Solid boxes indicate a live DNN inference result.
+     * </p>
+     *
+     * @param frame    the video frame to draw on
+     * @param faceRect the bounding box rectangle
+     * @param category the target category (nullable, used for color override)
+     * @param label    the text label to display above the box
+     * @param color    BGR color array for the bounding box
+     * @param dashed   if true, draw dashed outline; if false, draw solid outline
+     */
+    private void drawBoundingBox(Mat frame, Rect faceRect, TargetCategory category,
+                                  String label, int[] color, boolean dashed) {
+        Scalar boxColor = new Scalar(color[0], color[1], color[2], 255);
+
+        if (dashed) {
+            // Draw dashed rectangle using line segments with gaps
+            drawDashedRect(frame, faceRect, boxColor, 2, 10, 6);
+        } else {
+            // Draw solid bounding box outline
+            rectangle(frame,
+                    new Point(faceRect.x(), faceRect.y()),
+                    new Point(faceRect.x() + faceRect.width(), faceRect.y() + faceRect.height()),
+                    boxColor,
+                    2, LINE_AA, 0);
+        }
+
+        // Draw WCAG-compliant dark label background (semi-transparent black)
+        int textHeight = 14;
+        int textWidth = label.length() * 7 + 8;
+        int labelY = faceRect.y() - textHeight - 10;
+        if (labelY < 0) labelY = faceRect.y() + faceRect.height() + 5; // flip below if too close to top
+
+        rectangle(frame,
+                new Point(faceRect.x(), labelY),
+                new Point(faceRect.x() + textWidth, labelY + textHeight + 8),
+                new Scalar(0, 0, 0, 180),  // dark semi-transparent background
+                FILLED, LINE_AA, 0);
+
+        // Draw label text (white on dark background for WCAG AA contrast)
+        putText(frame, label,
+                new Point(faceRect.x() + 4, labelY + textHeight + 2),
+                FONT_HERSHEY_SIMPLEX, 0.5,
+                new Scalar(255, 255, 255, 255),
+                1, LINE_AA, false);
+    }
+
+    /**
+     * Draws a dashed rectangle by iterating line segments along each edge.
+     *
+     * @param frame     the frame to draw on
+     * @param rect      the rectangle coordinates
+     * @param color     the line color
+     * @param thickness the line thickness
+     * @param dashLen   length of each dash in pixels
+     * @param gapLen    length of each gap in pixels
+     */
+    private void drawDashedRect(Mat frame, Rect rect, Scalar color,
+                                 int thickness, int dashLen, int gapLen) {
+        int x1 = rect.x();
+        int y1 = rect.y();
+        int x2 = rect.x() + rect.width();
+        int y2 = rect.y() + rect.height();
+
+        // Top edge (left to right)
+        drawDashedLine(frame, x1, y1, x2, y1, color, thickness, dashLen, gapLen);
+        // Right edge (top to bottom)
+        drawDashedLine(frame, x2, y1, x2, y2, color, thickness, dashLen, gapLen);
+        // Bottom edge (right to left)
+        drawDashedLine(frame, x2, y2, x1, y2, color, thickness, dashLen, gapLen);
+        // Left edge (bottom to top)
+        drawDashedLine(frame, x1, y2, x1, y1, color, thickness, dashLen, gapLen);
+    }
+
+    /**
+     * Draws a single dashed line between two points.
+     */
+    private void drawDashedLine(Mat frame, int x1, int y1, int x2, int y2,
+                                 Scalar color, int thickness, int dashLen, int gapLen) {
+        double dx = x2 - x1;
+        double dy = y2 - y1;
+        double totalLength = Math.sqrt(dx * dx + dy * dy);
+        if (totalLength < 1) return;
+
+        double ux = dx / totalLength; // unit vector x
+        double uy = dy / totalLength; // unit vector y
+
+        double pos = 0;
+        boolean drawing = true;
+
+        while (pos < totalLength) {
+            double segLen = drawing ? dashLen : gapLen;
+            double endPos = Math.min(pos + segLen, totalLength);
+
+            if (drawing) {
+                line(frame,
+                        new Point((int) (x1 + ux * pos), (int) (y1 + uy * pos)),
+                        new Point((int) (x1 + ux * endPos), (int) (y1 + uy * endPos)),
+                        color, thickness, LINE_AA, 0);
+            }
+
+            pos = endPos;
+            drawing = !drawing;
+        }
+    }
+
+    /**
+     * Pushes an annotated frame to the JavaFX UI thread.
+     * Also updates the blurred background fill layer.
+     */
+    private void pushFrameToUI(Mat frame) {
         Image fxImage = FxImageConverter.matToImage(frame);
         if (fxImage != null) {
             Platform.runLater(() -> {
                 if (cameraFeed != null) {
                     cameraFeed.setImage(fxImage);
                 }
+                // Use same image as blurred background fill (eliminates letterboxing)
+                if (cameraFeedBg != null) {
+                    cameraFeedBg.setImage(fxImage);
+                }
             });
         }
     }
 
-    // ==================== Pop-Up Alert ====================
+    // ==================== Sidebar Alert Card Injection ====================
 
     /**
-     * Shows a pop-up alert notification overlay on the dashboard.
-     * This runs on the JavaFX Application Thread.
+     * Injects a styled alert card into the sidebar alert queue.
+     * Runs on the JavaFX Application Thread via Platform.runLater().
+     * <p>
+     * Card displays: profile image ↔ live snapshot, target name (bold 16px),
+     * case number, category badge (pill), confidence %, timestamp.
+     * </p>
      */
-    private void showAlertPopup(TargetRegistry target, RecognitionResult result, String snapshotPath) {
-        if (alertOverlay == null) return;
+    private void injectAlertCard(TargetRegistry target, RecognitionResult result, String snapshotPath) {
+        Platform.runLater(() -> {
+            if (alertQueueBox == null) return;
 
-        boolean isCriminal = target.getCategory() == TargetCategory.CRIMINAL;
-        String borderColor = isCriminal ? "#FF4D2E" : "#00D4FF";
-        String headerText = isCriminal
-                ? "⚠ CRIMINAL DETECTED — HIGH PRIORITY ALERT ⚠"
-                : "🔵 MISSING PERSON FOUND — NOTIFICATION";
-        String headerBg = isCriminal ? "#FF4D2E" : "#00D4FF";
+            boolean isCriminal = target.getCategory() == TargetCategory.CRIMINAL;
 
-        // Create the popup content
-        VBox popup = new VBox(12);
-        popup.setAlignment(Pos.CENTER);
-        popup.setMaxWidth(520);
-        popup.setMaxHeight(420);
-        popup.setStyle(String.format(
-                "-fx-background-color: #111827; " +
-                "-fx-border-color: %s; -fx-border-width: 3; -fx-border-radius: 12; " +
-                "-fx-background-radius: 12; -fx-padding: 0; " +
-                "-fx-effect: dropshadow(gaussian, %s, 20, 0.3, 0, 0);",
-                borderColor, borderColor));
+            // Outer card container
+            HBox card = new HBox(10);
+            card.setAlignment(Pos.CENTER_LEFT);
+            card.setPadding(new Insets(10));
+            card.getStyleClass().add(isCriminal ? "alert-card-criminal" : "alert-card-missing");
 
-        // Header
-        Label header = new Label(headerText);
-        header.setStyle(String.format(
-                "-fx-background-color: %s; -fx-text-fill: white; -fx-font-size: 14; " +
-                "-fx-font-weight: bold; -fx-padding: 10 20; -fx-background-radius: 10 10 0 0; " +
-                "-fx-min-width: 520; -fx-alignment: center;", headerBg));
-
-        // Image row: registered photo + live snapshot
-        HBox imageRow = new HBox(20);
-        imageRow.setAlignment(Pos.CENTER);
-        imageRow.setPadding(new Insets(10));
-
-        // Registered photo
-        VBox regPhotoBox = new VBox(4);
-        regPhotoBox.setAlignment(Pos.CENTER);
-        ImageView regPhoto = new ImageView();
-        regPhoto.setFitWidth(140);
-        regPhoto.setFitHeight(140);
-        regPhoto.setPreserveRatio(true);
-        try {
-            File profileFile = new File(target.getProfileImagePath());
-            if (profileFile.exists()) {
-                regPhoto.setImage(new Image(profileFile.toURI().toString(), 140, 140, true, true));
+            // Profile image (from database)
+            ImageView profileImg = new ImageView();
+            profileImg.setFitWidth(60);
+            profileImg.setFitHeight(60);
+            profileImg.setPreserveRatio(true);
+            profileImg.setSmooth(true);
+            // Rounded clip
+            Rectangle profileClip = new Rectangle(60, 60);
+            profileClip.setArcWidth(10);
+            profileClip.setArcHeight(10);
+            profileImg.setClip(profileClip);
+            try {
+                File profileFile = new File(target.getProfileImagePath());
+                if (profileFile.exists()) {
+                    profileImg.setImage(new Image(profileFile.toURI().toString(), 60, 60, true, true));
+                }
+            } catch (Exception e) {
+                log.debug("Could not load profile image for alert card", e);
             }
-        } catch (Exception e) {
-            log.warn("Could not load profile image for popup", e);
-        }
-        Label regLabel = new Label("REGISTERED");
-        regLabel.setStyle("-fx-text-fill: #94A3B8; -fx-font-size: 10;");
-        regPhotoBox.getChildren().addAll(regPhoto, regLabel);
 
-        // Live snapshot
-        VBox livePhotoBox = new VBox(4);
-        livePhotoBox.setAlignment(Pos.CENTER);
-        ImageView livePhoto = new ImageView();
-        livePhoto.setFitWidth(140);
-        livePhoto.setFitHeight(140);
-        livePhoto.setPreserveRatio(true);
-        try {
+            // Live snapshot (if available)
+            ImageView snapImg = new ImageView();
+            snapImg.setFitWidth(60);
+            snapImg.setFitHeight(60);
+            snapImg.setPreserveRatio(true);
+            snapImg.setSmooth(true);
+            Rectangle snapClip = new Rectangle(60, 60);
+            snapClip.setArcWidth(10);
+            snapClip.setArcHeight(10);
+            snapImg.setClip(snapClip);
             if (snapshotPath != null) {
-                File snapFile = new File(snapshotPath);
-                if (snapFile.exists()) {
-                    livePhoto.setImage(new Image(snapFile.toURI().toString(), 140, 140, true, true));
+                try {
+                    File snapFile = new File(snapshotPath);
+                    if (snapFile.exists()) {
+                        snapImg.setImage(new Image(snapFile.toURI().toString(), 60, 60, true, true));
+                    }
+                } catch (Exception e) {
+                    log.debug("Could not load snapshot for alert card", e);
                 }
             }
-        } catch (Exception e) {
-            log.warn("Could not load snapshot for popup", e);
-        }
-        Label liveLabel = new Label("LIVE CAPTURE");
-        liveLabel.setStyle("-fx-text-fill: #94A3B8; -fx-font-size: 10;");
-        livePhotoBox.getChildren().addAll(livePhoto, liveLabel);
 
-        imageRow.getChildren().addAll(regPhotoBox, livePhotoBox);
+            // Text details
+            VBox details = new VBox(3);
+            details.setAlignment(Pos.CENTER_LEFT);
 
-        // Details
-        VBox details = new VBox(4);
-        details.setPadding(new Insets(0, 20, 0, 20));
-        details.getChildren().addAll(
-                createDetailRow("Name:", target.getFullName()),
-                createDetailRow("Category:", target.getCategory().getDbValue()),
-                createDetailRow("Case #:", target.getCaseNumber()),
-                createDetailRow("Confidence:", result.getConfidencePercentage()),
-                createDetailRow("Time:", LocalDateTime.now().format(
-                        DateTimeFormatter.ofPattern("HH:mm:ss dd-MMM-yyyy")))
-        );
+            // Target name (bold, 14px)
+            Label nameLabel = new Label(target.getFullName());
+            nameLabel.getStyleClass().add("alert-card-name");
 
-        // Action buttons
-        HBox buttons = new HBox(15);
-        buttons.setAlignment(Pos.CENTER);
-        buttons.setPadding(new Insets(10, 0, 15, 0));
+            // Case number
+            Label caseLabel = new Label("Case: " + target.getCaseNumber());
+            caseLabel.getStyleClass().add("alert-card-case");
 
-        Button btnDismiss = new Button("Dismiss");
-        btnDismiss.setStyle("-fx-background-color: #374151; -fx-text-fill: #F1F5F9; " +
-                "-fx-padding: 8 25; -fx-background-radius: 6; -fx-cursor: hand;");
-        btnDismiss.setOnAction(e -> alertOverlay.setVisible(false));
+            // Category badge (pill)
+            Label badge = new Label(isCriminal ? "CRIMINAL" : "MISSING");
+            badge.getStyleClass().add(isCriminal ? "badge-criminal" : "badge-missing");
 
-        Button btnAcknowledge = new Button("Acknowledge & Log");
-        btnAcknowledge.setStyle(String.format(
-                "-fx-background-color: %s; -fx-text-fill: white; " +
-                "-fx-padding: 8 25; -fx-background-radius: 6; -fx-font-weight: bold; -fx-cursor: hand;",
-                headerBg));
-        btnAcknowledge.setOnAction(e -> {
-            alertOverlay.setVisible(false);
-            refreshRecentAlerts();
-            refreshStats();
+            // Confidence
+            Label confidenceLabel = new Label("Match: " + result.getConfidencePercentage());
+            confidenceLabel.getStyleClass().add("alert-card-confidence");
+
+            // Timestamp
+            Label timeLabel = new Label(LocalDateTime.now().format(
+                    DateTimeFormatter.ofPattern("HH:mm:ss")));
+            timeLabel.getStyleClass().add("alert-card-time");
+
+            details.getChildren().addAll(nameLabel, caseLabel, badge, confidenceLabel, timeLabel);
+
+            // Assemble card
+            VBox imageColumn = new VBox(4);
+            imageColumn.setAlignment(Pos.CENTER);
+            imageColumn.getChildren().addAll(profileImg, snapImg);
+
+            card.getChildren().addAll(imageColumn, details);
+
+            // Prepend (newest first) to the alert queue
+            alertQueueBox.getChildren().add(0, card);
+
+            // Auto-prune if queue exceeds max size
+            if (alertQueueBox.getChildren().size() > MAX_ALERT_QUEUE_SIZE) {
+                alertQueueBox.getChildren().remove(
+                        alertQueueBox.getChildren().size() - 1);
+            }
         });
-
-        buttons.getChildren().addAll(btnDismiss, btnAcknowledge);
-
-        popup.getChildren().addAll(header, imageRow, details, buttons);
-
-        // Show overlay
-        alertOverlay.getChildren().setAll(popup);
-        alertOverlay.setVisible(true);
-        alertOverlay.setStyle("-fx-background-color: rgba(0,0,0,0.7);");
-
-        // Refresh stats after alert
-        refreshStats();
-        refreshRecentAlerts();
     }
 
-    private HBox createDetailRow(String labelText, String valueText) {
-        HBox row = new HBox(8);
-        row.setAlignment(Pos.CENTER_LEFT);
-        Label lbl = new Label(labelText);
-        lbl.setStyle("-fx-text-fill: #94A3B8; -fx-font-size: 12; -fx-min-width: 90;");
-        Label val = new Label(valueText);
-        val.setStyle("-fx-text-fill: #F1F5F9; -fx-font-size: 13; -fx-font-weight: bold;");
-        row.getChildren().addAll(lbl, val);
-        return row;
+    // ==================== ReID Processing ====================
+
+    /**
+     * Handles a newly extracted ReID embedding: stores it in MongoDB and
+     * compares against recent embeddings from other cameras for cross-camera matching.
+     */
+    private void handleReIDEmbedding(double[] embedding, Integer targetId,
+                                      int cameraId, String snapshotPath) {
+        try {
+            // Store the embedding
+            PersonEmbedding pe = new PersonEmbedding(targetId, cameraId, embedding, snapshotPath);
+            embeddingDAO.insert(pe);
+
+            // Compare against recent embeddings from OTHER cameras
+            int matchWindow = configService.getReIDMatchWindow();
+            double threshold = configService.getReIDSimilarityThreshold();
+
+            java.util.List<PersonEmbedding> candidates =
+                    embeddingDAO.findRecentExcludingCamera(cameraId, matchWindow);
+
+            if (candidates.isEmpty()) return;
+
+            // Find the best match
+            double bestSimilarity = 0;
+            PersonEmbedding bestMatch = null;
+
+            for (PersonEmbedding candidate : candidates) {
+                if (candidate.getEmbedding() == null) continue;
+                try {
+                    double sim = VectorMathUtil.cosineSimilarity(embedding, candidate.getEmbedding());
+                    if (sim > bestSimilarity) {
+                        bestSimilarity = sim;
+                        bestMatch = candidate;
+                    }
+                } catch (IllegalArgumentException e) {
+                    // Dimension mismatch — skip this candidate
+                    log.debug("Skipping embedding comparison: {}", e.getMessage());
+                }
+            }
+
+            if (bestMatch != null && bestSimilarity >= threshold) {
+                ReIDMatch match = new ReIDMatch(pe, bestMatch, bestSimilarity);
+                log.info("REID MATCH: {} (camera {} → camera {}, similarity={})",
+                        match, cameraId,
+                        bestMatch.getCameraId() != null ? bestMatch.getCameraId() : "?",
+                        String.format("%.3f", bestSimilarity));
+
+                // Fire notification
+                NotificationService.getInstance().showReIDAlert(match);
+
+                // Fire Telegram alert for ReID
+                if (configService.isTelegramEnabled() && bestMatch.getCameraId() != null) {
+                    TelegramAlertService.getInstance().sendReIDAlert(
+                            snapshotPath, cameraId, bestMatch.getCameraId(), bestSimilarity);
+                }
+            }
+
+        } catch (Exception e) {
+            log.warn("ReID embedding processing failed: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Encodes an OpenCV Mat to JPEG bytes for HTTP transport to the ReID service.
+     */
+    private byte[] matToJpegBytes(Mat mat) {
+        try {
+            String tempPath = System.getProperty("java.io.tmpdir") + "/drishtix_reid_crop.jpg";
+            imwrite(tempPath, mat);
+            return java.nio.file.Files.readAllBytes(java.nio.file.Path.of(tempPath));
+        } catch (Exception e) {
+            log.warn("Failed to encode Mat to JPEG: {}", e.getMessage());
+            return null;
+        }
     }
 
     // ==================== Quick Add Target ====================
@@ -581,7 +1181,7 @@ public class DashboardController {
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setPadding(new Insets(20, 20, 10, 20));
-        grid.setStyle("-fx-background-color: #111827;");
+        grid.setStyle("-fx-background-color: #1A1D24;");
 
         TextField nameField = new TextField();
         nameField.setPromptText("Full Name");
@@ -634,64 +1234,41 @@ public class DashboardController {
             showSuccessToast("Target registered: " + target.getFullName() +
                     "\nDrishtiX is now watching.");
             refreshStats();
+
+            // Rebuild DNN gallery if in DNN mode
+            if (configService.isDnnMode()) {
+                CompletableFuture.runAsync(
+                        () -> recognitionService.rebuildDnnGallery(),
+                        ThreadPools.getRecognitionInferencePool()
+                );
+            }
         });
     }
 
-    // ==================== Stats & Alerts ====================
+    // ==================== Stats (Reactive Properties) ====================
 
     public void refreshStats() {
-        Platform.runLater(() -> {
-            try {
-                if (lblTotalTargets != null)
-                    lblTotalTargets.setText(String.valueOf(registryService.getActiveTargetCount()));
-                if (lblCriminals != null)
-                    lblCriminals.setText(String.valueOf(registryService.getCriminalCount()));
-                if (lblMissing != null)
-                    lblMissing.setText(String.valueOf(registryService.getMissingPersonCount()));
-                if (lblDetectionsToday != null)
-                    lblDetectionsToday.setText(String.valueOf(detectionLogService.getTodayCount()));
+        try {
+            int total = registryService.getActiveTargetCount();
+            int criminals = registryService.getCriminalCount();
+            int missing = registryService.getMissingPersonCount();
+            int today = detectionLogService.getTodayCount();
+
+            Platform.runLater(() -> {
+                totalTargetsProperty.set(total);
+                criminalsProperty.set(criminals);
+                missingProperty.set(missing);
+                detectionsProperty.set(today);
+
                 if (lblRecognizerStatus != null) {
                     lblRecognizerStatus.setText(recognitionService.isTrained() ? "● Trained" : "○ Not Trained");
                     lblRecognizerStatus.setStyle(recognitionService.isTrained()
                             ? "-fx-text-fill: #22C55E;" : "-fx-text-fill: #FBBF24;");
                 }
-            } catch (Exception e) {
-                log.warn("Failed to refresh stats", e);
-            }
-        });
-    }
-
-    public void refreshRecentAlerts() {
-        Platform.runLater(() -> {
-            try {
-                if (recentAlertsBox == null) return;
-                recentAlertsBox.getChildren().clear();
-
-                List<DetectionLog> recent = detectionLogService.getRecentDetections(5);
-                for (DetectionLog dl : recent) {
-                    HBox alertItem = new HBox(8);
-                    alertItem.setAlignment(Pos.CENTER_LEFT);
-                    alertItem.setPadding(new Insets(6, 10, 6, 10));
-                    alertItem.setStyle("-fx-background-color: #1E293B; -fx-background-radius: 6;");
-
-                    String dot = dl.getTargetCategory() == TargetCategory.CRIMINAL ? "🔴" : "🔵";
-                    Label dotLabel = new Label(dot);
-                    Label nameLabel = new Label(dl.getTargetName());
-                    nameLabel.setStyle("-fx-text-fill: #F1F5F9; -fx-font-size: 11;");
-                    Label timeLabel = new Label(dl.getDetectionTimestamp()
-                            .format(DateTimeFormatter.ofPattern("HH:mm")));
-                    timeLabel.setStyle("-fx-text-fill: #64748B; -fx-font-size: 10;");
-
-                    Region spacer = new Region();
-                    HBox.setHgrow(spacer, Priority.ALWAYS);
-
-                    alertItem.getChildren().addAll(dotLabel, nameLabel, spacer, timeLabel);
-                    recentAlertsBox.getChildren().add(alertItem);
-                }
-            } catch (Exception e) {
-                log.warn("Failed to refresh recent alerts", e);
-            }
-        });
+            });
+        } catch (Exception e) {
+            log.warn("Failed to refresh stats", e);
+        }
     }
 
     // ==================== Snapshot ====================
