@@ -19,7 +19,7 @@ set "PROJECT_ROOT=%~dp0"
 set "APP_DIR=%PROJECT_ROOT%services\drishtix-app"
 set "REID_DIR=%PROJECT_ROOT%services\reid-service"
 set "DB_INIT=%PROJECT_ROOT%database\drishtix_init.js"
-set "JAR_FILE=%APP_DIR%\target\drishtix-app-1.0.0.jar"
+set "JAR_FILE=%APP_DIR%\target\drishtix-app-2.0.0-SNAPSHOT.jar"
 set "REID_VENV=%REID_DIR%\venv"
 set "REID_PID_FILE=%PROJECT_ROOT%.reid_service.pid"
 set "ERRORS=0"
@@ -113,7 +113,7 @@ timeout /t 2 /nobreak >nul
 echo  [4/5] Preparing Java application...
 
 if exist "%JAR_FILE%" (
-    echo        ✓ JAR already built: drishtix-app-1.0.0.jar
+    echo        ✓ JAR already built: drishtix-app-2.0.0-SNAPSHOT.jar
 ) else (
     echo        Building fat JAR ^(first time may take a few minutes^)...
     cd /d "%APP_DIR%"
@@ -160,7 +160,7 @@ echo  TIP: To stop everything later, run stop_drishtix.bat
 echo.
 
 cd /d "%APP_DIR%"
-java --add-opens javafx.graphics/com.sun.javafx.scene=ALL-UNNAMED --add-opens javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED --add-opens javafx.graphics/com.sun.javafx.css=ALL-UNNAMED --add-opens javafx.controls/com.sun.javafx.scene.control.behavior=ALL-UNNAMED --add-opens javafx.controls/javafx.scene.control.skin=ALL-UNNAMED --add-opens javafx.base/com.sun.javafx.runtime=ALL-UNNAMED -cp "target\drishtix-app-1.0.0.jar" com.drishtix.DrishtiXLauncher
+java --add-opens javafx.graphics/com.sun.javafx.scene=ALL-UNNAMED --add-opens javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED --add-opens javafx.graphics/com.sun.javafx.css=ALL-UNNAMED --add-opens javafx.controls/com.sun.javafx.scene.control.behavior=ALL-UNNAMED --add-opens javafx.controls/javafx.scene.control.skin=ALL-UNNAMED --add-opens javafx.base/com.sun.javafx.runtime=ALL-UNNAMED -cp "target\drishtix-app-2.0.0-SNAPSHOT.jar" com.drishtix.DrishtiXLauncher
 
 echo.
 echo  DrishtiX has exited. Press any key to close this window.

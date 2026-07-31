@@ -134,7 +134,7 @@ cd /d "%APP_DIR%"
 call mvnw.cmd clean package -DskipTests
 if %errorlevel% equ 0 (
     echo.
-    echo   ✓ Build successful: target\drishtix-app-1.0.0.jar
+    echo   ✓ Build successful: target\drishtix-app-2.0.0-SNAPSHOT.jar
 ) else (
     echo.
     echo   ✗ Build failed! Check errors above.
