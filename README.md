@@ -67,6 +67,24 @@ DrishtiX runs on a highly concurrent architecture to guarantee maximum frame thr
 4. **Audio & Telegram Daemon Pool:** Executes asynchronous sound playback and network REST calls.
 5. **Ingestion Engine Pool (Scheduled):** Periodically polls external APIs (like FBI/CBI) in the background.
 
+### **1. 5-Tier Concurrent Pipeline Flowchart**
+```mermaid
+graph TD
+    A[Camera Feed] --> B[Video Inference Pool]
+    B -->|Frame| C(YuNet Detector)
+    B -->|Track| D(CSRT / OSNet)
+    C -->|Faces| E[Recognition Pool Fixed=4]
+    E -->|SFace Embedding| F((MongoDB Local Registry))
+    E -->|Match Found| G[Alert Orchestrator]
+    
+    G --> H[UI Thread JavaFX]
+    G --> I[Audio Daemon Pool]
+    G --> J[Telegram Daemon Pool]
+
+    K[Ingestion Daemon] -->|FBI/CBI APIs| F
+```
+
+### **2. MongoDB Entity-Relationship (ER) Diagram**
 ```mermaid
 erDiagram
     TARGET_REGISTRY {
@@ -102,6 +120,7 @@ erDiagram
     TARGET_REGISTRY ||--o{ DETECTION_LOGS : "logs"
 ```
 
+### **3. Telegram Alerting State Machine**
 ```mermaid
 stateDiagram-v2
     [*] --> FaceDetected : YuNet + SFace
