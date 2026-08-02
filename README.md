@@ -244,7 +244,7 @@ Contributions are what make the open-source community such an amazing place to l
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
-**Project Maintainer:** Sachin  
+**Project Maintainer:** Sachidanand  
 **Project Link:** [https://github.com/sachinxrg/DrishtiX](https://github.com/sachinxrg/DrishtiX)
 
 <div align="center">
