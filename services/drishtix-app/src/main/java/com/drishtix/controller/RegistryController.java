@@ -50,7 +50,20 @@ public class RegistryController {
     @FXML
     public void initialize() {
         // Set up table columns
-        if (colId != null) colId.setCellValueFactory(new PropertyValueFactory<>("targetId"));
+        if (colId != null) {
+            colId.setCellValueFactory(new PropertyValueFactory<>("targetId"));
+            colId.setCellFactory(column -> new TableCell<TargetRegistry, Integer>() {
+                @Override
+                protected void updateItem(Integer item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || getTableRow() == null) {
+                        setText(null);
+                    } else {
+                        setText(String.valueOf(getIndex() + 1));
+                    }
+                }
+            });
+        }
         if (colName != null) colName.setCellValueFactory(new PropertyValueFactory<>("fullName"));
         if (colCategory != null) colCategory.setCellValueFactory(new PropertyValueFactory<>("category"));
         if (colCaseNumber != null) colCaseNumber.setCellValueFactory(new PropertyValueFactory<>("caseNumber"));
