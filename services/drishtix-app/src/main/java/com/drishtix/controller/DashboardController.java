@@ -1231,14 +1231,43 @@ public class DashboardController {
         } catch (Exception e) {
             log.warn("Could not load CSS for dialog");
         }
-        // Ambient room background for the dialog window itself
-        dialogPane.setStyle("-fx-background-color: linear-gradient(to bottom right, #0B0B12, #161625);");
+        // Light Theme Glassmorphism / Neumorphism background
+        dialogPane.setStyle("-fx-background-color: #EEF2F7; -fx-font-family: 'Segoe UI', 'Inter', sans-serif;");
+
+        // Main container
+        VBox mainContainer = new VBox(25);
+        mainContainer.setPadding(new Insets(25, 30, 10, 30));
+        mainContainer.setAlignment(Pos.CENTER);
+
+        // Header with Circular Photo
+        HBox header = new HBox(15);
+        header.setAlignment(Pos.CENTER_LEFT);
+        
+        ImageView photoPreview = new ImageView(new Image(selectedFile.toURI().toString()));
+        photoPreview.setFitWidth(56);
+        photoPreview.setFitHeight(56);
+        // Clip image to a circle
+        javafx.scene.shape.Circle clip = new javafx.scene.shape.Circle(28, 28, 28);
+        photoPreview.setClip(clip);
+        // Add a subtle drop shadow to the image
+        photoPreview.setStyle("-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 0, 2);");
+        
+        VBox titleBox = new VBox(4);
+        titleBox.setAlignment(Pos.CENTER_LEFT);
+        Label titleLabel = new Label("Register target from:");
+        titleLabel.setStyle("-fx-text-fill: #64748B; -fx-font-size: 13px;");
+        Label fileNameLabel = new Label(selectedFile.getName());
+        fileNameLabel.setStyle("-fx-text-fill: #1E293B; -fx-font-size: 16px; -fx-font-weight: bold;");
+        titleBox.getChildren().addAll(titleLabel, fileNameLabel);
+        
+        header.getChildren().addAll(photoPreview, titleBox);
 
         // Form fields wrapped in a bento card layout
         GridPane grid = new GridPane();
         grid.setHgap(20);
         grid.setVgap(20);
-        grid.setPadding(new Insets(25));
+        // Constrain width
+        grid.setMaxWidth(550);
         
         // Ensure columns take up 50% width each
         ColumnConstraints col1 = new ColumnConstraints();
@@ -1247,60 +1276,66 @@ public class DashboardController {
         col2.setPercentWidth(50);
         grid.getColumnConstraints().addAll(col1, col2);
 
-        Label titleLabel = new Label("Register target from: " + selectedFile.getName());
-        titleLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
-        grid.add(titleLabel, 0, 0, 2, 1);
+        String tileStyle = "-fx-background-color: rgba(255, 255, 255, 0.65); -fx-background-radius: 16; -fx-border-radius: 16; -fx-border-color: rgba(255, 255, 255, 0.9); -fx-border-width: 1.5; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 12, 0, 0, 4);";
+        String labelStyle = "-fx-text-fill: #64748B; -fx-font-weight: bold; -fx-font-size: 12px;";
+        String inputStyle = "-fx-background-color: transparent; -fx-border-color: #CBD5E1; -fx-border-width: 0 0 1 0; -fx-padding: 6 2 4 2; -fx-text-fill: #1E293B; -fx-font-size: 13px;";
 
         // Module 1: Name
         VBox nameTile = new VBox(8);
-        nameTile.getStyleClass().add("bento-card");
-        nameTile.setPadding(new Insets(15));
+        nameTile.setStyle(tileStyle);
+        nameTile.setPadding(new Insets(16));
         Label lblName = new Label("👤 Name:");
-        lblName.setStyle("-fx-text-fill: #9CA3AF;");
+        lblName.setStyle(labelStyle);
         TextField nameField = new TextField();
         nameField.setPromptText("Full Name");
+        nameField.setStyle(inputStyle);
         nameTile.getChildren().addAll(lblName, nameField);
 
         // Module 2: Category
         VBox catTile = new VBox(8);
-        catTile.getStyleClass().add("bento-card");
-        catTile.setPadding(new Insets(15));
+        catTile.setStyle(tileStyle);
+        catTile.setPadding(new Insets(16));
         Label lblCat = new Label("📁 Category:");
-        lblCat.setStyle("-fx-text-fill: #9CA3AF;");
+        lblCat.setStyle(labelStyle);
         ComboBox<TargetCategory> categoryBox = new ComboBox<>();
         categoryBox.getItems().addAll(TargetCategory.values());
         categoryBox.setValue(TargetCategory.CRIMINAL);
         categoryBox.setMaxWidth(Double.MAX_VALUE);
+        categoryBox.setStyle("-fx-background-color: transparent; -fx-border-color: #CBD5E1; -fx-border-width: 0 0 1 0; -fx-text-fill: #1E293B; -fx-font-size: 13px;");
         catTile.getChildren().addAll(lblCat, categoryBox);
 
         // Module 3: Case Number
         VBox caseTile = new VBox(8);
-        caseTile.getStyleClass().add("bento-card");
-        caseTile.setPadding(new Insets(15));
+        caseTile.setStyle(tileStyle);
+        caseTile.setPadding(new Insets(16));
         Label lblCase = new Label("⚖ Case #:");
-        lblCase.setStyle("-fx-text-fill: #9CA3AF;");
+        lblCase.setStyle(labelStyle);
         TextField caseField = new TextField();
         caseField.setPromptText("Case/FIR Number");
+        caseField.setStyle(inputStyle);
         caseTile.getChildren().addAll(lblCase, caseField);
 
         // Module 4: Description
         VBox descTile = new VBox(8);
-        descTile.getStyleClass().add("bento-card");
-        descTile.setPadding(new Insets(15));
+        descTile.setStyle(tileStyle);
+        descTile.setPadding(new Insets(16));
         Label lblDesc = new Label("📝 Description:");
-        lblDesc.setStyle("-fx-text-fill: #9CA3AF;");
+        lblDesc.setStyle(labelStyle);
         TextArea descField = new TextArea();
         descField.setPromptText("Description (Optional)");
         descField.setPrefRowCount(2);
+        descField.setStyle("-fx-background-color: transparent; -fx-control-inner-background: transparent; -fx-border-color: #CBD5E1; -fx-border-width: 1; -fx-border-radius: 6; -fx-padding: 4; -fx-text-fill: #1E293B; -fx-font-size: 13px;");
         descTile.getChildren().addAll(lblDesc, descField);
 
         // Add tiles to 2x2 grid
-        grid.add(nameTile, 0, 1);
-        grid.add(catTile, 1, 1);
-        grid.add(caseTile, 0, 2);
-        grid.add(descTile, 1, 2);
+        grid.add(nameTile, 0, 0);
+        grid.add(catTile, 1, 0);
+        grid.add(caseTile, 0, 1);
+        grid.add(descTile, 1, 1);
+        
+        mainContainer.getChildren().addAll(header, grid);
 
-        dialogPane.setContent(grid);
+        dialogPane.setContent(mainContainer);
         
         // Custom styling for buttons
         ButtonType okButtonType = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
@@ -1308,9 +1343,9 @@ public class DashboardController {
         dialogPane.getButtonTypes().addAll(okButtonType, cancelButtonType);
         
         Button okButton = (Button) dialogPane.lookupButton(okButtonType);
-        okButton.setStyle("-fx-background-color: rgba(37, 99, 235, 0.4); -fx-text-fill: white; -fx-border-color: rgba(59, 130, 246, 0.5); -fx-border-radius: 6; -fx-background-radius: 6;");
+        okButton.setStyle("-fx-background-color: linear-gradient(to bottom right, #3B82F6, #2563EB); -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 24; -fx-effect: dropshadow(gaussian, rgba(37,99,235,0.3), 8, 0, 0, 4);");
         Button cancelButton = (Button) dialogPane.lookupButton(cancelButtonType);
-        cancelButton.setStyle("-fx-background-color: rgba(220, 38, 38, 0.3); -fx-text-fill: white; -fx-border-color: rgba(239, 68, 68, 0.4); -fx-border-radius: 6; -fx-background-radius: 6;");
+        cancelButton.setStyle("-fx-background-color: transparent; -fx-text-fill: #64748B; -fx-border-color: #CBD5E1; -fx-border-width: 1; -fx-border-radius: 8; -fx-padding: 7 24; -fx-font-weight: bold;");
 
         dialog.setResultConverter(btn -> {
             if (btn == okButtonType) {
