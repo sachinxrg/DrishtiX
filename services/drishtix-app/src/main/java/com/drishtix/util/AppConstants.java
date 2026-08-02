@@ -143,19 +143,22 @@ public final class AppConstants {
 
     // ==================== Body Lock (Facial-to-Spatial Handoff) ====================
     /** Expand face bbox downward by this factor to capture upper torso/shirt for CSRT. */
-    public static final double BODY_LOCK_EXPANSION_RATIO = 2.0;
-    /** Maximum frames a body lock can persist without face re-confirmation (60s at 15 FPS). */
-    public static final int BODY_LOCK_MAX_FRAMES = 900;
+    public static final double BODY_LOCK_EXPANSION_RATIO = 2.5;
+    /** Maximum frames a body lock can persist without face re-confirmation (120s at 15 FPS). */
+    public static final int BODY_LOCK_MAX_FRAMES = 1800;
     /** Frames after face loss to transition from face-weighted to body-only fusion. */
     public static final int BODY_LOCK_GRACE_FRAMES = 30;
-    /** Minimum fused confidence to maintain a body lock. */
-    public static final double BODY_LOCK_MIN_CONFIDENCE = 0.40;
+    /** Minimum fused confidence to maintain a body lock (lowered for cross-view robustness). */
+    public static final double BODY_LOCK_MIN_CONFIDENCE = 0.20;
     /** Consecutive low-confidence frames before releasing a body lock. */
-    public static final int BODY_LOCK_LOW_CONF_FRAMES = 15;
+    public static final int BODY_LOCK_LOW_CONF_FRAMES = 45;
     /** Re-verify OSNet embedding every N frames while face is lost. */
     public static final int BODY_LOCK_REVERIFY_INTERVAL = 15;
     /** Minimum OSNet cosine similarity to consider the same person. */
-    public static final double OSNET_SIMILARITY_THRESHOLD = 0.50;
+    public static final double OSNET_SIMILARITY_THRESHOLD = 0.35;
+
+    /** OSNet similarity above this triggers adaptive reference embedding update (appearance drift). */
+    public static final double OSNET_EMBEDDING_DRIFT_THRESHOLD = 0.65;
 
     // Body lock fusion weights: α = face weight, β = body weight
     public static final double FUSION_ALPHA_FACE_VISIBLE = 0.8;

@@ -79,6 +79,9 @@ public class LockedTarget {
         this.faceCurrentlyVisible = true;
         this.active = true;
         this.consecutiveLowConfFrames = 0;
+        // Initialize to 1.0 (self-similarity) — prevents fusion collapse before
+        // the async OSNet extraction completes
+        this.lastBodySimilarity = 1.0;
     }
 
     /**
@@ -189,6 +192,40 @@ public class LockedTarget {
      */
     public void markFaceLost() {
         this.faceCurrentlyVisible = false;
+    }
+
+    /**
+     * Adapts the stored body reference embedding toward the current observation
+     * using exponential moving average blending.
+     * <p>
+     * This allows the tracker to gradually adapt to appearance changes (e.g.,
+     * target turning from front to side to back) without losing identity.
+     * Only called when similarity is above OSNET_EMBEDDING_DRIFT_THRESHOLD.
+     * </p>
+     *
+     * @param currentEmbedding the current frame's body embedding
+     * @param blendFactor      how much to weight the new observation (0.0–1.0). 
+     *                         0.3 = 30% new, 70% old (conservative).
+     */
+    public void adaptEmbedding(float[] currentEmbedding, double blendFactor) {
+        if (bodyEmbedding == null || currentEmbedding == null) return;
+        if (bodyEmbedding.length != currentEmbedding.length) return;
+
+        for (int i = 0; i < bodyEmbedding.length; i++) {
+            bodyEmbedding[i] = (float) (
+                    (1.0 - blendFactor) * bodyEmbedding[i] + blendFactor * currentEmbedding[i]
+            );
+        }
+
+        // Re-normalize to unit length for cosine similarity
+        double norm = 0;
+        for (float v : bodyEmbedding) norm += v * v;
+        norm = Math.sqrt(norm);
+        if (norm > 0) {
+            for (int i = 0; i < bodyEmbedding.length; i++) {
+                bodyEmbedding[i] = (float) (bodyEmbedding[i] / norm);
+            }
+        }
     }
 
     // ==================== Getters & Setters ====================

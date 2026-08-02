@@ -111,7 +111,6 @@ public class DashboardController {
     // ==================== Frame-Skip & Tracking (Phase 3) ====================
     private final AtomicLong globalFrameIndex = new AtomicLong(0);
     private FaceTrackingManager trackingManager;
-    private final AtomicBoolean isCsrtUpdating = new AtomicBoolean(false);
 
     @FXML
     public void initialize() {
@@ -655,48 +654,27 @@ public class DashboardController {
             }
         }
 
-        // ===== BODY LOCK DRAWING — runs EVERY frame (both inference + intermediate) =====
+        // ===== BODY LOCK UPDATE & DRAWING — runs EVERY frame (both inference + intermediate) =====
         // Body locks are independent of the face tracker lifecycle.
 
-        // 1. ASYNC CSRT UPDATE (Prevents FPS drop)
-        // Only queue a new CSRT update if the previous one has completely finished (Lock-Step Frame Dropping)
-        if (isCsrtUpdating.compareAndSet(false, true)) {
-            final Mat csrtFrame = frame.clone();
-            final long currentIdx = currentFrameIdx;
-            final List<Rect> finalFaceBoxes = currentFaceBoxes;
-            
-            java.util.concurrent.CompletableFuture.runAsync(() -> {
-                try {
-                    long startTime = System.currentTimeMillis();
-                    
-                    // updateBodyLocks now runs asynchronously in the background
-                    trackingManager.updateBodyLocks(csrtFrame, currentIdx, finalFaceBoxes);
-                    
-                    long elapsed = System.currentTimeMillis() - startTime;
-                    System.out.println("[DIAGNOSTIC] CSRT update completed in " + elapsed + "ms for frame " + currentIdx);
-                } finally {
-                    csrtFrame.release();
-                    isCsrtUpdating.set(false); // Release the lock so the next frame can be processed
-                }
-            }, ThreadPools.getRecognitionInferencePool());
-        } else {
-            // Drop intermediate frame from tracker to maintain real-time sync
-            System.out.println("[DIAGNOSTIC] CSRT busy. Dropping frame " + currentFrameIdx + " from tracking queue.");
-        }
+        // SYNCHRONOUS CSRT UPDATE on the capture thread (~1.5ms per lock).
+        // CSRT trackers require every frame to maintain spatial coherence.
+        // Skipping frames causes the tracker to "teleport" and lose the target.
+        trackingManager.updateBodyLocks(frame, currentFrameIdx, currentFaceBoxes);
 
-        // 2. SYNCHRONOUS DRAWING (Draws last known coordinates with zero latency)
+        // Draw body lock bounding boxes with current (just-updated) coordinates
         for (LockedTarget lock : trackingManager.getActiveBodyLocks()) {
             boolean faceLost = !lock.isFaceCurrentlyVisible();
-            
-            System.out.println("[DIAGNOSTIC] Drawing Body Lock for targetId=" + lock.getTargetId() + 
-                               " at X:" + lock.getBodyBox().x() + ", Y:" + lock.getBodyBox().y() + 
-                               " | FaceVisible=" + !faceLost + " | FusedConf=" + String.format("%.3f", lock.getFusedConfidence()));
-                               
+
+            log.trace("Body Lock: targetId={} at ({},{}) | FaceVisible={} | FusedConf={}",
+                    lock.getTargetId(), lock.getBodyBox().x(), lock.getBodyBox().y(),
+                    !faceLost, String.format("%.3f", lock.getFusedConfidence()));
+
             drawBoundingBox(frame, lock.getBodyBox(), null,
                     lock.getDisplayLabel(), lock.getDisplayColor(), faceLost);
         }
 
-        // === PERIODIC OSNet RE-VERIFICATION (shared frame clone, async) ===
+        // === PERIODIC OSNet RE-VERIFICATION with ADAPTIVE EMBEDDING DRIFT ===
         // First pass: check if ANY lock needs re-verification
         boolean anyNeedsReverify = false;
         for (LockedTarget lock : trackingManager.getActiveBodyLocks()) {
@@ -732,8 +710,21 @@ public class DashboardController {
                                 double sim = bodyReIdService.similarity(
                                         currentBodyEmbed, lockRef.getBodyEmbedding());
                                 lockRef.setLastBodySimilarity(sim);
-                                log.trace("OSNet re-verify: targetId={}, similarity={}",
-                                        lockRef.getTargetId(), String.format("%.3f", sim));
+
+                                // ADAPTIVE EMBEDDING DRIFT: When similarity is above the
+                                // drift threshold, gradually blend the current observation
+                                // into the reference embedding (30% new, 70% old).
+                                // This allows the tracker to adapt to gradual appearance
+                                // changes (e.g., front → side → back view) without
+                                // losing identity or drifting to a different person.
+                                if (sim >= AppConstants.OSNET_EMBEDDING_DRIFT_THRESHOLD) {
+                                    lockRef.adaptEmbedding(currentBodyEmbed, 0.3);
+                                    log.debug("OSNet re-verify: targetId={}, sim={} — embedding adapted",
+                                            lockRef.getTargetId(), String.format("%.3f", sim));
+                                } else {
+                                    log.debug("OSNet re-verify: targetId={}, sim={} — below drift threshold",
+                                            lockRef.getTargetId(), String.format("%.3f", sim));
+                                }
                             }
                         } finally {
                             if (torsoCrop != null) torsoCrop.release();

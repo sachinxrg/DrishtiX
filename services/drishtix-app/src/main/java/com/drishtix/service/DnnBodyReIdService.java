@@ -169,12 +169,12 @@ public class DnnBodyReIdService {
         int faceW = faceBox.width();
         int faceH = faceBox.height();
 
-        // 1. Tighter width: only expand 20% to avoid background contamination
-        int torsoW = (int) (faceW * 1.2);
+        // 1. Wider torso: expand 50% to capture full shoulder width for robust CSRT tracking
+        int torsoW = (int) (faceW * 1.5);
         int torsoX = faceBox.x() - (torsoW - faceW) / 2;
 
-        // 2. Shift Y downwards: Start at the chin/neck (ignore the head/background)
-        int torsoY = faceBox.y() + (int) (faceH * 0.8);
+        // 2. Shift Y downwards: Start from mid-face (captures neck + shoulders for stability)
+        int torsoY = faceBox.y() + (int) (faceH * 0.6);
         
         // 3. Torso height: extend down relative to face height
         int torsoH = (int) (faceH * expansionRatio);
