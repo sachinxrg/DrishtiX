@@ -1393,8 +1393,16 @@ public class DashboardController {
                 detectionsProperty.set(today);
 
                 if (lblRecognizerStatus != null) {
-                    lblRecognizerStatus.setText(recognitionService.isTrained() ? "● Trained" : "○ Not Trained");
-                    lblRecognizerStatus.setStyle(recognitionService.isTrained()
+                    boolean ready = recognitionService.isTrained();
+                    if (configService.isDnnMode()) {
+                        int gallerySize = DnnFaceRecognitionService.getInstance().getGallerySize();
+                        lblRecognizerStatus.setText(ready
+                                ? "● DNN Ready (" + gallerySize + ")"
+                                : "○ DNN — No Gallery");
+                    } else {
+                        lblRecognizerStatus.setText(ready ? "● LBPH Trained" : "○ Not Trained");
+                    }
+                    lblRecognizerStatus.setStyle(ready
                             ? "-fx-text-fill: #22C55E;" : "-fx-text-fill: #FBBF24;");
                 }
             });

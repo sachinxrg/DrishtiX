@@ -123,7 +123,7 @@ public class ConfigurationService {
     }
 
     public String getDetectionMethod() {
-        return getString(AppConstants.CFG_DETECTION_METHOD, "HAAR");
+        return getString(AppConstants.CFG_DETECTION_METHOD, "DNN");
     }
 
     public int getMinFaceSize() {
