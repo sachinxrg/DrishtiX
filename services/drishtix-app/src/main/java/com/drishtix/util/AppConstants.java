@@ -160,6 +160,11 @@ public final class AppConstants {
     /** OSNet similarity above this triggers adaptive reference embedding update (appearance drift). */
     public static final double OSNET_EMBEDDING_DRIFT_THRESHOLD = 0.65;
 
+    /** Maximum consecutive tracker update failures before releasing the body lock.
+     *  During failures, position is predicted from the last known velocity.
+     *  45 frames ≈ 3 seconds at 15 FPS — gives the tracker time to re-acquire. */
+    public static final int BODY_LOCK_MAX_TRACKER_FAILURES = 45;
+
     // Body lock fusion weights: α = face weight, β = body weight
     public static final double FUSION_ALPHA_FACE_VISIBLE = 0.8;
     public static final double FUSION_BETA_FACE_VISIBLE = 0.2;

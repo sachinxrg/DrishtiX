@@ -45,6 +45,14 @@ public class LockedTarget {
     private long lastBodyVerifyFrame;
     private int consecutiveLowConfFrames;
 
+    // Tracker failure resilience: KCF can lose tracking when appearance changes
+    // (e.g., target turns backward). Instead of instant release, we predict
+    // position from velocity and re-initialize the tracker.
+    private int consecutiveTrackerFailures;
+    private double velocityX;  // pixels per frame (horizontal)
+    private double velocityY;  // pixels per frame (vertical)
+    private Rect previousBox;  // for velocity computation
+
     // State
     private boolean faceCurrentlyVisible;
     private boolean active;
@@ -79,9 +87,62 @@ public class LockedTarget {
         this.faceCurrentlyVisible = true;
         this.active = true;
         this.consecutiveLowConfFrames = 0;
+        this.consecutiveTrackerFailures = 0;
+        this.velocityX = 0;
+        this.velocityY = 0;
+        this.previousBox = new Rect(bodyBox.x(), bodyBox.y(), bodyBox.width(), bodyBox.height());
         // Initialize to 1.0 (self-similarity) — prevents fusion collapse before
         // the async OSNet extraction completes
         this.lastBodySimilarity = 1.0;
+    }
+
+    // ==================== Tracker Failure Resilience ====================
+
+    /**
+     * Records a successful tracker update and computes velocity from the
+     * position delta. Resets the failure counter.
+     */
+    public void recordTrackerSuccess(Rect newBox) {
+        if (previousBox != null) {
+            this.velocityX = newBox.x() - previousBox.x();
+            this.velocityY = newBox.y() - previousBox.y();
+        }
+        this.previousBox = new Rect(newBox.x(), newBox.y(), newBox.width(), newBox.height());
+        this.consecutiveTrackerFailures = 0;
+    }
+
+    /**
+     * Increments the tracker failure counter. Called when KCF.update() returns false.
+     * @return the predicted bounding box based on last known velocity, or null
+     *         if the maximum failure count has been exceeded.
+     */
+    public Rect recordTrackerFailure() {
+        consecutiveTrackerFailures++;
+        if (consecutiveTrackerFailures >= AppConstants.BODY_LOCK_MAX_TRACKER_FAILURES) {
+            return null; // Signal to release the lock
+        }
+        // Predict next position from last known velocity (linear extrapolation)
+        if (bodyBox != null) {
+            int predX = bodyBox.x() + (int) velocityX;
+            int predY = bodyBox.y() + (int) velocityY;
+            return new Rect(predX, predY, bodyBox.width(), bodyBox.height());
+        }
+        return null;
+    }
+
+    /**
+     * Returns the number of consecutive tracker failures.
+     */
+    public int getConsecutiveTrackerFailures() {
+        return consecutiveTrackerFailures;
+    }
+
+    /**
+     * Replaces the current body tracker with a newly initialized one.
+     * Used for tracker re-initialization after failure.
+     */
+    public void setBodyTracker(Tracker newTracker) {
+        this.bodyTracker = newTracker;
     }
 
     /**

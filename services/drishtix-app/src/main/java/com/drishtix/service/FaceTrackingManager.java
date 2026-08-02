@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -41,7 +42,7 @@ public class FaceTrackingManager {
     private static final Logger log = LoggerFactory.getLogger(FaceTrackingManager.class);
 
     private final List<TrackedFace> activeTracks = new ArrayList<>();
-    private final List<LockedTarget> lockedTargets = new ArrayList<>();
+    private final List<LockedTarget> lockedTargets = new CopyOnWriteArrayList<>();
     private final AtomicInteger nextTrackerId = new AtomicInteger(0);
     private final AtomicInteger nextLockId = new AtomicInteger(0);
 
@@ -332,30 +333,72 @@ public class FaceTrackingManager {
                 Rect updatedBox = new Rect();
                 boolean trackSuccess = tracker.update(frame, updatedBox);
 
-                if (!trackSuccess) {
-                    log.info("Body lock RELEASED (tracker lost): targetId={}", lock.getTargetId());
-                    lock.setActive(false);
-                    toRemove.add(lock);
-                    continue;
-                }
+                if (trackSuccess) {
+                    // === TRACKER SUCCESS PATH ===
+                    // Clamp to frame boundaries
+                    int x = Math.max(0, updatedBox.x());
+                    int y = Math.max(0, updatedBox.y());
+                    int w = Math.min(updatedBox.width(), frame.cols() - x);
+                    int h = Math.min(updatedBox.height(), frame.rows() - y);
+                    if (w <= 0 || h <= 0) {
+                        toRemove.add(lock);
+                        continue;
+                    }
+                    Rect clampedBox = new Rect(x, y, w, h);
+                    lock.setBodyBox(clampedBox);
+                    lock.recordTrackerSuccess(clampedBox);
 
-                // Clamp to frame boundaries
-                int x = Math.max(0, updatedBox.x());
-                int y = Math.max(0, updatedBox.y());
-                int w = Math.min(updatedBox.width(), frame.cols() - x);
-                int h = Math.min(updatedBox.height(), frame.rows() - y);
-                if (w <= 0 || h <= 0) {
-                    toRemove.add(lock);
-                    continue;
+                } else {
+                    // === TRACKER FAILURE PATH (RESILIENT) ===
+                    // KCF lost the target (appearance change, e.g. turning backward).
+                    // Instead of instant release:
+                    // 1. Predict position from last known velocity
+                    // 2. Re-initialize a fresh KCF tracker at the predicted position
+                    // 3. Only release after MAX_TRACKER_FAILURES consecutive failures
+                    Rect predictedBox = lock.recordTrackerFailure();
+
+                    if (predictedBox == null) {
+                        // Exceeded MAX_TRACKER_FAILURES — release the lock
+                        log.info("Body lock RELEASED (tracker lost after {} failures): targetId={}",
+                                lock.getConsecutiveTrackerFailures(), lock.getTargetId());
+                        lock.setActive(false);
+                        toRemove.add(lock);
+                        continue;
+                    }
+
+                    // Clamp predicted position to frame boundaries
+                    int px = Math.max(0, Math.min(predictedBox.x(), frame.cols() - predictedBox.width()));
+                    int py = Math.max(0, Math.min(predictedBox.y(), frame.rows() - predictedBox.height()));
+                    int pw = Math.min(predictedBox.width(), frame.cols() - px);
+                    int ph = Math.min(predictedBox.height(), frame.rows() - py);
+                    if (pw <= 0 || ph <= 0) {
+                        toRemove.add(lock);
+                        continue;
+                    }
+
+                    Rect clampedPredicted = new Rect(px, py, pw, ph);
+                    lock.setBodyBox(clampedPredicted);
+
+                    // Re-initialize a fresh KCF tracker at the predicted position.
+                    // This gives the tracker a "fresh start" with the new appearance
+                    // (e.g., back of torso instead of front), allowing it to re-acquire.
+                    try {
+                        TrackerKCF freshKcf = TrackerKCF.create();
+                        freshKcf.init(frame, clampedPredicted);
+                        lock.setBodyTracker(freshKcf);
+                        log.debug("KCF re-initialized at predicted position for targetId={} (failure #{})",
+                                lock.getTargetId(), lock.getConsecutiveTrackerFailures());
+                    } catch (Exception reinitEx) {
+                        log.debug("KCF re-init failed for targetId={}: {}",
+                                lock.getTargetId(), reinitEx.getMessage());
+                    }
                 }
-                lock.setBodyBox(new Rect(x, y, w, h));
 
                 // 2. Check for face re-confirmation via spatial overlap
                 boolean faceReconfirmed = false;
                 if (faceBoxes != null) {
                     for (Rect faceBox : faceBoxes) {
                         if (calculateIoU(lock.getBodyBox(), faceBox) > 0.15) {
-                            // Face is within the body lock region — face is visible
                             faceReconfirmed = true;
                             break;
                         }
@@ -363,7 +406,6 @@ public class FaceTrackingManager {
                 }
 
                 if (faceReconfirmed) {
-                    // Will be updated with fresh embedding by DashboardController
                     lock.reconfirmFace(lock.getFaceEmbedding(), lock.getLastFaceSimilarity(), currentFrame);
                 } else if (lock.isFaceCurrentlyVisible()) {
                     lock.markFaceLost();
