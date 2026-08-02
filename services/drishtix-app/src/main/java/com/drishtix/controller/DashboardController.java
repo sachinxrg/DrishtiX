@@ -1224,14 +1224,26 @@ public class DashboardController {
         // Show a quick registration dialog
         Dialog<TargetRegistry> dialog = new Dialog<>();
         dialog.setTitle("DrishtiX — Register New Target");
-        dialog.setHeaderText("Register target from: " + selectedFile.getName());
 
-        // Form fields
+        DialogPane dialogPane = dialog.getDialogPane();
+        try {
+            dialogPane.getStylesheets().add(getClass().getResource("/css/drishtix-dark.css").toExternalForm());
+        } catch (Exception e) {
+            log.warn("Could not load CSS for dialog");
+        }
+        // Ambient room background for the dialog window itself
+        dialogPane.setStyle("-fx-background-color: linear-gradient(to bottom right, #0B0B12, #161625);");
+
+        // Form fields wrapped in a bento card
         GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(20, 20, 10, 20));
-        grid.setStyle("-fx-background-color: #1A1D24;");
+        grid.setHgap(15);
+        grid.setVgap(15);
+        grid.setPadding(new Insets(25));
+        grid.getStyleClass().add("bento-card");
+
+        Label titleLabel = new Label("Register target from: " + selectedFile.getName());
+        titleLabel.setStyle("-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;");
+        grid.add(titleLabel, 0, 0, 2, 1);
 
         TextField nameField = new TextField();
         nameField.setPromptText("Full Name");
@@ -1244,17 +1256,26 @@ public class DashboardController {
         descField.setPromptText("Description (optional)");
         descField.setPrefRowCount(2);
 
-        grid.add(new Label("Name:"), 0, 0);
-        grid.add(nameField, 1, 0);
-        grid.add(new Label("Category:"), 0, 1);
-        grid.add(categoryBox, 1, 1);
-        grid.add(new Label("Case #:"), 0, 2);
-        grid.add(caseField, 1, 2);
-        grid.add(new Label("Description:"), 0, 3);
-        grid.add(descField, 1, 3);
+        Label lblName = new Label("Name:");
+        lblName.setStyle("-fx-text-fill: #9CA3AF;");
+        Label lblCat = new Label("Category:");
+        lblCat.setStyle("-fx-text-fill: #9CA3AF;");
+        Label lblCase = new Label("Case #:");
+        lblCase.setStyle("-fx-text-fill: #9CA3AF;");
+        Label lblDesc = new Label("Description:");
+        lblDesc.setStyle("-fx-text-fill: #9CA3AF;");
 
-        dialog.getDialogPane().setContent(grid);
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        grid.add(lblName, 0, 1);
+        grid.add(nameField, 1, 1);
+        grid.add(lblCat, 0, 2);
+        grid.add(categoryBox, 1, 2);
+        grid.add(lblCase, 0, 3);
+        grid.add(caseField, 1, 3);
+        grid.add(lblDesc, 0, 4);
+        grid.add(descField, 1, 4);
+
+        dialogPane.setContent(grid);
+        dialogPane.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
         dialog.setResultConverter(btn -> {
             if (btn == ButtonType.OK) {
