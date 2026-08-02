@@ -67,6 +67,66 @@ DrishtiX runs on a highly concurrent architecture to guarantee maximum frame thr
 4. **Audio & Telegram Daemon Pool:** Executes asynchronous sound playback and network REST calls.
 5. **Ingestion Engine Pool (Scheduled):** Periodically polls external APIs (like FBI/CBI) in the background.
 
+```mermaid
+erDiagram
+    TARGET_REGISTRY {
+        ObjectId _id PK
+        string full_name
+        string category "CRIMINAL | MISSING_PERSON"
+        string case_number
+        string description
+        int recognizer_label UK
+        date created_at
+    }
+    TARGET_IMAGES {
+        ObjectId _id PK
+        int target_id FK "References recognizer_label"
+        string template_image_path
+        int face_count
+    }
+    DETECTION_LOGS {
+        ObjectId _id PK
+        int target_id FK
+        string camera_name
+        float confidence_score
+        string snapshot_path
+        date detected_at
+    }
+    ALERT_CONFIG {
+        ObjectId _id PK
+        string config_key UK
+        string config_value
+    }
+    
+    TARGET_REGISTRY ||--o{ TARGET_IMAGES : "has"
+    TARGET_REGISTRY ||--o{ DETECTION_LOGS : "logs"
+```
+
+```mermaid
+stateDiagram-v2
+    [*] --> FaceDetected : YuNet + SFace
+    FaceDetected --> CheckCooldown : Target Identified
+    
+    state CheckCooldown {
+        [*] --> CooldownActive : Alert sent < 10s ago
+        [*] --> CooldownExpired : Ready to alert
+    }
+    
+    CooldownActive --> [*] : Suppress Alert
+    
+    CooldownExpired --> SaveSnapshot : Async IO Triggered
+    SaveSnapshot --> TelegramDispatch : Push to Bot API
+    
+    state TelegramDispatch {
+        [*] --> HTTP_Request : POST /sendPhoto
+        HTTP_Request --> Success : 200 OK
+        HTTP_Request --> Fallback : Failure / No Image
+        Fallback --> HTTP_TextRequest : POST /sendMessage
+    }
+    
+    TelegramDispatch --> [*] : Update Last Alert Time
+```
+
 ---
 
 ## 🚀 Getting Started
