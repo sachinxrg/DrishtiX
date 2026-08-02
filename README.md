@@ -1,89 +1,130 @@
-# DrishtiX — Watchlist and Missing Person Alert System
+<div align="center">
+  <img src="DRISHTIX logo.png" alt="DrishtiX Logo" width="300"/>
 
-![DrishtiX Logo](services/drishtix-app/src/main/resources/icons/logo.png)
+  # DrishtiX 
+  **Advanced Edge-AI Facial Recognition & Surveillance Ecosystem**
 
-> **Current Version**: `2.0.0-SNAPSHOT` (active development on `feature/v2.0` branch)
-> **Stable Release**: `v1.0.0` (tagged on `main`)
+  [![Java Version](https://img.shields.io/badge/Java-17%2B-blue.svg)](https://adoptium.net/)
+  [![JavaFX Version](https://img.shields.io/badge/JavaFX-21-orange.svg)](https://openjfx.io/)
+  [![OpenCV Version](https://img.shields.io/badge/OpenCV-4.9.0-green.svg)](https://opencv.org/)
+  [![MongoDB Version](https://img.shields.io/badge/MongoDB-6.0%2B-brightgreen.svg)](https://www.mongodb.com/)
+  [![Status](https://img.shields.io/badge/Status-Active_Development-purple.svg)]()
+  [![License](https://img.shields.io/badge/License-MIT-blue.svg)]()
 
-DrishtiX is an advanced, JavaFX-based smart surveillance application designed to automatically identify registered criminals and missing persons in real-time. It leverages OpenCV (via JavaCV) for computer vision processing and maintains a clean, multi-threaded Model-View-Controller architecture.
+  *Next-Generation Real-Time Anomaly Detection, Criminal Identification, and Automated Alerting.*
 
----
-
-## Version History & Branching
-
-| Version | Branch | Status | Highlights |
-|---------|--------|--------|------------|
-| **v1.0.0** | `main` (tag: `v1.0.0`) | ✅ Stable Release | YuNet/SFace DNN pipeline, CSRT/OSNet body tracking handoff, multi-channel alerts, background ingestion, 80 tests |
-| **v2.0.0-SNAPSHOT** | `feature/v2.0` | 🚧 Active Development | Next-generation features in progress |
-
-To switch to the stable release:
-```bash
-git checkout v1.0.0
-```
-
-To switch to the development branch:
-```bash
-git checkout feature/v2.0
-```
+</div>
 
 ---
 
-## Key Features
-- **Real-Time DNN Identification:** YuNet face detection (~2ms) + SFace recognition (128-dim embeddings) running on a 4-thread inference pool.
-- **Facial-to-Spatial Tracking Handoff:** Persistent CSRT body locks + OSNet whole-body Re-ID maintain bounding boxes when targets turn away from the camera.
-- **Unified Dashboard:** High-contrast, premium dark-themed UI built with JavaFX and modern CSS, featuring live telemetry (FPS, Active Cameras, Detections).
-- **Target Registry:** Database management for uploading images, categorization (Criminal / Missing Person), and metadata tracking.
-- **Multi-Channel Alerts:** Simultaneous audio alarms, ControlsFX desktop toasts, and Telegram push notifications to field staff.
-- **Background Ingestion Engine:** Automated FBI/CBI/TrackChild scraping with hot-injection into the live recognition gallery.
-- **Reporting & Logging:** Automated detection logging, snapshot capturing, and CSV export capabilities.
+## 📖 Overview
 
-## Architecture
+**DrishtiX** is an enterprise-grade smart surveillance application built to redefine real-time identification. Leveraging deep learning computer vision via OpenCV (YuNet/SFace), DrishtiX operates directly at the edge to instantly cross-reference live video feeds against registered databases of missing persons and high-value targets. 
 
-The system operates across five strictly isolated thread pools to guarantee zero UI latency and maximum frame throughput:
-1. **UI Thread (JavaFX):** Handles all visual rendering and bindings.
-2. **Video Inference Pool (Cached):** Captures frames, runs YuNet detection, updates KCF/CSRT trackers.
-3. **Recognition Inference Pool (Fixed=4):** Parallel SFace embedding extraction via CompletableFuture.
-4. **Audio Alert Pool (Daemon):** Asynchronous sound playback and Telegram network I/O.
-5. **Ingestion Pool (Scheduled, MIN_PRIORITY):** Background web scraping on configurable intervals.
+Unlike traditional passive surveillance, DrishtiX is **proactive**. With unified telemetric dashboards, automated background ingestion of global databases (FBI, CBI), and multi-channel instant alerting (Telegram, Desktop Toasts, Audio), it turns ordinary camera feeds into intelligent, actionable security perimeters.
 
-## Technology Stack
-- **Language:** Java 17+
-- **GUI:** JavaFX 21.0.2
-- **Computer Vision:** OpenCV 4.9.0 (JavaCV / Bytedeco), YuNet ONNX, SFace ONNX, OSNet ONNX
-- **Database:** MongoDB 6.0+ + MongoDB Java Driver
-- **Logging:** SLF4J + Logback
+---
 
-## Prerequisites
-1. **Java 17+ JDK** installed.
-2. **MongoDB 6.0+** installed and running locally on `localhost:27017`.
-3. **Webcam** connected to your system (defaulting to device index 0).
+## ✨ System Highlights
 
-## Setup & Installation
+### 🧠 Core AI & Computer Vision
+- **YuNet Face Detection:** Ultra-fast, lightweight face detection optimized for edge computing (~2-5ms per frame).
+- **SFace Recognition:** Extracts 128-dimensional facial embeddings for high-accuracy cosine similarity matching against registered targets.
+- **Persistent Body Re-ID & CSRT Tracking:** Facial-to-spatial handoff. Once a face is identified, DrishtiX uses OSNet whole-body embeddings and CSRT tracking to maintain bounding boxes even if the target turns away or becomes partially occluded.
 
-### 1. Database Configuration
-Initialize the MongoDB collections and defaults using the provided mongosh script:
-```bash
-mongosh drishtix_db database/drishtix_init.js
+### 🌐 Automated Global Intelligence
+- **Background Ingestion Engine:** Configurable background daemons scrape and synchronize data from external sources.
+- **FBI Wanted API Integration:** Authenticates and pulls latest wanted lists directly from the FBI API, complete with facial images and case descriptions.
+- **CBI & TrackChild Support:** Expanding support for domestic missing children and criminal databases for automated local registry injections.
+
+### 🔔 Multi-Channel Alert Dispatch
+- **Telegram Field Alerts:** Asynchronous, fire-and-forget push notifications to field officers via the Telegram Bot API, complete with captured snapshot frames, case numbers, and confidence scores.
+- **Desktop Toasts:** Non-blocking JavaFX/ControlsFX toast notifications for the system operator.
+- **Audible Alarms:** Trigger-based audio sirens to immediately alert local security personnel.
+
+### 💎 Premium Ambient UI Architecture
+- **Ambient Glassmorphism Bento Grid:** A completely bespoke, light-themed, modern UI architecture (v4.0). Simulates physical glass panels floating over ambient, responsive backdrops utilizing strict proprietary `-fx-` CSS.
+- **Real-Time Telemetry:** Live FPS monitoring, active camera detection, and rolling alert logs without sacrificing main thread performance.
+
+---
+
+## 🏗️ Technical Architecture
+
+DrishtiX maintains zero UI latency by strictly isolating heavy computational workloads across a highly concurrent threading model:
+
+```mermaid
+graph TD
+    A[Camera Feed] --> B[Video Inference Pool]
+    B -->|Frame| C(YuNet Detector)
+    B -->|Track| D(CSRT / OSNet)
+    C -->|Faces| E[Recognition Pool Fixed=4]
+    E -->|SFace Embedding| F((MongoDB Local Registry))
+    E -->|Match Found| G[Alert Orchestrator]
+    
+    G --> H[UI Thread JavaFX]
+    G --> I[Audio Daemon Pool]
+    G --> J[Telegram Daemon Pool]
+
+    K[Ingestion Daemon] -->|FBI/CBI APIs| F
 ```
 
-*(Note: Default URI is `mongodb://localhost:27017`. Modify this in `src/main/resources/config.properties` if your local setup differs.)*
+---
 
-### 2. Build the Application
-Navigate to the application directory and compile the fat JAR using the provided Maven wrapper:
+## 🛠️ Technology Stack
+
+| Component | Technology | Description |
+|-----------|------------|-------------|
+| **Language** | Java 17+ | Core robust backend logic |
+| **UI Framework** | JavaFX 21.0.2 | Hardware-accelerated GUI rendering |
+| **Computer Vision** | OpenCV 4.9.0 | JavaCV wrappers for YuNet, SFace, OSNet |
+| **Database** | MongoDB 6.0+ | Document-based target and configuration registry |
+| **Network/REST** | Java 11 `HttpClient` | Asynchronous, non-blocking external API calls |
+| **Logging** | SLF4J + Logback | Asynchronous rolling log files |
+
+---
+
+## 🚀 Getting Started
+
+### 1. Prerequisites
+- **Java 17 JDK** or higher.
+- **MongoDB 6.0+** running on `localhost:27017` (default).
+- A connected USB Webcam or integrated laptop camera.
+
+### 2. Database & API Configuration
+Initialize your local database and configure your API keys (like the FBI API or Telegram Bot Token):
+
+1. **MongoDB Init (Optional):** Use `database/drishtix_init.js` to pre-populate required collections.
+2. **Configuration:** Copy `services/drishtix-app/config.properties.example` to `config.properties` and update it with your DB URI, Telegram Bot Token, Chat ID, and FBI API Key.
+
+### 3. Build & Run
+DrishtiX uses the Maven Wrapper, ensuring you don't need a global Maven installation.
+
 ```powershell
+# Navigate to the app directory
 cd services/drishtix-app
-.\mvnw.cmd clean package
-```
 
-### 3. Run the Application
-Start the system via the shaded JAR file:
-```powershell
+# Clean and package the Fat JAR
+.\mvnw.cmd clean package
+
+# Run the system
 java -jar target/drishtix-app-2.0.0-SNAPSHOT.jar
 ```
-*(The system will automatically synthesize necessary alert sounds into `src/main/resources/sounds` upon first boot if they are missing).*
 
-## Usage Guide
-- **Settings:** Navigate to the Configuration panel to set your minimum confidence threshold, cooldown duration, and audio preferences. You can also securely wipe all system data here if needed.
-- **Registry:** Go to the Registry panel to register your first target. Upload a clear, frontal face photo, set their category (Criminal/Missing), and provide identifying metadata.
-- **Dashboard:** Return to the Dashboard and click **Start**. The camera feed will initialize, and any registered faces entering the frame will instantly trigger bounding boxes, visual pop-ups, and audio alerts.
+---
 
+## 📖 Operational Guide
+
+1. **System Initialization:** On boot, the system validates models and database connections. The ingestion engine will start fetching FBI data after a 60-second stabilization delay.
+2. **Registration:** Use the **Target Index** panel to manually upload high-quality, frontal images of targets.
+3. **Configuration:** Use the **Settings** panel to adjust confidence thresholds, cooldown intervals, and API integrations.
+4. **Active Surveillance:** Click the circular action button on the **Dashboard** to engage the camera. The system will autonomously scan, track, and alert.
+
+---
+
+## 📜 License
+This project is proprietary and confidential. Unauthorized copying, distribution, or reverse engineering of this repository's contents, via any medium, is strictly prohibited.
+
+---
+<div align="center">
+  <i>Developed with precision for advanced security ecosystems.</i>
+</div>

@@ -28,3 +28,7 @@ alert.auto.start.camera=true
 # ==================== Video ====================
 video.fps.target=15
 video.camera.index=0
+
+# ==================== Background Ingestion ====================
+ingestion.enabled=true
+fbi.api.key=Q7IdKXdJ4bb9etLQobHooMcrm4qooSU6Y9hj0XDY

@@ -108,6 +108,7 @@ public class DashboardController {
     // ==================== Frame-Skip & Tracking (Phase 3) ====================
     private final AtomicLong globalFrameIndex = new AtomicLong(0);
     private FaceTrackingManager trackingManager;
+    private final AtomicBoolean isCsrtUpdating = new AtomicBoolean(false);
 
     @FXML
     public void initialize() {
@@ -132,6 +133,23 @@ public class DashboardController {
                     lblConfidence.setText(String.format("%.0f", newVal.doubleValue()));
                 }
             });
+        }
+
+        // Initialize camera selector
+        if (cameraSelector != null) {
+            try {
+                com.drishtix.dao.CameraSourceDAO cameraDAO = new com.drishtix.dao.CameraSourceDAO();
+                java.util.List<com.drishtix.model.CameraSource> cameras = cameraDAO.findAllActive();
+                if (cameras.isEmpty()) {
+                    cameras.add(new com.drishtix.model.CameraSource("Default Camera", "0"));
+                }
+                cameraSelector.getItems().setAll(cameras);
+                cameraSelector.getSelectionModel().selectFirst();
+            } catch (Exception e) {
+                log.error("Failed to load camera sources", e);
+                cameraSelector.getItems().add(new com.drishtix.model.CameraSource("Default Camera", "0"));
+                cameraSelector.getSelectionModel().selectFirst();
+            }
         }
 
         // Initialize mute button
@@ -224,7 +242,7 @@ public class DashboardController {
                 Platform.runLater(() -> {
                     if (btnStartStop != null) {
                         btnStartStop.setText("⏹ Stop");
-                        btnStartStop.getStyleClass().setAll("btn-stop");
+                        btnStartStop.getStyleClass().setAll("btn-stop-circle");
                     }
                     if (lblCameraStatus != null) {
                         lblCameraStatus.setText("● Active");
@@ -244,7 +262,7 @@ public class DashboardController {
                     showErrorToast("Camera Error: " + e.getMessage());
                     if (btnStartStop != null) {
                         btnStartStop.setText("▶ Start");
-                        btnStartStop.getStyleClass().setAll("btn-primary");
+                        btnStartStop.getStyleClass().setAll("btn-start-circle");
                     }
                 });
             }
@@ -273,7 +291,7 @@ public class DashboardController {
         Platform.runLater(() -> {
             if (btnStartStop != null) {
                 btnStartStop.setText("▶ Start");
-                btnStartStop.getStyleClass().setAll("btn-primary");
+                btnStartStop.getStyleClass().setAll("btn-start-circle");
             }
             if (lblCameraStatus != null) {
                 lblCameraStatus.setText("○ Inactive");
@@ -379,7 +397,7 @@ public class DashboardController {
                 showErrorToast("Camera stopped: too many consecutive errors. Please check your camera connection.");
                 if (btnStartStop != null) {
                     btnStartStop.setText("▶ Start");
-                    btnStartStop.getStyleClass().setAll("btn-primary");
+                    btnStartStop.getStyleClass().setAll("btn-start-circle");
                 }
                 if (lblCameraStatus != null) {
                     lblCameraStatus.setText("⚠ Error");
@@ -636,12 +654,41 @@ public class DashboardController {
 
         // ===== BODY LOCK DRAWING — runs EVERY frame (both inference + intermediate) =====
         // Body locks are independent of the face tracker lifecycle.
-        List<LockedTarget> activeLocks = trackingManager.updateBodyLocks(
-                frame, currentFrameIdx, currentFaceBoxes);
 
-        for (LockedTarget lock : activeLocks) {
-            // Draw body lock bounding box (dashed when face is lost)
+        // 1. ASYNC CSRT UPDATE (Prevents FPS drop)
+        // Only queue a new CSRT update if the previous one has completely finished (Lock-Step Frame Dropping)
+        if (isCsrtUpdating.compareAndSet(false, true)) {
+            final Mat csrtFrame = frame.clone();
+            final long currentIdx = currentFrameIdx;
+            final List<Rect> finalFaceBoxes = currentFaceBoxes;
+            
+            java.util.concurrent.CompletableFuture.runAsync(() -> {
+                try {
+                    long startTime = System.currentTimeMillis();
+                    
+                    // updateBodyLocks now runs asynchronously in the background
+                    trackingManager.updateBodyLocks(csrtFrame, currentIdx, finalFaceBoxes);
+                    
+                    long elapsed = System.currentTimeMillis() - startTime;
+                    System.out.println("[DIAGNOSTIC] CSRT update completed in " + elapsed + "ms for frame " + currentIdx);
+                } finally {
+                    csrtFrame.release();
+                    isCsrtUpdating.set(false); // Release the lock so the next frame can be processed
+                }
+            }, ThreadPools.getRecognitionInferencePool());
+        } else {
+            // Drop intermediate frame from tracker to maintain real-time sync
+            System.out.println("[DIAGNOSTIC] CSRT busy. Dropping frame " + currentFrameIdx + " from tracking queue.");
+        }
+
+        // 2. SYNCHRONOUS DRAWING (Draws last known coordinates with zero latency)
+        for (LockedTarget lock : trackingManager.getActiveBodyLocks()) {
             boolean faceLost = !lock.isFaceCurrentlyVisible();
+            
+            System.out.println("[DIAGNOSTIC] Drawing Body Lock for targetId=" + lock.getTargetId() + 
+                               " at X:" + lock.getBodyBox().x() + ", Y:" + lock.getBodyBox().y() + 
+                               " | FaceVisible=" + !faceLost + " | FusedConf=" + String.format("%.3f", lock.getFusedConfidence()));
+                               
             drawBoundingBox(frame, lock.getBodyBox(), null,
                     lock.getDisplayLabel(), lock.getDisplayColor(), faceLost);
         }
@@ -649,7 +696,7 @@ public class DashboardController {
         // === PERIODIC OSNet RE-VERIFICATION (shared frame clone, async) ===
         // First pass: check if ANY lock needs re-verification
         boolean anyNeedsReverify = false;
-        for (LockedTarget lock : activeLocks) {
+        for (LockedTarget lock : trackingManager.getActiveBodyLocks()) {
             if (lock.needsBodyReverification(currentFrameIdx) && bodyReIdService.isInitialized()) {
                 anyNeedsReverify = true;
                 break;
@@ -661,7 +708,7 @@ public class DashboardController {
             final Mat sharedVerifyFrame = frame.clone();
             List<CompletableFuture<Void>> reverifyFutures = new ArrayList<>();
 
-            for (LockedTarget lock : activeLocks) {
+            for (LockedTarget lock : trackingManager.getActiveBodyLocks()) {
                 if (lock.needsBodyReverification(currentFrameIdx) && bodyReIdService.isInitialized()) {
                     lock.setLastBodyVerifyFrame(currentFrameIdx);
                     final LockedTarget lockRef = lock;

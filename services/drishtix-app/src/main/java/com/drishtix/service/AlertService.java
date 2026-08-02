@@ -122,7 +122,7 @@ public class AlertService {
             }
         }
 
-        // === Channel 3: Telegram Alert ===
+        // === Channel 3: Telegram Officer Dispatch ===
         if (target != null && ConfigurationService.getInstance().isTelegramEnabled()) {
             String confidence = result != null ? result.getConfidencePercentage() : "N/A";
             CompletableFuture.runAsync(() -> {
@@ -135,9 +135,23 @@ public class AlertService {
             }, ThreadPools.getAudioAlertPool()); // Reuse audio pool for async I/O
         }
 
-        log.info("ALERT TRIGGERED: targetId={}, category={}, channels=[audio={}, notification={}, telegram={}]",
+        // === Channel 4: Officer Email Dispatch ===
+        if (target != null && ConfigurationService.getInstance().isOfficerDispatchEnabled()) {
+            String confidence = result != null ? result.getConfidencePercentage() : "N/A";
+            CompletableFuture.runAsync(() -> {
+                try {
+                    EmailAlertService.getInstance().sendOfficerDispatchEmail(
+                            target, confidence, snapshotPath, null);
+                } catch (Exception e) {
+                    log.warn("Officer Email dispatch failed: {}", e.getMessage());
+                }
+            }, ThreadPools.getAudioAlertPool());
+        }
+
+        log.info("ALERT TRIGGERED: targetId={}, category={}, channels=[audio={}, notification={}, telegram={}, email={}]",
                 targetId, category, audioEnabled, target != null, 
-                ConfigurationService.getInstance().isTelegramEnabled());
+                ConfigurationService.getInstance().isTelegramEnabled(),
+                ConfigurationService.getInstance().isOfficerDispatchEnabled());
         return true;
     }
 

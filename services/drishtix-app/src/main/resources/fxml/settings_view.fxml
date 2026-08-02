@@ -47,6 +47,35 @@
                     </HBox>
                 </VBox>
 
+                <!-- Officer Messaging & Dispatch Settings -->
+                <VBox spacing="10" styleClass="settings-group">
+                    <Label text="Officer Messaging &amp; Dispatch" styleClass="settings-group-title"/>
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Label text="Officer Dispatch Email:" styleClass="setting-label" prefWidth="200"/>
+                        <TextField fx:id="officerEmailField" promptText="officer.email@police.gov.in" prefWidth="250" styleClass="search-field"/>
+                    </HBox>
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Label text="Telegram Bot Token:" styleClass="setting-label" prefWidth="200"/>
+                        <TextField fx:id="telegramTokenField" promptText="123456789:ABCdef..." prefWidth="250" styleClass="search-field"/>
+                    </HBox>
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Label text="Telegram Chat / Group ID:" styleClass="setting-label" prefWidth="200"/>
+                        <TextField fx:id="telegramChatIdField" promptText="-100123456789" prefWidth="250" styleClass="search-field"/>
+                    </HBox>
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Label text="Telegram Dispatch:" styleClass="setting-label" prefWidth="200"/>
+                        <CheckBox fx:id="telegramEnabled" text="Enabled" styleClass="setting-checkbox"/>
+                    </HBox>
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Label text="Officer Email Dispatch:" styleClass="setting-label" prefWidth="200"/>
+                        <CheckBox fx:id="officerDispatchEnabled" text="Enabled" styleClass="setting-checkbox"/>
+                    </HBox>
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Label text="Test Messaging:" styleClass="setting-label" prefWidth="200"/>
+                        <Button text="📲 Send Test Dispatch" onAction="#handleTestDispatch" styleClass="btn-secondary"/>
+                    </HBox>
+                </VBox>
+
                 <!-- System Settings -->
                 <VBox spacing="10" styleClass="settings-group">
                     <Label text="System Settings" styleClass="settings-group-title"/>

@@ -99,19 +99,26 @@ public class TelegramAlertService {
                 ? "CRIMINAL DETECTED" : "MISSING PERSON FOUND";
 
         StringBuilder caption = new StringBuilder();
-        caption.append(emoji).append(" ").append(alertType).append(" ").append(emoji).append("\n\n");
-        caption.append("👤 Name: ").append(target.getFullName()).append("\n");
-        caption.append("📋 Category: ").append(target.getCategory().getDbValue()).append("\n");
-        caption.append("🔢 Case #: ").append(target.getCaseNumber()).append("\n");
-        caption.append("📊 Confidence: ").append(confidence).append("\n");
+        caption.append(emoji).append(" <b>OFFICER DISPATCH: ").append(alertType).append("</b> ").append(emoji).append("\n\n");
+        caption.append("👤 <b>Name:</b> ").append(target.getFullName()).append("\n");
+        caption.append("📋 <b>Category:</b> ").append(target.getCategory().getDbValue()).append("\n");
+        caption.append("🔢 <b>FIR / Case #:</b> ").append(target.getCaseNumber()).append("\n");
+        if (target.getDescription() != null && !target.getDescription().isBlank()) {
+            caption.append("📜 <b>FIR Description:</b> ").append(target.getDescription()).append("\n");
+        }
+        if (target.getCreatedAt() != null) {
+            DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+            caption.append("📅 <b>Date of FIR:</b> ").append(target.getCreatedAt().format(dateFmt)).append("\n");
+        }
+        caption.append("📊 <b>Match Confidence:</b> ").append(confidence).append("\n");
         if (cameraName != null && !cameraName.isBlank()) {
-            caption.append("📷 Camera: ").append(cameraName).append("\n");
+            caption.append("📷 <b>Camera Source:</b> ").append(cameraName).append("\n");
         }
         if (locationTag != null && !locationTag.isBlank()) {
-            caption.append("📍 Location: ").append(locationTag).append("\n");
+            caption.append("📍 <b>Location:</b> ").append(locationTag).append("\n");
         }
-        caption.append("🕐 Time: ").append(LocalDateTime.now().format(TIMESTAMP_FMT)).append("\n");
-        caption.append("\n🔒 DrishtiX Alert System");
+        caption.append("🕐 <b>Detection Time:</b> ").append(LocalDateTime.now().format(TIMESTAMP_FMT)).append("\n");
+        caption.append("\n🔒 <i>DrishtiX Automated Officer Dispatch System</i>");
 
         // Send photo if snapshot exists, otherwise send text message
         if (snapshotPath != null && new File(snapshotPath).exists()) {
@@ -220,8 +227,24 @@ public class TelegramAlertService {
                             log.info("Telegram photo alert sent successfully to chat: {}", chatId);
                             return true;
                         } else {
-                            log.warn("Telegram API returned HTTP {}: {}",
-                                    response.statusCode(), response.body());
+                            String body = response.body();
+                            log.warn("Telegram API returned HTTP {}: {}", response.statusCode(), body);
+                            if (body != null && body.contains("migrate_to_chat_id")) {
+                                try {
+                                    org.json.JSONObject obj = new org.json.JSONObject(body);
+                                    if (obj.has("parameters")) {
+                                        long newChatId = obj.getJSONObject("parameters").optLong("migrate_to_chat_id");
+                                        if (newChatId != 0) {
+                                            String newChatIdStr = String.valueOf(newChatId);
+                                            log.info("Telegram group migrated! Updating chat ID to: {}", newChatIdStr);
+                                            ConfigurationService.getInstance().updateConfig(
+                                                    com.drishtix.util.AppConstants.CFG_TELEGRAM_CHAT_ID, newChatIdStr);
+                                        }
+                                    }
+                                } catch (Exception ex) {
+                                    log.warn("Could not parse migrate_to_chat_id", ex);
+                                }
+                            }
                             return false;
                         }
                     })

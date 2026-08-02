@@ -43,10 +43,14 @@ public class ConfigurationService {
      */
     public void refresh() {
         try {
+            loadDefaults();
             Map<String, String> dbConfigs = configDAO.loadAll();
-            cache.clear();
-            cache.putAll(dbConfigs);
-            log.info("Configuration refreshed — {} entries loaded", cache.size());
+            for (Map.Entry<String, String> entry : dbConfigs.entrySet()) {
+                if (entry.getValue() != null && !entry.getValue().isBlank()) {
+                    cache.put(entry.getKey(), entry.getValue());
+                }
+            }
+            log.info("Configuration refreshed — {} entries loaded from DB", dbConfigs.size());
         } catch (Exception e) {
             log.warn("Failed to refresh configuration from database — using defaults", e);
             loadDefaults();
@@ -70,9 +74,11 @@ public class ConfigurationService {
         cache.putIfAbsent(AppConstants.CFG_REID_ENABLED, "false");
         cache.putIfAbsent(AppConstants.CFG_REID_SIMILARITY_THRESHOLD, String.valueOf(AppConstants.DEFAULT_REID_SIMILARITY_THRESHOLD));
         cache.putIfAbsent(AppConstants.CFG_REID_MATCH_WINDOW, String.valueOf(AppConstants.DEFAULT_REID_MATCH_WINDOW));
-        cache.putIfAbsent(AppConstants.CFG_TELEGRAM_ENABLED, "false");
-        cache.putIfAbsent(AppConstants.CFG_TELEGRAM_BOT_TOKEN, "");
-        cache.putIfAbsent(AppConstants.CFG_TELEGRAM_CHAT_ID, "");
+        cache.putIfAbsent(AppConstants.CFG_TELEGRAM_ENABLED, "true");
+        cache.putIfAbsent(AppConstants.CFG_TELEGRAM_BOT_TOKEN, "8875164831:AAHVtscV8JmXtVZbpkrKqi-sC1omdGg_S4U");
+        cache.putIfAbsent(AppConstants.CFG_TELEGRAM_CHAT_ID, "-1004487763327");
+        cache.putIfAbsent(AppConstants.CFG_OFFICER_EMAIL, "");
+        cache.putIfAbsent(AppConstants.CFG_OFFICER_DISPATCH_ENABLED, "true");
         cache.putIfAbsent(AppConstants.CFG_NOTIFICATION_MODE, "toast");
         // DNN defaults
         cache.putIfAbsent(AppConstants.CFG_DNN_SCORE_THRESHOLD, String.valueOf(AppConstants.DEFAULT_DNN_SCORE_THRESHOLD));
@@ -82,6 +88,7 @@ public class ConfigurationService {
         // Ingestion defaults
         cache.putIfAbsent(AppConstants.CFG_INGESTION_ENABLED, "false");
         cache.putIfAbsent(AppConstants.CFG_INGESTION_INTERVAL_HOURS, String.valueOf(AppConstants.DEFAULT_INGESTION_INTERVAL_HOURS));
+        cache.putIfAbsent(AppConstants.CFG_FBI_API_KEY, "");
         // Tracking defaults
         cache.putIfAbsent(AppConstants.CFG_INFERENCE_FRAME_INTERVAL, String.valueOf(AppConstants.DEFAULT_INFERENCE_FRAME_INTERVAL));
         cache.putIfAbsent(AppConstants.CFG_TRACKER_TYPE, AppConstants.DEFAULT_TRACKER_TYPE);
@@ -163,6 +170,14 @@ public class ConfigurationService {
         return getString(AppConstants.CFG_TELEGRAM_CHAT_ID, "");
     }
 
+    public String getOfficerEmail() {
+        return getString(AppConstants.CFG_OFFICER_EMAIL, "");
+    }
+
+    public boolean isOfficerDispatchEnabled() {
+        return getBoolean(AppConstants.CFG_OFFICER_DISPATCH_ENABLED, true);
+    }
+
     // ==================== Notification Accessors ====================
 
     public String getNotificationMode() {
@@ -233,6 +248,10 @@ public class ConfigurationService {
 
     public int getIngestionIntervalHours() {
         return getInt(AppConstants.CFG_INGESTION_INTERVAL_HOURS, AppConstants.DEFAULT_INGESTION_INTERVAL_HOURS);
+    }
+
+    public String getFbiApiKey() {
+        return getString(AppConstants.CFG_FBI_API_KEY, "");
     }
 
     // ==================== Tracking Accessors ====================

@@ -169,13 +169,15 @@ public class DnnBodyReIdService {
         int faceW = faceBox.width();
         int faceH = faceBox.height();
 
-        // Expand width by 50% on each side to capture shoulders
-        int torsoW = (int) (faceW * 1.5);
+        // 1. Tighter width: only expand 20% to avoid background contamination
+        int torsoW = (int) (faceW * 1.2);
         int torsoX = faceBox.x() - (torsoW - faceW) / 2;
 
-        // Keep top at face top, extend downward by expansion ratio
-        int torsoY = faceBox.y();
-        int torsoH = (int) (faceH * (1.0 + expansionRatio));
+        // 2. Shift Y downwards: Start at the chin/neck (ignore the head/background)
+        int torsoY = faceBox.y() + (int) (faceH * 0.8);
+        
+        // 3. Torso height: extend down relative to face height
+        int torsoH = (int) (faceH * expansionRatio);
 
         // Clip to frame boundaries
         torsoX = Math.max(0, torsoX);

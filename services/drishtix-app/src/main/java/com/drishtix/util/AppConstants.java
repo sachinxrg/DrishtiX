@@ -93,10 +93,12 @@ public final class AppConstants {
     public static final String CFG_REID_SIMILARITY_THRESHOLD = "reid_similarity_threshold";
     public static final String CFG_REID_MATCH_WINDOW = "reid_match_window";
 
-    // ==================== Telegram Config Keys ====================
+    // ==================== Telegram & Officer Dispatch Config Keys ====================
     public static final String CFG_TELEGRAM_ENABLED = "telegram_enabled";
     public static final String CFG_TELEGRAM_BOT_TOKEN = "telegram_bot_token";
     public static final String CFG_TELEGRAM_CHAT_ID = "telegram_chat_id";
+    public static final String CFG_OFFICER_EMAIL = "officer_email";
+    public static final String CFG_OFFICER_DISPATCH_ENABLED = "officer_dispatch_enabled";
 
     // ==================== Notification Config Keys ====================
     public static final String CFG_NOTIFICATION_MODE = "notification_mode";
@@ -123,6 +125,7 @@ public final class AppConstants {
 
     public static final String CFG_INGESTION_ENABLED = "ingestion_enabled";
     public static final String CFG_INGESTION_INTERVAL_HOURS = "ingestion_interval_hours";
+    public static final String CFG_FBI_API_KEY = "fbi_api_key";
     public static final int DEFAULT_INGESTION_INTERVAL_HOURS = 6;
     public static final int INGESTION_RATE_LIMIT_MS = 2000; // 2 second delay between HTTP requests
 

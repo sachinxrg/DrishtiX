@@ -25,6 +25,11 @@ public class SettingsController {
     @FXML private CheckBox audioEnabled;
     @FXML private Spinner<Integer> retentionDays;
     @FXML private Label lblDbStatus;
+    @FXML private TextField officerEmailField;
+    @FXML private TextField telegramTokenField;
+    @FXML private TextField telegramChatIdField;
+    @FXML private CheckBox telegramEnabled;
+    @FXML private CheckBox officerDispatchEnabled;
 
     private final ConfigurationService configService = ConfigurationService.getInstance();
 
@@ -66,6 +71,12 @@ public class SettingsController {
                     7, 365, configService.getSnapshotRetentionDays()));
         }
 
+        if (officerEmailField != null) officerEmailField.setText(configService.getOfficerEmail());
+        if (telegramTokenField != null) telegramTokenField.setText(configService.getTelegramBotToken());
+        if (telegramChatIdField != null) telegramChatIdField.setText(configService.getTelegramChatId());
+        if (telegramEnabled != null) telegramEnabled.setSelected(configService.isTelegramEnabled());
+        if (officerDispatchEnabled != null) officerDispatchEnabled.setSelected(configService.isOfficerDispatchEnabled());
+
         // Test DB connection
         testDbConnection();
     }
@@ -93,6 +104,16 @@ public class SettingsController {
         if (retentionDays != null)
             configService.updateConfig(AppConstants.CFG_SNAPSHOT_RETENTION,
                     String.valueOf(retentionDays.getValue()));
+        if (officerEmailField != null)
+            configService.updateConfig(AppConstants.CFG_OFFICER_EMAIL, officerEmailField.getText().trim());
+        if (telegramTokenField != null)
+            configService.updateConfig(AppConstants.CFG_TELEGRAM_BOT_TOKEN, telegramTokenField.getText().trim());
+        if (telegramChatIdField != null)
+            configService.updateConfig(AppConstants.CFG_TELEGRAM_CHAT_ID, telegramChatIdField.getText().trim());
+        if (telegramEnabled != null)
+            configService.updateConfig(AppConstants.CFG_TELEGRAM_ENABLED, String.valueOf(telegramEnabled.isSelected()));
+        if (officerDispatchEnabled != null)
+            configService.updateConfig(AppConstants.CFG_OFFICER_DISPATCH_ENABLED, String.valueOf(officerDispatchEnabled.isSelected()));
 
         configService.refresh();
         log.info("Settings saved and configuration refreshed");
@@ -142,5 +163,20 @@ public class SettingsController {
                 error.showAndWait();
             }
         }
+    }
+
+    @FXML
+    public void handleTestDispatch() {
+        // Save fields first
+        handleSaveSettings();
+
+        // Trigger test messages
+        com.drishtix.service.TelegramAlertService.getInstance().sendTestMessage();
+        
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Officer Dispatch Test");
+        alert.setHeaderText("📲 Messaging Dispatch Test Triggered");
+        alert.setContentText("Test notification payload dispatched to configured Officer Channels (Telegram / Email).\nCheck your configured officer inbox/chat!");
+        alert.showAndWait();
     }
 }

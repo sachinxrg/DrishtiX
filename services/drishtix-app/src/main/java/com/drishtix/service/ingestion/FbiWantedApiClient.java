@@ -67,6 +67,10 @@ public class FbiWantedApiClient {
                 log.info("[FBI] Fetching page {} of {}...", page, MAX_PAGES);
 
                 String url = AppConstants.FBI_API_BASE_URL + "?page=" + page + "&pageSize=" + PAGE_SIZE;
+                String apiKey = com.drishtix.service.ConfigurationService.getInstance().getFbiApiKey();
+                if (apiKey != null && !apiKey.isBlank()) {
+                    url += "&api_key=" + java.net.URLEncoder.encode(apiKey, java.nio.charset.StandardCharsets.UTF_8);
+                }
 
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(URI.create(url))

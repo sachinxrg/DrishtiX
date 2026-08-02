@@ -4,80 +4,129 @@
 <?import javafx.scene.image.*?>
 <?import javafx.geometry.Insets?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.drishtix.controller.DashboardController"
-            styleClass="dashboard-pane">
+<!--
+  DrishtiX v4.0 — Bento Grid Dashboard (Ambient Glassmorphism)
+  Layout mirrors the reference mockup:
+    ┌───────────────────────────┬─────────────────┐
+    │  LIVE SURVEILLANCE FEED   │  System Status   │
+    │  (Integrated Grid)        │  ┌─────┬─────┐  │
+    │                           │  │Total│Today │  │
+    │      [CAMERA FEED]        │  │Tgts │Scans │  │
+    │                           │  ├─────┼─────┤  │
+    │                           │  │Crim │Miss  │  │
+    │                           │  │Match│Prsns │  │
+    │                           │  └─────┴─────┘  │
+    ├───────────────────────────┤                  │
+    │  Control Bar              │  Live Alerts     │
+    │  Threshold ──○── | Cam ▾  │  Queue           │
+    │                    [STOP] │  ┌─ alert ──┐   │
+    └───────────────────────────┤  ├─ alert ──┤   │
+                                │  └──────────┘   │
+                                │  [+ Add Target]  │
+                                └─────────────────┘
+  Rule 3: GridPane hgap=20, vgap=20 (uniform 20px gutter).
+  All FX:IDs and @FXML event handlers preserved.
+-->
+<VBox xmlns:fx="http://javafx.com/fxml" fx:controller="com.drishtix.controller.DashboardController"
+      styleClass="dashboard-pane" spacing="0">
 
-    <center>
-        <HBox spacing="15">
-            <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
+    <!-- ============================================
+         HEADER BAR — "Dashboard" + action icons
+         ============================================ -->
+    <HBox styleClass="dashboard-header" alignment="CENTER_LEFT" spacing="16">
+        <Label text="Dashboard" styleClass="view-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label text="🔔" styleClass="header-icon"/>
+        <Label text="👤" styleClass="header-icon"/>
+    </HBox>
 
-            <!-- Camera Feed Area (70%) -->
-            <VBox HBox.hgrow="ALWAYS" spacing="10" styleClass="camera-section">
-                <!-- Video Feed with blurred background fill -->
-                <StackPane VBox.vgrow="ALWAYS" styleClass="camera-container">
-                    <ImageView fx:id="cameraFeedBg" smooth="true" opacity="0.3"
-                               preserveRatio="false"/>
-                    <ImageView fx:id="cameraFeed" fitWidth="640" fitHeight="480"
-                               preserveRatio="true" smooth="true"/>
-                    <!-- Alert Overlay (hidden by default) -->
-                    <StackPane fx:id="alertOverlay" visible="false" styleClass="alert-overlay"/>
-                </StackPane>
+    <!-- ============================================
+         BENTO GRID — GridPane with 20px uniform gaps
+         ============================================ -->
+    <GridPane hgap="20" vgap="20" VBox.vgrow="ALWAYS">
+        <padding><Insets top="0" right="24" bottom="24" left="24"/></padding>
 
-                <!-- Camera Controls -->
-                <HBox spacing="15" alignment="CENTER_LEFT" styleClass="camera-controls">
-                    <padding><Insets top="8" bottom="8" left="12" right="12"/></padding>
+        <!-- Column Constraints: 65% camera | 35% stats/alerts -->
+        <columnConstraints>
+            <ColumnConstraints percentWidth="65" hgrow="ALWAYS"/>
+            <ColumnConstraints percentWidth="35" hgrow="SOMETIMES"/>
+        </columnConstraints>
 
-                    <Label text="Camera:" styleClass="control-label"/>
-                    <ComboBox fx:id="cameraSelector" prefWidth="150" styleClass="control-combo"/>
+        <!-- Row Constraints: camera row grows, control bar fixed -->
+        <rowConstraints>
+            <RowConstraints vgrow="ALWAYS"/>
+            <RowConstraints vgrow="NEVER" prefHeight="120"/>
+        </rowConstraints>
 
-                    <Button fx:id="btnStartStop" text="▶ Start" onAction="#handleStartStop"
-                            styleClass="btn-primary"/>
 
-                    <Region HBox.hgrow="ALWAYS"/>
+        <!-- ========================================
+             CELL [0,0] — LIVE SURVEILLANCE FEED
+             ======================================== -->
+        <VBox GridPane.columnIndex="0" GridPane.rowIndex="0"
+              styleClass="bento-card" spacing="10">
+            <padding><Insets top="14" right="16" bottom="14" left="16"/></padding>
 
-                    <Label text="Threshold:" styleClass="control-label"/>
-                    <Slider fx:id="confidenceSlider" min="10" max="200" value="80"
-                            prefWidth="120" styleClass="threshold-slider"/>
-                    <Label fx:id="lblConfidence" text="80" styleClass="control-value"/>
+            <!-- Card header with FPS indicator -->
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="LIVE SURVEILLANCE FEED (Integrated Grid)" styleClass="card-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="lblFps" text="FPS: 0" styleClass="fps-label"/>
+            </HBox>
 
-                    <Region prefWidth="15"/>
+            <!-- Camera viewport — fills card, no letterboxing -->
+            <StackPane VBox.vgrow="ALWAYS" styleClass="camera-viewport">
+                <ImageView fx:id="cameraFeedBg" smooth="true" opacity="0.25"
+                           preserveRatio="false"/>
+                <ImageView fx:id="cameraFeed" fitWidth="640" fitHeight="480"
+                           preserveRatio="true" smooth="true"/>
+                <!-- Alert Overlay (hidden by default) -->
+                <StackPane fx:id="alertOverlay" visible="false" styleClass="alert-overlay"/>
+            </StackPane>
+        </VBox>
 
-                    <ToggleButton fx:id="btnMute" text="🔊" styleClass="btn-mute"/>
-                    <Label fx:id="lblFps" text="FPS: 0" styleClass="fps-label"/>
-                </HBox>
-            </VBox>
 
-            <!-- Stats + Alert Panel (30%) -->
-            <VBox prefWidth="300" spacing="12" styleClass="stats-panel">
-                <padding><Insets top="5" right="5" bottom="5" left="5"/></padding>
+        <!-- ========================================
+             CELL [1, 0-1] — RIGHT COLUMN (rowSpan=2)
+             System Status + Live Alerts Queue
+             ======================================== -->
+        <VBox GridPane.columnIndex="1" GridPane.rowIndex="0"
+              GridPane.rowSpan="2" spacing="20">
 
-                <Label text="SYSTEM STATUS" styleClass="panel-header"/>
+            <!-- ── BENTO: System Status ── -->
+            <VBox styleClass="bento-card" spacing="14">
+                <padding><Insets top="14" right="16" bottom="14" left="16"/></padding>
 
-                <!-- Stats Cards -->
-                <VBox spacing="8" styleClass="stats-grid">
-                    <HBox spacing="8">
-                        <VBox HBox.hgrow="ALWAYS" styleClass="stat-card">
-                            <Label text="Total Targets" styleClass="stat-title"/>
-                            <Label fx:id="lblTotalTargets" text="0" styleClass="stat-value"/>
-                        </VBox>
-                        <VBox HBox.hgrow="ALWAYS" styleClass="stat-card">
-                            <Label text="Today" styleClass="stat-title"/>
-                            <Label fx:id="lblDetectionsToday" text="0" styleClass="stat-value-accent"/>
-                        </VBox>
-                    </HBox>
-                    <HBox spacing="8">
-                        <VBox HBox.hgrow="ALWAYS" styleClass="stat-card-criminal">
-                            <Label text="🔴 Criminals" styleClass="stat-title"/>
-                            <Label fx:id="lblCriminals" text="0" styleClass="stat-value-red"/>
-                        </VBox>
-                        <VBox HBox.hgrow="ALWAYS" styleClass="stat-card-missing">
-                            <Label text="🔵 Missing" styleClass="stat-title"/>
-                            <Label fx:id="lblMissing" text="0" styleClass="stat-value-blue"/>
-                        </VBox>
-                    </HBox>
-                </VBox>
+                <Label text="System Status" styleClass="card-title"/>
 
-                <!-- System Indicators -->
+                <!-- 2x2 Stat Mini-Card Grid -->
+                <GridPane hgap="12" vgap="12">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="50" hgrow="ALWAYS"/>
+                        <ColumnConstraints percentWidth="50" hgrow="ALWAYS"/>
+                    </columnConstraints>
+
+                    <!-- Row 0 -->
+                    <VBox GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="stat-card">
+                        <Label text="Total Targets" styleClass="stat-title"/>
+                        <Label fx:id="lblTotalTargets" text="0" styleClass="stat-value"/>
+                    </VBox>
+                    <VBox GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="stat-card">
+                        <Label text="Today's Scans" styleClass="stat-title"/>
+                        <Label fx:id="lblDetectionsToday" text="0" styleClass="stat-value-accent"/>
+                    </VBox>
+
+                    <!-- Row 1 -->
+                    <VBox GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="stat-card-criminal">
+                        <Label text="Criminal Matches" styleClass="stat-title"/>
+                        <Label fx:id="lblCriminals" text="0" styleClass="stat-value-red"/>
+                    </VBox>
+                    <VBox GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="stat-card-missing">
+                        <Label text="Missing Persons" styleClass="stat-title"/>
+                        <Label fx:id="lblMissing" text="0" styleClass="stat-value-blue"/>
+                    </VBox>
+                </GridPane>
+
+                <!-- System Indicators (compact) -->
                 <VBox spacing="4" styleClass="indicators-box">
                     <HBox spacing="8" alignment="CENTER_LEFT">
                         <Label text="Camera:" styleClass="indicator-label"/>
@@ -88,21 +137,65 @@
                         <Label fx:id="lblRecognizerStatus" text="○ Not Trained" styleClass="indicator-value"/>
                     </HBox>
                 </VBox>
+            </VBox>
 
-                <Separator/>
+            <!-- ── BENTO: Live Alerts Queue ── -->
+            <VBox VBox.vgrow="ALWAYS" styleClass="bento-card" spacing="10">
+                <padding><Insets top="14" right="16" bottom="14" left="16"/></padding>
 
-                <!-- Live Alert Queue (replaces modal popups) -->
-                <Label text="LIVE ALERTS" styleClass="panel-header"/>
+                <Label text="Live Alerts Queue" styleClass="card-title"/>
+
                 <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="alerts-scroll">
-                    <VBox fx:id="alertQueueBox" spacing="8"/>
+                    <VBox fx:id="alertQueueBox" spacing="10"/>
                 </ScrollPane>
 
                 <Separator/>
 
-                <!-- Quick Add Target (sole primary CTA) -->
+                <!-- Quick Add Target — primary CTA -->
                 <Button text="➕ Add Target" onAction="#handleQuickAddTarget"
                         styleClass="btn-add-target" maxWidth="Infinity"/>
             </VBox>
-        </HBox>
-    </center>
-</BorderPane>
+        </VBox>
+
+
+        <!-- ========================================
+             CELL [0,1] — CONTROL BAR
+             ======================================== -->
+        <VBox GridPane.columnIndex="0" GridPane.rowIndex="1"
+              styleClass="bento-card" spacing="10">
+            <padding><Insets top="12" right="16" bottom="12" left="16"/></padding>
+
+            <Label text="Control Bar" styleClass="card-title"/>
+
+            <HBox spacing="20" alignment="CENTER_LEFT" VBox.vgrow="ALWAYS">
+
+                <!-- Threshold Section -->
+                <VBox spacing="4">
+                    <Label text="Threshold" styleClass="control-label"/>
+                    <HBox spacing="8" alignment="CENTER_LEFT">
+                        <Slider fx:id="confidenceSlider" min="10" max="200" value="80"
+                                prefWidth="160" styleClass="threshold-slider"/>
+                        <Label fx:id="lblConfidence" text="80" styleClass="control-value"/>
+                    </HBox>
+                </VBox>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <!-- Camera Selection Section -->
+                <VBox spacing="4">
+                    <Label text="Camera Selection" styleClass="control-label"/>
+                    <ComboBox fx:id="cameraSelector" prefWidth="180" styleClass="control-combo"/>
+                </VBox>
+
+                <!-- Start/Stop Button (circular, matches reference) -->
+                <Button fx:id="btnStartStop" text="▶ Start" onAction="#handleStartStop"
+                        styleClass="btn-start-circle"/>
+
+                <!-- Mute Toggle (compact, secondary) -->
+                <ToggleButton fx:id="btnMute" text="🔊" styleClass="btn-mute"/>
+
+            </HBox>
+        </VBox>
+
+    </GridPane>
+</VBox>

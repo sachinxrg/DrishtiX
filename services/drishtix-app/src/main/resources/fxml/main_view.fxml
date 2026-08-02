@@ -1,62 +1,96 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.geometry.Insets?>
 
+<!--
+  DrishtiX v4.0 — Ambient Glassmorphism Main Shell
+  Sidebar layout matches reference mockup: icon + text side-by-side.
+  All FX:IDs preserved for MainController compatibility.
+-->
 <BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.drishtix.controller.MainController"
             fx:id="rootPane" styleClass="root-pane"
             stylesheets="@../css/drishtix-dark.css">
 
-    <!-- Left Sidebar Navigation -->
+    <!-- ============================================
+         LEFT: Glass Sidebar — Icon + Label navigation
+         ============================================ -->
     <left>
-        <VBox styleClass="sidebar" prefWidth="70" spacing="0" alignment="TOP_CENTER">
-            <padding><Insets top="15" bottom="15"/></padding>
+        <VBox styleClass="sidebar" prefWidth="160" spacing="0" alignment="TOP_CENTER">
+            <padding><Insets top="18" bottom="18" left="10" right="10"/></padding>
 
             <!-- Logo Area -->
-            <Label text="👁️" styleClass="sidebar-logo"/>
-            <Label text="DrishtiX" styleClass="sidebar-brand"/>
+            <ImageView fitWidth="120" preserveRatio="true" smooth="true">
+                <image>
+                    <Image url="@../images/drishtix_logo.png"/>
+                </image>
+                <VBox.margin>
+                    <Insets bottom="10"/>
+                </VBox.margin>
+            </ImageView>
 
-            <Region VBox.vgrow="NEVER" prefHeight="20"/>
+            <Region VBox.vgrow="NEVER" prefHeight="24"/>
 
-            <!-- Navigation Items -->
-            <VBox fx:id="navDashboard" styleClass="nav-item, nav-active" alignment="CENTER">
-                <Label text="📊" styleClass="nav-icon"/>
-                <Label text="Dash" styleClass="nav-label"/>
+            <!-- Navigation Items (icon + label in HBox) -->
+            <VBox fx:id="navDashboard" styleClass="nav-item, nav-active" alignment="CENTER_LEFT">
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <padding><Insets left="6"/></padding>
+                    <Label text="📊" styleClass="nav-icon"/>
+                    <Label text="Dashboard" styleClass="nav-label"/>
+                </HBox>
             </VBox>
 
-            <VBox fx:id="navRegistry" styleClass="nav-item" alignment="CENTER">
-                <Label text="📋" styleClass="nav-icon"/>
-                <Label text="Registry" styleClass="nav-label"/>
+            <VBox fx:id="navRegistry" styleClass="nav-item" alignment="CENTER_LEFT">
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <padding><Insets left="6"/></padding>
+                    <Label text="📋" styleClass="nav-icon"/>
+                    <Label text="Target Index" styleClass="nav-label"/>
+                </HBox>
             </VBox>
 
-            <VBox fx:id="navScanner" styleClass="nav-item" alignment="CENTER">
-                <Label text="🖼" styleClass="nav-icon"/>
-                <Label text="Scan" styleClass="nav-label"/>
+            <VBox fx:id="navScanner" styleClass="nav-item" alignment="CENTER_LEFT">
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <padding><Insets left="6"/></padding>
+                    <Label text="🔍" styleClass="nav-icon"/>
+                    <Label text="Inspect" styleClass="nav-label"/>
+                </HBox>
             </VBox>
 
-            <VBox fx:id="navLogs" styleClass="nav-item" alignment="CENTER">
-                <Label text="📜" styleClass="nav-icon"/>
-                <Label text="Logs" styleClass="nav-label"/>
+            <VBox fx:id="navLogs" styleClass="nav-item" alignment="CENTER_LEFT">
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <padding><Insets left="6"/></padding>
+                    <Label text="📜" styleClass="nav-icon"/>
+                    <Label text="History" styleClass="nav-label"/>
+                </HBox>
             </VBox>
 
             <Region VBox.vgrow="ALWAYS"/>
 
-            <VBox fx:id="navSettings" styleClass="nav-item" alignment="CENTER">
-                <Label text="⚙" styleClass="nav-icon"/>
-                <Label text="Config" styleClass="nav-label"/>
+            <VBox fx:id="navSettings" styleClass="nav-item" alignment="CENTER_LEFT">
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <padding><Insets left="6"/></padding>
+                    <Label text="⚙" styleClass="nav-icon"/>
+                    <Label text="Settings" styleClass="nav-label"/>
+                </HBox>
             </VBox>
         </VBox>
     </left>
 
-    <!-- Content Area -->
+    <!-- ============================================
+         CENTER: Transparent Content Area
+         (Ambient gradient bleeds through from root)
+         ============================================ -->
     <center>
         <StackPane fx:id="contentArea" styleClass="content-area"/>
     </center>
 
-    <!-- Status Bar -->
+    <!-- ============================================
+         BOTTOM: Glass Status Bar
+         ============================================ -->
     <bottom>
         <HBox styleClass="status-bar" spacing="30" alignment="CENTER_LEFT">
-            <padding><Insets top="5" bottom="5" left="15" right="15"/></padding>
+            <padding><Insets top="6" bottom="6" left="18" right="18"/></padding>
             <Label fx:id="statusCamera" text="○ Camera: Inactive" styleClass="status-label"/>
             <Label fx:id="statusDb" text="● DB: Connected" styleClass="status-label"/>
             <Label fx:id="statusFps" text="FPS: 0" styleClass="status-label"/>

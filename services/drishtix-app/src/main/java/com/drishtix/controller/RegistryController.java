@@ -19,7 +19,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import javafx.scene.shape.Circle;
+import javafx.beans.property.SimpleStringProperty;
 
 /**
  * Controller for the full Target Registry management view.
@@ -32,9 +35,10 @@ public class RegistryController {
     @FXML private TableView<TargetRegistry> targetTable;
     @FXML private TableColumn<TargetRegistry, Integer> colId;
     @FXML private TableColumn<TargetRegistry, String> colName;
+    @FXML private TableColumn<TargetRegistry, String> colProfile;
     @FXML private TableColumn<TargetRegistry, TargetCategory> colCategory;
     @FXML private TableColumn<TargetRegistry, String> colCaseNumber;
-    @FXML private TableColumn<TargetRegistry, Boolean> colActive;
+    @FXML private TableColumn<TargetRegistry, String> colDescription;
     @FXML private TableColumn<TargetRegistry, LocalDateTime> colCreatedAt;
     @FXML private TextField searchField;
     @FXML private ComboBox<String> categoryFilter;
@@ -50,8 +54,53 @@ public class RegistryController {
         if (colName != null) colName.setCellValueFactory(new PropertyValueFactory<>("fullName"));
         if (colCategory != null) colCategory.setCellValueFactory(new PropertyValueFactory<>("category"));
         if (colCaseNumber != null) colCaseNumber.setCellValueFactory(new PropertyValueFactory<>("caseNumber"));
-        if (colActive != null) colActive.setCellValueFactory(new PropertyValueFactory<>("active"));
-        if (colCreatedAt != null) colCreatedAt.setCellValueFactory(new PropertyValueFactory<>("createdAt"));
+        if (colDescription != null) colDescription.setCellValueFactory(new PropertyValueFactory<>("description"));
+        
+        // Custom rendering for Profile image
+        if (colProfile != null) {
+            colProfile.setCellValueFactory(new PropertyValueFactory<>("profileImagePath"));
+            colProfile.setCellFactory(column -> new TableCell<TargetRegistry, String>() {
+                @Override
+                protected void updateItem(String imagePath, boolean empty) {
+                    super.updateItem(imagePath, empty);
+                    if (empty || imagePath == null) {
+                        setGraphic(null);
+                    } else {
+                        try {
+                            File imgFile = new File(imagePath);
+                            if (imgFile.exists()) {
+                                ImageView imageView = new ImageView(new Image(imgFile.toURI().toString(), 40, 40, true, true));
+                                // Make it a circle
+                                Circle clip = new Circle(20, 20, 20);
+                                imageView.setClip(clip);
+                                setGraphic(imageView);
+                            } else {
+                                setGraphic(null);
+                            }
+                        } catch (Exception e) {
+                            setGraphic(null);
+                        }
+                    }
+                }
+            });
+        }
+
+        // Custom rendering for Date of FIR
+        if (colCreatedAt != null) {
+            colCreatedAt.setCellValueFactory(new PropertyValueFactory<>("createdAt"));
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            colCreatedAt.setCellFactory(column -> new TableCell<TargetRegistry, LocalDateTime>() {
+                @Override
+                protected void updateItem(LocalDateTime date, boolean empty) {
+                    super.updateItem(date, empty);
+                    if (empty || date == null) {
+                        setText(null);
+                    } else {
+                        setText(formatter.format(date));
+                    }
+                }
+            });
+        }
 
         // Category filter
         if (categoryFilter != null) {

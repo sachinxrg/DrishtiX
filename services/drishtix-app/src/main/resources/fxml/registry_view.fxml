@@ -29,12 +29,13 @@
             <padding><Insets top="10"/></padding>
             <TableView fx:id="targetTable" HBox.hgrow="ALWAYS" styleClass="data-table">
                 <columns>
-                    <TableColumn fx:id="colId" text="ID" prefWidth="50"/>
-                    <TableColumn fx:id="colName" text="Full Name" prefWidth="180"/>
+                    <TableColumn fx:id="colId" text="Sr" prefWidth="50"/>
+                    <TableColumn fx:id="colProfile" text="Profile" prefWidth="80"/>
+                    <TableColumn fx:id="colName" text="Name" prefWidth="180"/>
                     <TableColumn fx:id="colCategory" text="Category" prefWidth="130"/>
-                    <TableColumn fx:id="colCaseNumber" text="Case #" prefWidth="130"/>
-                    <TableColumn fx:id="colActive" text="Active" prefWidth="70"/>
-                    <TableColumn fx:id="colCreatedAt" text="Registered" prefWidth="160"/>
+                    <TableColumn fx:id="colCaseNumber" text="FIR no." prefWidth="130"/>
+                    <TableColumn fx:id="colDescription" text="Description" prefWidth="200"/>
+                    <TableColumn fx:id="colCreatedAt" text="Date of FIR(REGISTERED)" prefWidth="160"/>
                 </columns>
             </TableView>
             <VBox prefWidth="220" spacing="10" alignment="TOP_CENTER" styleClass="preview-panel">
