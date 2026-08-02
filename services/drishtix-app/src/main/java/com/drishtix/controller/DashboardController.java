@@ -20,6 +20,9 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
 
+import org.controlsfx.control.Notifications;
+import javafx.util.Duration;
+
 import javafx.stage.FileChooser;
 import org.bytedeco.javacv.OpenCVFrameGrabber;
 import org.bytedeco.javacv.Frame;
@@ -1366,5 +1369,31 @@ public class DashboardController {
     public void shutdown() {
         stopCamera();
         log.info("DashboardController shut down");
+    }
+
+    // ==================== Header Icon Handlers ====================
+
+    @FXML
+    private void handleNotificationsClick() {
+        Platform.runLater(() -> {
+            Notifications.create()
+                    .title("Notifications")
+                    .text("You have no new alerts.")
+                    .position(Pos.TOP_RIGHT)
+                    .hideAfter(Duration.seconds(3))
+                    .showInformation();
+        });
+    }
+
+    @FXML
+    private void handleProfileClick() {
+        Platform.runLater(() -> {
+            Notifications.create()
+                    .title("Profile Settings")
+                    .text("System Administrator mode is active.")
+                    .position(Pos.TOP_RIGHT)
+                    .hideAfter(Duration.seconds(3))
+                    .showInformation();
+        });
     }
 }

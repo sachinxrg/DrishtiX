@@ -36,8 +36,8 @@
     <HBox styleClass="dashboard-header" alignment="CENTER_LEFT" spacing="16">
         <Label text="Dashboard" styleClass="view-title"/>
         <Region HBox.hgrow="ALWAYS"/>
-        <Label text="🔔" styleClass="header-icon"/>
-        <Label text="👤" styleClass="header-icon"/>
+        <Label text="🔔" styleClass="header-icon" onMouseClicked="#handleNotificationsClick"/>
+        <Label text="👤" styleClass="header-icon" onMouseClicked="#handleProfileClick"/>
     </HBox>
 
     <!-- ============================================
