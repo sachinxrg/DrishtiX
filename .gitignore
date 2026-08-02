@@ -56,3 +56,6 @@ __pycache__/
 # Runtime
 .reid_service.pid
 services/drishtix-app/config.properties
+
+# Ignore temporary scripts
+*.js
