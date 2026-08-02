@@ -2,20 +2,20 @@ package com.drishtix.model;
 
 import com.drishtix.util.AppConstants;
 import org.bytedeco.opencv.opencv_core.Rect;
-import org.bytedeco.opencv.opencv_tracking.TrackerCSRT;
+import org.bytedeco.opencv.opencv_video.Tracker;
 
 /**
  * Represents a positively identified target with an active body lock.
  * <p>
  * Created when SFace confirms a target identity above threshold. The body lock
- * persists across frames using a CSRT tracker initialized on the target's
+ * persists across frames using a KCF tracker initialized on the target's
  * expanded torso region, maintaining the bounding box and alert label even
  * when YuNet loses the face (head turned, back to camera).
  * </p>
  * <p>
  * Implements dynamic confidence fusion: when the face is visible, facial
  * confidence dominates (α=0.8). When the face is lost, body appearance
- * (OSNet embedding) takes over (β=1.0). The lock is released when CSRT
+ * (OSNet embedding) takes over (β=1.0). The lock is released when the tracker
  * loses the target, fused confidence drops below threshold, or the maximum
  * lock duration expires without face re-confirmation.
  * </p>
@@ -26,8 +26,8 @@ public class LockedTarget {
     private final String label;
     private final int[] color;
 
-    // Persistent CSRT tracker for body/torso tracking
-    private TrackerCSRT bodyTracker;
+    // Persistent KCF tracker for body/torso tracking (KCF: ~0.3ms constant, no lag)
+    private Tracker bodyTracker;
     private Rect bodyBox;
 
     // Embeddings for fusion scoring
@@ -55,14 +55,14 @@ public class LockedTarget {
      * @param targetId         the database target ID
      * @param label            display label (e.g., "John Doe | CASE-001")
      * @param color            BGR color for bounding box
-     * @param bodyTracker      initialized CSRT tracker on expanded torso region
+     * @param bodyTracker      initialized KCF tracker on expanded torso region
      * @param bodyBox          the expanded torso bounding box
      * @param faceEmbedding    the SFace embedding that confirmed identity
      * @param faceSimilarity   the SFace match score at time of lock
      * @param currentFrame     the frame index when the lock was acquired
      */
     public LockedTarget(int targetId, String label, int[] color,
-                        TrackerCSRT bodyTracker, Rect bodyBox,
+                        Tracker bodyTracker, Rect bodyBox,
                         float[] faceEmbedding, double faceSimilarity,
                         long currentFrame) {
         this.targetId = targetId;
@@ -233,7 +233,7 @@ public class LockedTarget {
     public int getTargetId() { return targetId; }
     public String getLabel() { return label; }
     public int[] getColor() { return color; }
-    public TrackerCSRT getBodyTracker() { return bodyTracker; }
+    public Tracker getBodyTracker() { return bodyTracker; }
 
     public Rect getBodyBox() { return bodyBox; }
     public void setBodyBox(Rect bodyBox) { this.bodyBox = bodyBox; }

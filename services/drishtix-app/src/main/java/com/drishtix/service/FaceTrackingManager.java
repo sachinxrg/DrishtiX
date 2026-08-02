@@ -268,13 +268,18 @@ public class FaceTrackingManager {
                 return null;
             }
 
-            // Initialize CSRT tracker on the expanded torso region
-            TrackerCSRT csrt = TrackerCSRT.create();
-            csrt.init(frame, torsoBox);
+            // Initialize KCF tracker on the expanded torso region.
+            // KCF (~0.3ms constant) is used instead of CSRT (~1.5-50ms variable)
+            // because CSRT's computation spikes when the target's appearance changes
+            // dramatically (e.g., turning backward), blocking the capture thread.
+            // OSNet re-verification handles identity verification, so CSRT's
+            // accuracy advantage is not needed for the body lock use case.
+            TrackerKCF kcf = TrackerKCF.create();
+            kcf.init(frame, torsoBox);
 
             LockedTarget lock = new LockedTarget(
                     targetId, label, color,
-                    csrt, torsoBox,
+                    kcf, torsoBox,
                     faceEmbedding, faceSimilarity,
                     currentFrame
             );
@@ -322,13 +327,13 @@ public class FaceTrackingManager {
             }
 
             try {
-                // 1. CSRT tracker update
-                TrackerCSRT tracker = lock.getBodyTracker();
+                // 1. KCF tracker update (~0.3ms, constant time)
+                Tracker tracker = lock.getBodyTracker();
                 Rect updatedBox = new Rect();
-                boolean csrtSuccess = tracker.update(frame, updatedBox);
+                boolean trackSuccess = tracker.update(frame, updatedBox);
 
-                if (!csrtSuccess) {
-                    log.info("Body lock RELEASED (CSRT lost): targetId={}", lock.getTargetId());
+                if (!trackSuccess) {
+                    log.info("Body lock RELEASED (tracker lost): targetId={}", lock.getTargetId());
                     lock.setActive(false);
                     toRemove.add(lock);
                     continue;
