@@ -62,7 +62,7 @@ public class DnnFaceDetectionService {
      * @param frame the input frame (BGR color)
      * @return list of FaceDetection objects (up to maxFaces), or empty list if detection fails
      */
-    public List<FaceDetection> detectFaces(Mat frame) {
+    public synchronized List<FaceDetection> detectFaces(Mat frame) {
         if (!initialized || detector == null) {
             return Collections.emptyList();
         }
@@ -77,6 +77,11 @@ public class DnnFaceDetectionService {
                 lastWidth = width;
                 lastHeight = height;
             }
+
+            // Enforce detection parameters (score >= 0.30, max 200 faces)
+            detector.setScoreThreshold(0.30f);
+            detector.setNMSThreshold(0.30f);
+            detector.setTopK(AppConstants.DNN_MAX_FACES);
 
             Mat detectionResult = new Mat();
             int numDetected = detector.detect(frame, detectionResult);

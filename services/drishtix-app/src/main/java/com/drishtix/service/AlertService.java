@@ -21,7 +21,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * Service handling audible alert playback and alert cooldown management.
  * <p>
  * Preloads WAV audio clips at startup for instant playback.
- * Uses the Audio Alert thread pool to avoid blocking the Video Inference pipeline.
+ * Uses the Audio Alert thread pool to avoid blocking the Video Inference
+ * pipeline.
  * Implements per-target cooldown to prevent alert fatigue.
  * </p>
  */
@@ -62,7 +63,8 @@ public class AlertService {
      * Plays the audio asynchronously on the Audio Alert thread pool.
      * <p>
      * This is the original method signature preserved for backward compatibility.
-     * Use {@link #triggerAlert(int, TargetCategory, TargetRegistry, RecognitionResult, String)}
+     * Use
+     * {@link #triggerAlert(int, TargetCategory, TargetRegistry, RecognitionResult, String)}
      * for full multi-channel alert orchestration.
      * </p>
      *

@@ -33,6 +33,8 @@ print("✓ camera_sources indexes created");
 // -----------------------------------------------------------
 db.detection_logs.createIndex({ "target_id": 1 });
 db.detection_logs.createIndex({ "detection_timestamp": -1 });
+db.detection_logs.createIndex({ "detection_timestamp": -1, "target_category": 1 });
+db.detection_logs.createIndex({ "detection_timestamp": -1, "target_id": 1 });
 db.detection_logs.createIndex({ "camera_id": 1 });
 db.detection_logs.createIndex({ "match_confidence_score": 1 });
 print("✓ detection_logs indexes created");

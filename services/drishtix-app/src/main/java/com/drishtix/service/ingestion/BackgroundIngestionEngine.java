@@ -271,14 +271,25 @@ public class BackgroundIngestionEngine {
             return null;
         }
 
-        Mat img = imread(imagePath);
-        if (img.empty()) {
-            img.release();
+        Mat rawImg = imread(imagePath);
+        if (rawImg.empty()) {
+            rawImg.release();
             return null;
         }
 
+        // Scale down high-resolution scraped images to max 640 width to eliminate live video thread lock contention
+        Mat img = new Mat();
+        if (rawImg.cols() > 640) {
+            double scale = 640.0 / rawImg.cols();
+            int newH = (int) (rawImg.rows() * scale);
+            resize(rawImg, img, new Size(640, newH));
+            rawImg.release();
+        } else {
+            img = rawImg;
+        }
+
         try {
-            // Detect faces
+            // Detect faces (~3ms on 640 width)
             List<FaceDetection> faces = detector.detectFaces(img);
             if (faces.isEmpty()) {
                 return null;
@@ -346,7 +357,7 @@ public class BackgroundIngestionEngine {
 
     /**
      * Loads previously processed external IDs from existing targets in the database.
-     * Looks for the [Source: XXX] pattern in the description field.
+     * Uses composite key (Agency_Name_CaseNumber) to prevent integer hash collisions.
      */
     private void loadProcessedIds() {
         try {
@@ -354,9 +365,8 @@ public class BackgroundIngestionEngine {
             for (TargetRegistry target : allTargets) {
                 String desc = target.getDescription();
                 if (desc != null && desc.contains("[Source:")) {
-                    // Extract a synthetic external ID from existing scraped targets
                     String syntheticId = target.getFullName() + "_" + target.getCaseNumber();
-                    processedExternalIds.add(String.valueOf(Math.abs(syntheticId.hashCode())));
+                    processedExternalIds.add(syntheticId);
                 }
             }
             log.info("[Ingestion] Loaded {} previously processed external IDs", processedExternalIds.size());

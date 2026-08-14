@@ -188,7 +188,7 @@
                 </VBox>
 
                 <!-- Start/Stop Button (circular, matches reference) -->
-                <Button fx:id="btnStartStop" text="▶ Start" onAction="#handleStartStop"
+                <Button fx:id="btnStartStop" text="Start" onAction="#handleStartStop"
                         styleClass="btn-start-circle"/>
 
                 <!-- Mute Toggle (compact, secondary) -->

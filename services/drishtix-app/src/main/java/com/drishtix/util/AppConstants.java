@@ -32,7 +32,7 @@ public final class AppConstants {
     public static final String YUNET_MODEL_FILE = "face_detection_yunet_2023mar.onnx";
     public static final String SFACE_MODEL_FILE = "face_recognition_sface_2021dec.onnx";
     public static final int DNN_FACE_INPUT_SIZE = 112;  // SFace aligned face input
-    public static final int DNN_MAX_FACES = 50;  // Scaled for 40+ face throughput
+    public static final int DNN_MAX_FACES = 200;  // Scaled for 200+ face throughput
 
     // ==================== Alert Defaults ====================
     public static final double DEFAULT_CONFIDENCE_THRESHOLD = 80.0;
@@ -64,7 +64,7 @@ public final class AppConstants {
     public static final String CFG_DNN_MODEL_DIR = "dnn_model_dir";
 
     // ==================== DNN Defaults ====================
-    public static final double DEFAULT_DNN_SCORE_THRESHOLD = 0.6;
+    public static final double DEFAULT_DNN_SCORE_THRESHOLD = 0.35; // YuNet score threshold for multi-face crowds
     public static final double DEFAULT_DNN_NMS_THRESHOLD = 0.3;
     public static final double DEFAULT_DNN_COSINE_THRESHOLD = 0.363;  // SFace recommended threshold
 

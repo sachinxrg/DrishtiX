@@ -10,6 +10,8 @@ import com.drishtix.util.AppConstants;
 import com.drishtix.util.VectorMathUtil;
 import org.bytedeco.opencv.opencv_core.*;
 import static org.bytedeco.opencv.global.opencv_core.CV_32FC1;
+import static org.bytedeco.opencv.global.opencv_core.BORDER_CONSTANT;
+import static org.bytedeco.opencv.global.opencv_core.copyMakeBorder;
 import org.bytedeco.opencv.opencv_objdetect.FaceRecognizerSF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -224,21 +226,11 @@ public class DnnFaceRecognitionService {
             for (Map.Entry<Integer, TargetEmbeddings> entry : gallery.entrySet()) {
                 TargetEmbeddings target = entry.getValue();
                 
-                // Compare against Centroid first (fast pass)
-                // dotProduct is equivalent to cosine similarity for L2-normalized vectors
-                double maxSimilarity = dotProduct(probeEmbedding, target.getCentroid());
-                
-                // If centroid is reasonably close, do a deep pass on all templates (Max-Similarity rule)
-                if (maxSimilarity > dynamicThreshold - 0.10) {
-                    // Use parallel stream to speed up multi-template checks if there are many templates
-                    OptionalDouble maxSimOpt = target.getTemplates().parallelStream()
-                            .mapToDouble(template -> dotProduct(probeEmbedding, template))
-                            .max();
-                    
-                    if (maxSimOpt.isPresent() && maxSimOpt.getAsDouble() > maxSimilarity) {
-                        maxSimilarity = maxSimOpt.getAsDouble();
-                    }
-                }
+                // Max-Similarity rule across all registered templates for this target
+                double maxSimilarity = target.getTemplates().stream()
+                        .mapToDouble(template -> dotProduct(probeEmbedding, template))
+                        .max()
+                        .orElseGet(() -> dotProduct(probeEmbedding, target.getCentroid()));
 
                 if (maxSimilarity > bestScore) {
                     bestScore = maxSimilarity;
@@ -277,8 +269,10 @@ public class DnnFaceRecognitionService {
     /**
      * Rebuilds the embedding gallery from the database.
      * <p>
-     * For each active target with face templates, loads the template image,
-     * extracts the DNN embedding, and stores it in the gallery.
+     * For each active target with face templates, loads the uploaded image,
+     * runs YuNet face detection to locate the face, then uses
+     * {@code alignCrop() + SFace feature()} to extract an embedding that
+     * is distribution-identical to the live camera pipeline.
      * </p>
      */
     public void rebuildGallery() {
@@ -292,8 +286,16 @@ public class DnnFaceRecognitionService {
             gallery.clear();
             log.info("Rebuilding DNN embedding gallery...");
 
+            // Use the same DNN face detector as the live pipeline
+            DnnFaceDetectionService faceDetector = DnnFaceDetectionService.getInstance();
+            if (!faceDetector.isInitialized()) {
+                log.warn("YuNet face detector not initialized — cannot rebuild gallery with aligned embeddings");
+                return;
+            }
+
             List<TargetImage> allTemplates = targetImageDAO.findAllActiveTemplates();
             int loaded = 0;
+            int skippedNoFace = 0;
 
             for (TargetImage ti : allTemplates) {
                 String imgPath = ti.getImagePath();
@@ -302,31 +304,88 @@ public class DnnFaceRecognitionService {
                 Optional<TargetRegistry> targetOpt = targetDAO.findById(ti.getTargetId());
                 if (targetOpt.isEmpty() || !targetOpt.get().isActive()) continue;
 
-                // Load image and extract embedding
+                // Load the uploaded image (full photo or cropped target image)
                 Mat img = imread(imgPath);
                 if (img.empty()) {
                     img.release();
                     continue;
                 }
 
-                // Resize to SFace input size (112×112)
-                Mat resized = new Mat();
-                resize(img, resized, new Size(AppConstants.DNN_FACE_INPUT_SIZE, AppConstants.DNN_FACE_INPUT_SIZE));
-                img.release();
+                try {
+                    // Step 1: Detect faces using YuNet (same detector as live pipeline)
+                    List<com.drishtix.model.FaceDetection> detections = faceDetector.detectFaces(img);
 
-                float[] embedding = extractEmbedding(resized);
-                resized.release();
+                    if (detections.isEmpty()) {
+                        // Add border padding for cropped face photos so YuNet can detect 5-point landmarks
+                        Mat padded = new Mat();
+                        int top = Math.max(40, img.rows() / 3);
+                        int bottom = Math.max(40, img.rows() / 3);
+                        int left = Math.max(40, img.cols() / 3);
+                        int right = Math.max(40, img.cols() / 3);
+                        copyMakeBorder(img, padded, top, bottom, left, right, BORDER_CONSTANT, new Scalar(0, 0, 0, 0));
 
-                if (embedding != null) {
-                    int targetId = ti.getTargetId();
-                    gallery.putIfAbsent(targetId, new TargetEmbeddings());
-                    gallery.get(targetId).addTemplate(embedding);
-                    loaded++;
+                        detections = faceDetector.detectFaces(padded);
+
+                        if (!detections.isEmpty()) {
+                            com.drishtix.model.FaceDetection bestDetection = detections.get(0);
+                            float[] detRow = bestDetection.getDetectionRow();
+                            float[] embedding = alignAndExtractEmbedding(padded, detRow);
+                            padded.release();
+
+                            if (embedding != null) {
+                                int targetId = ti.getTargetId();
+                                gallery.putIfAbsent(targetId, new TargetEmbeddings());
+                                gallery.get(targetId).addTemplate(embedding);
+                                loaded++;
+                                continue;
+                            }
+                        }
+                        padded.release();
+
+                        // Fallback: if YuNet still yields no face, use direct extraction
+                        Mat resized = new Mat();
+                        resize(img, resized, new Size(AppConstants.DNN_FACE_INPUT_SIZE, AppConstants.DNN_FACE_INPUT_SIZE));
+                        float[] embedding = extractEmbedding(resized);
+                        resized.release();
+
+                        if (embedding != null) {
+                            int targetId = ti.getTargetId();
+                            gallery.putIfAbsent(targetId, new TargetEmbeddings());
+                            gallery.get(targetId).addTemplate(embedding);
+                            loaded++;
+                        } else {
+                            skippedNoFace++;
+                        }
+                        continue;
+                    }
+
+                    // Step 2: Use the highest-confidence detection's raw row for alignCrop
+                    com.drishtix.model.FaceDetection bestDetection = detections.get(0);
+                    for (com.drishtix.model.FaceDetection d : detections) {
+                        if (d.getDetectionScore() > bestDetection.getDetectionScore()) {
+                            bestDetection = d;
+                        }
+                    }
+
+                    // Step 3: alignCrop + SFace embedding (identical to live pipeline)
+                    float[] detRow = bestDetection.getDetectionRow();
+                    float[] embedding = alignAndExtractEmbedding(img, detRow);
+
+                    if (embedding != null) {
+                        int targetId = ti.getTargetId();
+                        gallery.putIfAbsent(targetId, new TargetEmbeddings());
+                        gallery.get(targetId).addTemplate(embedding);
+                        loaded++;
+                    } else {
+                        skippedNoFace++;
+                    }
+                } finally {
+                    img.release();
                 }
             }
 
-            log.info("DNN gallery rebuilt: {} unique targets with {} total templates",
-                    gallery.size(), loaded);
+            log.info("DNN gallery rebuilt: {} unique targets with {} total templates ({} skipped — no face)",
+                    gallery.size(), loaded, skippedNoFace);
 
         } catch (Exception e) {
             log.error("Failed to rebuild DNN gallery", e);

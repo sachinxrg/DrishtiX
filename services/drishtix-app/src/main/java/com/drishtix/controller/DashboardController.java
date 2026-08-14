@@ -471,7 +471,7 @@ public class DashboardController {
             }
 
             // Initialize face trackers from fresh detections (with IoU label carry-over)
-            trackingManager.initTrackers(frame, faces, currentFrameIdx);
+            List<Integer> assignedTrackerIds = trackingManager.initTrackers(frame, faces, currentFrameIdx);
 
             if (!faces.isEmpty()) {
                 // Clone the frame ONCE so async threads can safely read pixels
@@ -480,11 +480,12 @@ public class DashboardController {
 
                 int trackerIdx = 0;
                 for (FaceDetection detection : faces) {
-                    final int trackId = trackerIdx++;
+                    final int trackId = assignedTrackerIds.get(trackerIdx++);
+                    if (trackId == -1) continue; // Tracker initialization failed or face was out of bounds
                     final Rect box = detection.getBoundingBox();
 
                     // === GATE 1: Resolution check (main thread, ~0ms) ===
-                    if (box.width() < 48 || box.height() < 48) {
+                    if (box.width() < 16 || box.height() < 16) {
                         trackingManager.updateTrackLabel(trackId, "Too Small", AppConstants.COLOR_UNKNOWN_BGR);
                         drawBoundingBox(frame, box, null, "Too Small", AppConstants.COLOR_UNKNOWN_BGR);
                         continue;
@@ -506,18 +507,11 @@ public class DashboardController {
                         drawBoundingBox(frame, box, null, "SPOOF", new int[]{0, 165, 255});
                         continue;
                     }
-                    if (fqa.isUnfavorable()) {
-                        trackingManager.updateTrackLabel(trackId, "Unfavorable", AppConstants.COLOR_UNKNOWN_BGR);
-                        drawBoundingBox(frame, box, null, "Unfavorable", AppConstants.COLOR_UNKNOWN_BGR);
-                        continue;
-                    }
 
                     // === GATE 3: Dynamic threshold computation (main thread, ~0ms) ===
                     double baseThreshold = configService.getDnnCosineThreshold();
-                    double dynamicThreshold = baseThreshold;
-                    if (box.width() < 80) dynamicThreshold += 0.05;
-                    if (fqa.getLaplacianVariance() < 80.0) dynamicThreshold += 0.05;
-                    dynamicThreshold = Math.min(dynamicThreshold, 0.95);
+                    // For small or tilted faces, slightly relax threshold so registered targets match reliably
+                    double dynamicThreshold = (box.width() < 60) ? Math.max(0.32, baseThreshold - 0.03) : baseThreshold;
                     final double threshold = dynamicThreshold;
 
                     // Draw initial bounding box
@@ -759,7 +753,7 @@ public class DashboardController {
 
             // Extract face ROI for recognition
             Mat faceROI = faceService.extractFaceROI(frame, faceRect);
-            RecognitionResult result = recognitionService.predict(faceROI);
+            RecognitionResult result = recognitionService.predict(faceROI, currentThreshold.get());
             faceROI.release();
 
             // Determine bounding box color and label

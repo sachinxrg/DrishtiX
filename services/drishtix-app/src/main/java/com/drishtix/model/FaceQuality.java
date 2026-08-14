@@ -17,7 +17,7 @@ public class FaceQuality {
         this.isExtremePose = isExtremePose;
         this.livenessScore = livenessScore;
         this.laplacianVariance = laplacianVariance;
-        this.isSpoofAttempt = livenessScore < 0.70;
+        this.isSpoofAttempt = livenessScore < 0.35;
     }
 
     public boolean isBlurred() {

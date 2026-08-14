@@ -18,6 +18,12 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.CompletableFuture;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
+
 /**
  * Service for sending alert notifications to Telegram via the Bot API.
  * <p>
@@ -100,22 +106,22 @@ public class TelegramAlertService {
 
         StringBuilder caption = new StringBuilder();
         caption.append(emoji).append(" <b>OFFICER DISPATCH: ").append(alertType).append("</b> ").append(emoji).append("\n\n");
-        caption.append("👤 <b>Name:</b> ").append(target.getFullName()).append("\n");
-        caption.append("📋 <b>Category:</b> ").append(target.getCategory().getDbValue()).append("\n");
-        caption.append("🔢 <b>FIR / Case #:</b> ").append(target.getCaseNumber()).append("\n");
+        caption.append("👤 <b>Name:</b> ").append(escapeHtml(target.getFullName())).append("\n");
+        caption.append("📋 <b>Category:</b> ").append(escapeHtml(target.getCategory().getDbValue())).append("\n");
+        caption.append("🔢 <b>FIR / Case #:</b> ").append(escapeHtml(target.getCaseNumber())).append("\n");
         if (target.getDescription() != null && !target.getDescription().isBlank()) {
-            caption.append("📜 <b>FIR Description:</b> ").append(target.getDescription()).append("\n");
+            caption.append("📜 <b>FIR Description:</b> ").append(escapeHtml(target.getDescription())).append("\n");
         }
         if (target.getCreatedAt() != null) {
             DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
             caption.append("📅 <b>Date of FIR:</b> ").append(target.getCreatedAt().format(dateFmt)).append("\n");
         }
-        caption.append("📊 <b>Match Confidence:</b> ").append(confidence).append("\n");
+        caption.append("📊 <b>Match Confidence:</b> ").append(escapeHtml(confidence)).append("\n");
         if (cameraName != null && !cameraName.isBlank()) {
-            caption.append("📷 <b>Camera Source:</b> ").append(cameraName).append("\n");
+            caption.append("📷 <b>Camera Source:</b> ").append(escapeHtml(cameraName)).append("\n");
         }
         if (locationTag != null && !locationTag.isBlank()) {
-            caption.append("📍 <b>Location:</b> ").append(locationTag).append("\n");
+            caption.append("📍 <b>Location:</b> ").append(escapeHtml(locationTag)).append("\n");
         }
         caption.append("🕐 <b>Detection Time:</b> ").append(LocalDateTime.now().format(TIMESTAMP_FMT)).append("\n");
         caption.append("\n🔒 <i>DrishtiX Automated Officer Dispatch System</i>");
@@ -301,5 +307,16 @@ public class TelegramAlertService {
             log.error("Failed to build Telegram text request: {}", e.getMessage());
             return CompletableFuture.completedFuture(false);
         }
+    }
+
+    /**
+     * Escapes characters for Telegram's HTML parse_mode.
+     * Telegram requires <, > and & to be escaped.
+     */
+    private String escapeHtml(String text) {
+        if (text == null) return "";
+        return text.replace("&", "&amp;")
+                   .replace("<", "&lt;")
+                   .replace(">", "&gt;");
     }
 }

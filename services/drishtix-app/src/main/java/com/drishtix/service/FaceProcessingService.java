@@ -403,8 +403,8 @@ public class FaceProcessingService {
 
         float ratio = distLeft / distRight;
 
-        // Ratio roughly corresponds to yaw. > 2.5 or < 0.4 indicates extreme profile (> ~35 degrees)
-        return ratio > 2.5f || ratio < 0.4f;
+        // Ratio roughly corresponds to yaw. > 4.0 or < 0.25 indicates extreme profile (> ~45 degrees)
+        return ratio > 4.0f || ratio < 0.25f;
     }
 
     /**

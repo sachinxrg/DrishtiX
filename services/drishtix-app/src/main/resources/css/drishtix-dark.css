@@ -855,3 +855,383 @@
     -fx-background-color: rgba(42, 157, 143, 0.12);
     -fx-text-fill: #2A9D8F;
 }
+
+/* ============================================================
+   25. NEUMORPHISM (TARGET REGISTRY)
+   ============================================================ */
+
+/* Container and Toolbar */
+.registry-header-container {
+    -fx-padding: 0 0 10 0;
+}
+
+.registry-subtitle {
+    -fx-text-fill: #64748B;
+    -fx-font-size: 13;
+}
+
+.registry-toolbar {
+    -fx-background-color: transparent;
+}
+
+/* Search Group (Inset Neumorphic) */
+.neu-search-group {
+    -fx-background-color: #EEF2F7;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: #FFFFFF;
+    -fx-border-width: 1 1 0 0;
+    -fx-effect: innershadow(gaussian, rgba(0, 0, 0, 0.06), 6, 0, 2, 2);
+    -fx-padding: 4;
+}
+
+.neu-search-field, .neu-combo {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: #1E293B;
+}
+
+.neu-search-field:focused, .neu-combo:focused {
+    -fx-background-color: #FFFFFF;
+    -fx-background-radius: 8;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.04), 4, 0, 0, 1);
+}
+
+/* Neumorphic Buttons */
+.neu-btn-primary {
+    -fx-background-color: #EEF2F7;
+    -fx-text-fill: #2A9D8F;
+    -fx-font-weight: bold;
+    -fx-background-radius: 10;
+    -fx-padding: 8 16;
+    -fx-effect: dropshadow(gaussian, #FFFFFF, 10, 0, -3, -3), 
+                dropshadow(gaussian, rgba(0, 0, 0, 0.08), 10, 0, 3, 3);
+    -fx-cursor: hand;
+}
+
+.neu-btn-primary:hover {
+    -fx-background-color: #FFFFFF;
+}
+
+.neu-btn-primary:pressed {
+    -fx-effect: innershadow(gaussian, rgba(0, 0, 0, 0.06), 4, 0, 2, 2);
+}
+
+.neu-btn-secondary {
+    -fx-background-color: #EEF2F7;
+    -fx-text-fill: #64748B;
+    -fx-font-weight: bold;
+    -fx-background-radius: 10;
+    -fx-padding: 8 16;
+    -fx-effect: dropshadow(gaussian, #FFFFFF, 10, 0, -3, -3), 
+                dropshadow(gaussian, rgba(0, 0, 0, 0.08), 10, 0, 3, 3);
+    -fx-cursor: hand;
+}
+
+.neu-btn-secondary:hover {
+    -fx-background-color: #FFFFFF;
+}
+
+.neu-btn-secondary:pressed {
+    -fx-effect: innershadow(gaussian, rgba(0, 0, 0, 0.06), 4, 0, 2, 2);
+}
+
+.neu-btn-warning {
+    -fx-background-color: #EEF2F7;
+    -fx-text-fill: #F59E0B;
+    -fx-font-weight: bold;
+    -fx-background-radius: 10;
+    -fx-padding: 8 16;
+    -fx-effect: dropshadow(gaussian, #FFFFFF, 10, 0, -3, -3), 
+                dropshadow(gaussian, rgba(0, 0, 0, 0.08), 10, 0, 3, 3);
+    -fx-cursor: hand;
+}
+
+.neu-btn-warning:hover {
+    -fx-background-color: #FFFFFF;
+}
+
+.neu-btn-danger {
+    -fx-background-color: #EEF2F7;
+    -fx-text-fill: #E63946;
+    -fx-font-weight: bold;
+    -fx-background-radius: 10;
+    -fx-padding: 8 16;
+    -fx-effect: dropshadow(gaussian, #FFFFFF, 10, 0, -3, -3), 
+                dropshadow(gaussian, rgba(0, 0, 0, 0.08), 10, 0, 3, 3);
+    -fx-cursor: hand;
+}
+
+.neu-btn-danger:hover {
+    -fx-background-color: #FFFFFF;
+}
+
+/* Neumorphic Table Container (Inset) */
+.neu-table-container {
+    -fx-background-color: #EEF2F7;
+    -fx-background-radius: 16;
+    -fx-effect: innershadow(gaussian, rgba(0, 0, 0, 0.05), 8, 0, 2, 2);
+    -fx-border-color: #FFFFFF;
+    -fx-border-width: 1 1 0 0;
+    -fx-border-radius: 16;
+}
+
+/* Neumorphic Data Table */
+.neu-data-table {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-table-cell-border-color: transparent;
+    -fx-fixed-cell-size: 55;
+}
+
+.neu-data-table .column-header-background {
+    -fx-background-color: transparent;
+}
+
+.neu-data-table .column-header {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.neu-data-table .column-header .label {
+    -fx-text-fill: #64748B;
+    -fx-font-weight: bold;
+    -fx-font-size: 11;
+    -fx-padding: 8 0;
+}
+
+/* Soft Raised Rows */
+.neu-data-table .table-row-cell {
+    -fx-background-color: #FFFFFF;
+    -fx-background-radius: 12;
+    -fx-border-color: transparent;
+    -fx-cell-size: 55;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.04), 4, 0, 0, 2);
+}
+
+.neu-data-table .table-row-cell:empty {
+    -fx-background-color: transparent;
+    -fx-effect: none;
+}
+
+.neu-data-table .table-row-cell:odd:not(:empty) {
+    -fx-background-color: #F8FAFC;
+}
+
+.neu-data-table .table-row-cell:selected {
+    -fx-background-color: #F0FDF4;
+    -fx-border-color: transparent;
+    -fx-background-radius: 12;
+    -fx-effect: innershadow(gaussian, rgba(42, 157, 143, 0.15), 10, 0, 2, 2);
+}
+
+.neu-data-table .table-cell {
+    -fx-text-fill: #1E293B;
+    -fx-font-size: 13;
+    -fx-padding: 0 10;
+    -fx-border-color: transparent; /* Remove internal grid lines */
+}
+
+.table-empty-label {
+    -fx-text-fill: #94A3B8;
+    -fx-font-size: 14;
+    -fx-alignment: center;
+    -fx-text-alignment: center;
+}
+
+/* Neumorphic Profile Preview Panel (Raised) */
+.neu-preview-panel {
+    -fx-background-color: #EEF2F7;
+    -fx-background-radius: 16;
+    -fx-effect: dropshadow(gaussian, #FFFFFF, 12, 0, -4, -4), 
+                dropshadow(gaussian, rgba(0, 0, 0, 0.08), 12, 0, 4, 4);
+}
+
+.neu-panel-header {
+    -fx-text-fill: #64748B;
+    -fx-font-size: 11;
+    -fx-font-weight: bold;
+    -fx-letter-spacing: 1px;
+}
+
+/* Avatar Frame (Inset) */
+.neu-avatar-frame {
+    -fx-background-color: #EEF2F7;
+    -fx-background-radius: 90; /* Circle */
+    -fx-effect: innershadow(gaussian, rgba(0, 0, 0, 0.08), 8, 0, 3, 3);
+    -fx-border-color: #FFFFFF;
+    -fx-border-radius: 90;
+    -fx-border-width: 2;
+    -fx-padding: 5;
+}
+
+.preview-name {
+    -fx-text-fill: #1E293B;
+    -fx-font-size: 18;
+    -fx-font-weight: bold;
+    -fx-text-alignment: center;
+}
+
+.preview-case, .preview-status {
+    -fx-font-size: 12;
+}
+
+.preview-category-badge {
+    -fx-font-size: 12;
+    -fx-font-weight: bold;
+    -fx-padding: 4 12;
+    -fx-background-radius: 12;
+}
+
+/* Category & Status Badges */
+.category-badge {
+    -fx-padding: 4 10;
+    -fx-background-radius: 12;
+    -fx-font-size: 11;
+    -fx-font-weight: bold;
+}
+.category-badge-criminal {
+    -fx-background-color: rgba(230, 57, 70, 0.1);
+    -fx-text-fill: #E63946;
+}
+.category-badge-missing {
+    -fx-background-color: rgba(42, 157, 143, 0.1);
+    -fx-text-fill: #2A9D8F;
+}
+
+.status-badge {
+    -fx-padding: 4 10;
+    -fx-background-radius: 12;
+    -fx-font-size: 11;
+    -fx-font-weight: bold;
+}
+.status-active {
+    -fx-background-color: rgba(16, 185, 129, 0.1);
+    -fx-text-fill: #10B981;
+}
+.status-inactive {
+    -fx-background-color: rgba(100, 116, 139, 0.1);
+    -fx-text-fill: #64748B;
+}
+
+/* ============================================================
+   26. GLASSMORPHISM (SETTINGS BENTO)
+   ============================================================ */
+
+/* Main Container */
+.glass-bento-container {
+    -fx-background-color: transparent;
+}
+
+/* Frosted Glass Cards */
+.glass-bento-card {
+    -fx-background-color: rgba(255, 255, 255, 0.35);
+    -fx-background-radius: 24;
+    -fx-border-color: rgba(255, 255, 255, 0.7);
+    -fx-border-width: 1.5;
+    -fx-border-radius: 24;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 15, 0, 5, 5);
+    -fx-padding: 24;
+}
+
+.glass-bento-card-title {
+    -fx-text-fill: #1E293B;
+    -fx-font-size: 16;
+    -fx-font-weight: bold;
+    -fx-letter-spacing: 1px;
+    -fx-padding: 0 0 12 0;
+}
+
+/* Glass Inputs (Sliders, Spinners, TextFields) */
+.glass-input {
+    -fx-background-color: rgba(255, 255, 255, 0.6);
+    -fx-background-radius: 12;
+    -fx-border-color: rgba(255, 255, 255, 0.9);
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-text-fill: #1E293B;
+    -fx-padding: 6 12;
+    -fx-effect: innershadow(gaussian, rgba(0, 0, 0, 0.04), 4, 0, 1, 1);
+}
+
+.glass-input:focused {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #2A9D8F;
+}
+
+/* Glass Sliders */
+.glass-slider .track {
+    -fx-background-color: rgba(255, 255, 255, 0.5);
+    -fx-background-radius: 6;
+    -fx-border-color: rgba(255, 255, 255, 0.8);
+    -fx-border-radius: 6;
+}
+
+.glass-slider .thumb {
+    -fx-background-color: #2A9D8F;
+    -fx-background-radius: 20;
+    -fx-effect: dropshadow(gaussian, rgba(42, 157, 143, 0.4), 6, 0, 0, 2);
+}
+
+/* Glass Buttons */
+.glass-btn-primary {
+    -fx-background-color: rgba(42, 157, 143, 0.9);
+    -fx-text-fill: #FFFFFF;
+    -fx-font-weight: bold;
+    -fx-background-radius: 14;
+    -fx-padding: 10 20;
+    -fx-effect: dropshadow(gaussian, rgba(42, 157, 143, 0.3), 10, 0, 0, 4);
+    -fx-cursor: hand;
+}
+
+.glass-btn-primary:hover {
+    -fx-background-color: #2A9D8F;
+}
+
+.glass-btn-danger {
+    -fx-background-color: rgba(239, 68, 68, 0.9);
+    -fx-text-fill: #FFFFFF;
+    -fx-font-weight: bold;
+    -fx-background-radius: 14;
+    -fx-padding: 10 20;
+    -fx-effect: dropshadow(gaussian, rgba(239, 68, 68, 0.3), 10, 0, 0, 4);
+    -fx-cursor: hand;
+}
+
+.glass-btn-danger:hover {
+    -fx-background-color: #DC2626;
+}
+
+/* Danger Zone Card */
+.glass-bento-danger {
+    -fx-background-color: rgba(254, 226, 226, 0.4);
+    -fx-border-color: rgba(239, 68, 68, 0.3);
+}
+
+.glass-bento-danger .glass-bento-card-title {
+    -fx-text-fill: #EF4444;
+}
+
+/* ============================================================
+   28. HISTORY PAGE — BENTO GRID COMPONENTS
+   ============================================================ */
+
+/* Quick Stats Bar (Glassmorphic) */
+.history-stats-bar {
+    -fx-background-color: rgba(255, 255, 255, 0.45);
+    -fx-background-radius: 16;
+    -fx-border-color: rgba(255, 255, 255, 0.75);
+    -fx-border-width: 1.5;
+    -fx-border-radius: 16;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.04), 10, 0, 3, 3);
+}
+
+/* Detail Micro-Card Tile (Neumorphic Raised) */
+.history-detail-tile {
+    -fx-background-color: #EEF2F7;
+    -fx-background-radius: 14;
+    -fx-padding: 10 12;
+    -fx-spacing: 4;
+    -fx-effect: dropshadow(gaussian, #FFFFFF, 6, 0, -2, -2),
+                dropshadow(gaussian, rgba(0, 0, 0, 0.06), 6, 0, 2, 2);
+}

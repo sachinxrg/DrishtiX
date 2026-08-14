@@ -57,5 +57,11 @@ __pycache__/
 .reid_service.pid
 services/drishtix-app/config.properties
 
+# Temporary and Scratch files
+~$*
+scratch/
+services/drishtix-app/graph TB.txt
+
 # Ignore temporary scripts
 *.js
+

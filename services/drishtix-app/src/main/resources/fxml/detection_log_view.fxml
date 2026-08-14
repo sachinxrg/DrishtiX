@@ -5,43 +5,155 @@
 <?import javafx.geometry.Insets?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.drishtix.controller.DetectionLogController"
-            styleClass="view-pane">
-    <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
+            styleClass="view-pane, glass-bento-container">
+    <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
 
+    <!-- ===== TOP: Header + Quick Stats + Toolbar ===== -->
     <top>
-        <VBox spacing="10">
-            <Label text="DETECTION LOGS" styleClass="view-title"/>
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="From:" styleClass="control-label"/>
-                <DatePicker fx:id="dateFrom" styleClass="control-date"/>
-                <Label text="To:" styleClass="control-label"/>
-                <DatePicker fx:id="dateTo" styleClass="control-date"/>
-                <ComboBox fx:id="categoryFilter" prefWidth="140" styleClass="control-combo"/>
-                <Button text="🔍 Filter" onAction="#handleFilter" styleClass="btn-primary"/>
+        <VBox spacing="14">
+
+            <!-- Row 1: Title + Quick Stats Bar (Bento) -->
+            <HBox spacing="16" alignment="CENTER_LEFT">
+                <!-- Title Block -->
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <Label text="🕒" style="-fx-font-size: 26;"/>
+                    <VBox spacing="2">
+                        <Label text="HISTORY &amp; LOGS" styleClass="view-title"/>
+                        <Label fx:id="recordCountLabel" text="Loading records..." styleClass="registry-subtitle"/>
+                    </VBox>
+                </HBox>
+
                 <Region HBox.hgrow="ALWAYS"/>
-                <Button text="🗑️ Delete Log" onAction="#handleDeleteLog" styleClass="btn-danger"/>
-                <Button text="📥 Export CSV" onAction="#handleExportCSV" styleClass="btn-secondary"/>
+
+                <!-- Quick Stats (Glassmorphic) -->
+                <HBox spacing="14" alignment="CENTER_RIGHT" styleClass="history-stats-bar">
+                    <padding><Insets top="8" right="16" bottom="8" left="16"/></padding>
+                    <VBox alignment="CENTER" spacing="2">
+                        <Label fx:id="statTotal" text="0" style="-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1E293B;"/>
+                        <Label text="Total" style="-fx-font-size: 10; -fx-text-fill: #64748B;"/>
+                    </VBox>
+                    <Separator orientation="VERTICAL"/>
+                    <VBox alignment="CENTER" spacing="2">
+                        <Label fx:id="statCriminals" text="0" style="-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #E63946;"/>
+                        <Label text="Criminals" style="-fx-font-size: 10; -fx-text-fill: #64748B;"/>
+                    </VBox>
+                    <Separator orientation="VERTICAL"/>
+                    <VBox alignment="CENTER" spacing="2">
+                        <Label fx:id="statMissing" text="0" style="-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #2A9D8F;"/>
+                        <Label text="Missing" style="-fx-font-size: 10; -fx-text-fill: #64748B;"/>
+                    </VBox>
+                </HBox>
+            </HBox>
+
+            <!-- Row 2: Toolbar (Neumorphic Inset) -->
+            <HBox spacing="12" alignment="CENTER_LEFT" styleClass="registry-toolbar">
+                <padding><Insets top="4" bottom="4" left="0" right="0"/></padding>
+
+                <!-- Filter Group (Neumorphic Inset) -->
+                <HBox spacing="8" alignment="CENTER_LEFT" styleClass="neu-search-group">
+                    <Label text="From:" style="-fx-text-fill: #64748B; -fx-padding: 0 0 0 8;"/>
+                    <DatePicker fx:id="dateFrom" prefWidth="130" styleClass="neu-search-field"/>
+                    <Label text="To:" style="-fx-text-fill: #64748B;"/>
+                    <DatePicker fx:id="dateTo" prefWidth="130" styleClass="neu-search-field"/>
+                    <Separator orientation="VERTICAL" style="-fx-padding: 0 4;"/>
+                    <ComboBox fx:id="categoryFilter" prefWidth="150" styleClass="neu-combo"/>
+                </HBox>
+
+                <Button text="🔍 Filter" onAction="#handleFilter" styleClass="neu-btn-primary"/>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <!-- Action Group -->
+                <HBox spacing="8" alignment="CENTER_RIGHT">
+                    <Button text="📥 Export CSV" onAction="#handleExportCSV" styleClass="neu-btn-secondary"/>
+                    <Button text="🗑️ Delete Log" onAction="#handleDeleteLog" styleClass="neu-btn-danger"/>
+                </HBox>
             </HBox>
         </VBox>
     </top>
 
+    <!-- ===== CENTER: Table + Detail Panel ===== -->
     <center>
-        <HBox spacing="15">
-            <padding><Insets top="10"/></padding>
-            <TableView fx:id="logTable" HBox.hgrow="ALWAYS" styleClass="data-table">
-                <columns>
-                    <TableColumn fx:id="colTimestamp" text="Timestamp" prefWidth="160"/>
-                    <TableColumn fx:id="colTargetName" text="Target Name" prefWidth="150"/>
-                    <TableColumn fx:id="colCategory" text="Category" prefWidth="120"/>
-                    <TableColumn fx:id="colCaseNum" text="Case #" prefWidth="120"/>
-                    <TableColumn fx:id="colConfidence" text="Confidence" prefWidth="100"/>
-                    <TableColumn fx:id="colCamera" text="Camera" prefWidth="100"/>
-                </columns>
-            </TableView>
-            <VBox prefWidth="320" spacing="10" alignment="TOP_CENTER" styleClass="preview-panel">
-                <Label text="SNAPSHOT PREVIEW" styleClass="panel-header"/>
-                <ImageView fx:id="snapshotPreview" fitWidth="300" fitHeight="300" preserveRatio="true"/>
+        <HBox spacing="16">
+            <padding><Insets top="14"/></padding>
+
+            <!-- Left: Data Table (Neumorphic Inset) -->
+            <VBox HBox.hgrow="ALWAYS" styleClass="neu-table-container">
+                <padding><Insets top="4" right="4" bottom="4" left="4"/></padding>
+                <TableView fx:id="logTable" VBox.vgrow="ALWAYS" styleClass="neu-data-table">
+                    <placeholder>
+                        <VBox alignment="CENTER" spacing="8">
+                            <Label text="📭" style="-fx-font-size: 32;"/>
+                            <Label text="No detection logs found." style="-fx-text-fill: #94A3B8; -fx-font-size: 14;"/>
+                            <Label text="Adjust the date range or category filter above." style="-fx-text-fill: #94A3B8; -fx-font-size: 12;"/>
+                        </VBox>
+                    </placeholder>
+                    <columns>
+                        <TableColumn fx:id="colSerial" text="#" prefWidth="45" minWidth="45" maxWidth="60" sortable="false"/>
+                        <TableColumn fx:id="colTimestamp" text="Timestamp" prefWidth="155" minWidth="130"/>
+                        <TableColumn fx:id="colTargetName" text="Target Name" prefWidth="155" minWidth="130"/>
+                        <TableColumn fx:id="colCategory" text="Category" prefWidth="135" minWidth="110"/>
+                        <TableColumn fx:id="colCaseNum" text="FIR No." prefWidth="110" minWidth="90"/>
+                        <TableColumn fx:id="colConfidence" text="Confidence" prefWidth="100" minWidth="80"/>
+                        <TableColumn fx:id="colCamera" text="Camera" prefWidth="110" minWidth="90"/>
+                    </columns>
+                </TableView>
             </VBox>
+
+            <!-- Right: Detail Bento Panel (Glassmorphic) -->
+            <StackPane prefWidth="300" minWidth="300" styleClass="glass-bento-card">
+
+                <!-- Empty State -->
+                <VBox fx:id="emptyStatePanel" alignment="CENTER" spacing="10">
+                    <Label text="📸" style="-fx-font-size: 40; -fx-text-fill: #94A3B8;"/>
+                    <Label text="Select a detection to preview" style="-fx-text-fill: #64748B; -fx-font-size: 14; -fx-font-weight: bold;" wrapText="true"/>
+                    <Label text="Click on any row in the table to view the snapshot and event details." style="-fx-text-fill: #94A3B8; -fx-font-size: 12; -fx-text-alignment: center;" wrapText="true"/>
+                </VBox>
+
+                <!-- Details State -->
+                <VBox fx:id="detailsPanel" spacing="12" alignment="TOP_CENTER" visible="false">
+                    <Label text="DETECTION DETAILS" styleClass="glass-bento-card-title"/>
+
+                    <!-- Snapshot Card (Neumorphic Inset) -->
+                    <StackPane styleClass="neu-table-container" prefHeight="220" maxHeight="220">
+                        <padding><Insets top="4" right="4" bottom="4" left="4"/></padding>
+                        <ImageView fx:id="snapshotPreview" fitWidth="260" fitHeight="210" preserveRatio="true"/>
+                    </StackPane>
+
+                    <!-- Micro-Card Grid (2×3 Bento) -->
+                    <GridPane hgap="10" vgap="10">
+                        <!-- Row 0: Name + Category -->
+                        <VBox GridPane.columnIndex="0" GridPane.rowIndex="0" GridPane.hgrow="ALWAYS" styleClass="history-detail-tile">
+                            <Label text="TARGET" style="-fx-text-fill: #94A3B8; -fx-font-size: 9; -fx-font-weight: bold;"/>
+                            <Label fx:id="lblDetailName" text="-" style="-fx-text-fill: #1E293B; -fx-font-weight: bold; -fx-font-size: 13;" wrapText="true"/>
+                        </VBox>
+                        <VBox GridPane.columnIndex="1" GridPane.rowIndex="0" GridPane.hgrow="ALWAYS" styleClass="history-detail-tile">
+                            <Label text="CATEGORY" style="-fx-text-fill: #94A3B8; -fx-font-size: 9; -fx-font-weight: bold;"/>
+                            <Label fx:id="lblDetailCategory" text="-"/>
+                        </VBox>
+
+                        <!-- Row 1: Confidence + Time -->
+                        <VBox GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.hgrow="ALWAYS" styleClass="history-detail-tile">
+                            <Label text="CONFIDENCE" style="-fx-text-fill: #94A3B8; -fx-font-size: 9; -fx-font-weight: bold;"/>
+                            <Label fx:id="lblDetailConfidence" text="-" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
+                        </VBox>
+                        <VBox GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.hgrow="ALWAYS" styleClass="history-detail-tile">
+                            <Label text="DETECTED AT" style="-fx-text-fill: #94A3B8; -fx-font-size: 9; -fx-font-weight: bold;"/>
+                            <Label fx:id="lblDetailTime" text="-" style="-fx-text-fill: #1E293B; -fx-font-size: 11;"/>
+                        </VBox>
+
+                        <!-- Row 2: Camera + FIR -->
+                        <VBox GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.hgrow="ALWAYS" styleClass="history-detail-tile">
+                            <Label text="CAMERA" style="-fx-text-fill: #94A3B8; -fx-font-size: 9; -fx-font-weight: bold;"/>
+                            <Label fx:id="lblDetailCamera" text="-" style="-fx-text-fill: #1E293B; -fx-font-size: 12;"/>
+                        </VBox>
+                        <VBox GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.hgrow="ALWAYS" styleClass="history-detail-tile">
+                            <Label text="FIR NO." style="-fx-text-fill: #94A3B8; -fx-font-size: 9; -fx-font-weight: bold;"/>
+                            <Label fx:id="lblDetailFir" text="-" style="-fx-text-fill: #1E293B; -fx-font-size: 12;"/>
+                        </VBox>
+                    </GridPane>
+                </VBox>
+            </StackPane>
         </HBox>
     </center>
 </BorderPane>

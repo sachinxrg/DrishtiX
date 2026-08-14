@@ -90,7 +90,9 @@ public class LockedTarget {
         this.consecutiveTrackerFailures = 0;
         this.velocityX = 0;
         this.velocityY = 0;
-        this.previousBox = new Rect(bodyBox.x(), bodyBox.y(), bodyBox.width(), bodyBox.height());
+        this.previousBox = (bodyBox != null)
+                ? new Rect(bodyBox.x(), bodyBox.y(), bodyBox.width(), bodyBox.height())
+                : null;
         // Initialize to 1.0 (self-similarity) — prevents fusion collapse before
         // the async OSNet extraction completes
         this.lastBodySimilarity = 1.0;

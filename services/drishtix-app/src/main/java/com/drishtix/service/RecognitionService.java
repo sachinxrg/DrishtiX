@@ -160,6 +160,13 @@ public class RecognitionService {
      * @return a RecognitionResult with the predicted label and confidence
      */
     public RecognitionResult predict(Mat faceROI) {
+        return predict(faceROI, ConfigurationService.getInstance().getConfidenceThreshold());
+    }
+
+    /**
+     * Predicts the identity of a face ROI against the trained model using a custom threshold.
+     */
+    public RecognitionResult predict(Mat faceROI, double threshold) {
         if (!trained) {
             return RecognitionResult.unknown(999.0);
         }
@@ -170,8 +177,6 @@ public class RecognitionService {
             double[] confidence = new double[1];
 
             recognizer.predict(faceROI, label, confidence);
-
-            double threshold = ConfigurationService.getInstance().getConfidenceThreshold();
 
             if (confidence[0] < threshold) {
                 RecognitionResult result = RecognitionResult.matched(label[0], confidence[0]);

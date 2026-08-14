@@ -66,29 +66,39 @@ public class FaceTrackingManager {
      * @param frame         the current video frame (used to initialize trackers)
      * @param detections    the list of face detections from YuNet
      * @param currentFrame  the current frame index
+     * @return a list of assigned tracker IDs, parallel to the detections list (-1 if skipped)
      */
-    public void initTrackers(Mat frame, List<FaceDetection> detections, long currentFrame) {
+    public List<Integer> initTrackers(Mat frame, List<FaceDetection> detections, long currentFrame) {
         // Snapshot previous labels BEFORE clearing — enables IoU-based label carry-over
         List<TrackedFace> previousTracks = new ArrayList<>(activeTracks);
 
         // Release old trackers
         clearTrackers();
 
+        List<Integer> assignedIds = new ArrayList<>();
+
         for (FaceDetection detection : detections) {
             try {
                 Rect box = detection.getBoundingBox();
 
-                // Validate bounding box is within frame bounds
-                if (box.x() < 0 || box.y() < 0 ||
-                        box.x() + box.width() > frame.cols() ||
-                        box.y() + box.height() > frame.rows() ||
-                        box.width() <= 0 || box.height() <= 0) {
+                // Clamp bounding box to frame bounds
+                int bx = Math.max(0, Math.min(box.x(), frame.cols() - 1));
+                int by = Math.max(0, Math.min(box.y(), frame.rows() - 1));
+                int bw = Math.min(box.width(), frame.cols() - bx);
+                int bh = Math.min(box.height(), frame.rows() - by);
+
+                if (bw <= 8 || bh <= 8) {
+                    assignedIds.add(-1);
                     continue;
                 }
+                Rect safeBox = new Rect(bx, by, bw, bh);
 
                 // Create a new tracker
                 Tracker tracker = createTracker();
-                if (tracker == null) continue;
+                if (tracker == null) {
+                    assignedIds.add(-1);
+                    continue;
+                }
 
                 // Initialize the tracker with the detection bounding box (Rect, not Rect2d)
                 tracker.init(frame, box);
@@ -100,8 +110,9 @@ public class FaceTrackingManager {
                 int[] initialColor = (bestPrev != null && !"Analyzing...".equals(bestPrev.getLabel()))
                         ? bestPrev.getColor() : AppConstants.COLOR_UNKNOWN_BGR;
 
+                int trackId = nextTrackerId.getAndIncrement();
                 TrackedFace trackedFace = new TrackedFace(
-                        nextTrackerId.getAndIncrement(),
+                        trackId,
                         box,
                         initialLabel,
                         initialColor,
@@ -110,15 +121,18 @@ public class FaceTrackingManager {
                 );
 
                 activeTracks.add(trackedFace);
+                assignedIds.add(trackId);
 
             } catch (Exception e) {
                 log.debug("Failed to initialize tracker for detection: {}", e.getMessage());
+                assignedIds.add(-1);
             }
         }
 
         log.debug("Initialized {} trackers from {} detections (carried over {} labels)",
                 activeTracks.size(), detections.size(),
                 activeTracks.stream().filter(t -> !"Analyzing...".equals(t.getLabel())).count());
+        return assignedIds;
     }
 
     /**
@@ -520,14 +534,36 @@ public class FaceTrackingManager {
      */
     private TrackedFace findBestOverlap(List<TrackedFace> previousTracks, Rect newBox) {
         TrackedFace best = null;
-        double bestIoU = 0.3; // Minimum 30% overlap to consider a spatial match
+        double bestScore = 0.15; // Minimum 15% IoU threshold to consider spatial match
+
+        int newCx = newBox.x() + newBox.width() / 2;
+        int newCy = newBox.y() + newBox.height() / 2;
+
         for (TrackedFace prev : previousTracks) {
-            double iou = calculateIoU(prev.getBoundingBox(), newBox);
-            if (iou > bestIoU) {
-                bestIoU = iou;
+            Rect prevBox = prev.getBoundingBox();
+            double iou = calculateIoU(prevBox, newBox);
+            if (iou > bestScore) {
+                bestScore = iou;
                 best = prev;
             }
         }
+
+        // Fallback: If IoU is low due to fast motion/resizing, match by center distance
+        if (best == null) {
+            double maxDist = Math.max(newBox.width(), newBox.height()) * 1.5;
+            double minDist = maxDist;
+            for (TrackedFace prev : previousTracks) {
+                Rect prevBox = prev.getBoundingBox();
+                int prevCx = prevBox.x() + prevBox.width() / 2;
+                int prevCy = prevBox.y() + prevBox.height() / 2;
+                double dist = Math.hypot(newCx - prevCx, newCy - prevCy);
+                if (dist < minDist) {
+                    minDist = dist;
+                    best = prev;
+                }
+            }
+        }
+
         return best;
     }
 

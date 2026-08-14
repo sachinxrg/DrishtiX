@@ -141,8 +141,8 @@ class LockedTargetTest {
         @Test
         @DisplayName("Should release after consecutive low-confidence frames")
         void lowConfidence_shouldRelease() {
-            LockedTarget lock = createTestLock(0.30, 0);
-            lock.setLastBodySimilarity(0.20);
+            LockedTarget lock = createTestLock(0.10, 0);
+            lock.setLastBodySimilarity(0.10);
             lock.markFaceLost();
 
             // Accumulate LOW_CONF_FRAMES consecutive frames below threshold

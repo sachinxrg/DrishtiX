@@ -130,13 +130,23 @@ public class TargetRegistryService {
         TargetImage image = new TargetImage(targetId, uploadPath, templatePath, 1);
         targetImageDAO.insert(image);
 
-        // Step 5: Retrain the model asynchronously on the Video Inference thread
+        // Step 5: Retrain LBPH model + rebuild DNN gallery asynchronously
         CompletableFuture.runAsync(() -> {
             try {
                 recognitionService.trainModel();
                 log.info("LBPH model retrained after registering: {}", fullName);
             } catch (Exception e) {
                 log.error("Failed to retrain model after registration", e);
+            }
+        }, ThreadPools.getVideoInferencePool());
+
+        // Step 5b: Rebuild DNN gallery so the new target is immediately detectable
+        CompletableFuture.runAsync(() -> {
+            try {
+                recognitionService.rebuildDnnGallery();
+                log.info("DNN gallery rebuilt after registering: {}", fullName);
+            } catch (Exception e) {
+                log.error("Failed to rebuild DNN gallery after registration", e);
             }
         }, ThreadPools.getVideoInferencePool());
 
@@ -154,11 +164,16 @@ public class TargetRegistryService {
 
     /**
      * Deactivates a target and retrains the model.
+     * Also removes the target from the DNN gallery to prevent ghost detections.
      */
     public void deactivateTarget(int targetId) {
         targetDAO.deactivate(targetId);
 
-        // Retrain model without the deactivated target
+        // Remove from DNN gallery immediately (Bug #3 fix: removeFromGallery was never called)
+        DnnFaceRecognitionService.getInstance().removeFromGallery(targetId);
+        log.info("Target removed from DNN gallery: targetId={}", targetId);
+
+        // Retrain LBPH model without the deactivated target
         CompletableFuture.runAsync(() -> {
             recognitionService.trainModel();
             log.info("LBPH model retrained after deactivating target: {}", targetId);
@@ -223,7 +238,11 @@ public class TargetRegistryService {
         // Also delete the profile image file
         deleteFileQuietly(target.getProfileImagePath());
 
-        // Step 7: Retrain LBPH model asynchronously
+        // Step 7: Remove from DNN gallery immediately (Bug #3 fix)
+        DnnFaceRecognitionService.getInstance().removeFromGallery(targetId);
+        log.info("Target removed from DNN gallery: targetId={}", targetId);
+
+        // Step 8: Retrain LBPH model asynchronously
         CompletableFuture.runAsync(() -> {
             try {
                 recognitionService.trainModel();
@@ -233,7 +252,7 @@ public class TargetRegistryService {
             }
         }, ThreadPools.getVideoInferencePool());
 
-        // Step 8: Audit log
+        // Step 9: Audit log
         auditLogDAO.insert(AuditLogEntry.targetAction(
                 AppConstants.AUDIT_TARGET_DELETED, targetId,
                 String.format("{\"name\":\"%s\",\"category\":\"%s\",\"case\":\"%s\"}",

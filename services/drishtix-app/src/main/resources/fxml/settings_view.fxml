@@ -4,108 +4,112 @@
 <?import javafx.geometry.Insets?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.drishtix.controller.SettingsController"
-            styleClass="view-pane">
+            styleClass="view-pane, glass-bento-container">
     <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
 
     <top>
-        <Label text="SETTINGS" styleClass="view-title"/>
+        <VBox spacing="5" style="-fx-padding: 0 0 15 0;">
+            <Label text="⚙️ SETTINGS" styleClass="view-title"/>
+            <Label text="Configure detection parameters, alerts, and system behaviors." style="-fx-text-fill: #64748B; -fx-font-size: 13;"/>
+        </VBox>
     </top>
 
     <center>
-        <ScrollPane fitToWidth="true" styleClass="settings-scroll">
-            <VBox spacing="20" maxWidth="600">
-                <padding><Insets top="15" right="20" bottom="15" left="20"/></padding>
-
-                <!-- Detection Settings -->
-                <VBox spacing="10" styleClass="settings-group">
-                    <Label text="Detection Settings" styleClass="settings-group-title"/>
+        <ScrollPane fitToWidth="true" styleClass="settings-scroll" style="-fx-background-color: transparent; -fx-control-inner-background: transparent;">
+            <!-- FlowPane creates the Bento Grid layout by wrapping cards automatically -->
+            <FlowPane hgap="24" vgap="24" prefWrapLength="900" style="-fx-padding: 10;">
+                
+                <!-- Bento Card 1: Detection Settings -->
+                <VBox spacing="14" styleClass="glass-bento-card" prefWidth="420">
+                    <Label text="🎯 Detection Configuration" styleClass="glass-bento-card-title"/>
+                    
                     <HBox spacing="15" alignment="CENTER_LEFT">
-                        <Label text="Confidence Threshold:" styleClass="setting-label" prefWidth="200"/>
-                        <Slider fx:id="thresholdSlider" min="10" max="200" value="80" prefWidth="200"/>
-                        <Label fx:id="lblThreshold" text="80" styleClass="setting-value"/>
+                        <Label text="Confidence Threshold:" prefWidth="180" style="-fx-text-fill: #1E293B;"/>
+                        <Slider fx:id="thresholdSlider" min="10" max="200" value="80" prefWidth="150" styleClass="glass-slider"/>
+                        <Label fx:id="lblThreshold" text="80" style="-fx-font-weight: bold; -fx-text-fill: #2A9D8F;"/>
                     </HBox>
+                    
                     <HBox spacing="15" alignment="CENTER_LEFT">
-                        <Label text="Detection Method:" styleClass="setting-label" prefWidth="200"/>
-                        <ComboBox fx:id="detectionMethod" prefWidth="150" styleClass="control-combo"/>
+                        <Label text="Detection Method:" prefWidth="180" style="-fx-text-fill: #1E293B;"/>
+                        <ComboBox fx:id="detectionMethod" prefWidth="180" styleClass="glass-input"/>
                     </HBox>
+                    
                     <HBox spacing="15" alignment="CENTER_LEFT">
-                        <Label text="Min Face Size (px):" styleClass="setting-label" prefWidth="200"/>
-                        <Spinner fx:id="minFaceSize" prefWidth="100" styleClass="control-spinner"/>
-                    </HBox>
-                </VBox>
-
-                <!-- Alert Settings -->
-                <VBox spacing="10" styleClass="settings-group">
-                    <Label text="Alert Settings" styleClass="settings-group-title"/>
-                    <HBox spacing="15" alignment="CENTER_LEFT">
-                        <Label text="Cooldown (seconds):" styleClass="setting-label" prefWidth="200"/>
-                        <Spinner fx:id="cooldownSpinner" prefWidth="100" styleClass="control-spinner"/>
-                    </HBox>
-                    <HBox spacing="15" alignment="CENTER_LEFT">
-                        <Label text="Audio Alerts:" styleClass="setting-label" prefWidth="200"/>
-                        <CheckBox fx:id="audioEnabled" text="Enabled" styleClass="setting-checkbox"/>
+                        <Label text="Min Face Size (px):" prefWidth="180" style="-fx-text-fill: #1E293B;"/>
+                        <Spinner fx:id="minFaceSize" prefWidth="120" styleClass="glass-input"/>
                     </HBox>
                 </VBox>
 
-                <!-- Officer Messaging & Dispatch Settings -->
-                <VBox spacing="10" styleClass="settings-group">
-                    <Label text="Officer Messaging &amp; Dispatch" styleClass="settings-group-title"/>
+                <!-- Bento Card 2: System & Alert Settings -->
+                <VBox spacing="14" styleClass="glass-bento-card" prefWidth="420">
+                    <Label text="⚙️ Core System &amp; Alerts" styleClass="glass-bento-card-title"/>
+                    
                     <HBox spacing="15" alignment="CENTER_LEFT">
-                        <Label text="Officer Dispatch Email:" styleClass="setting-label" prefWidth="200"/>
-                        <TextField fx:id="officerEmailField" promptText="officer.email@police.gov.in" prefWidth="250" styleClass="search-field"/>
-                    </HBox>
-                    <HBox spacing="15" alignment="CENTER_LEFT">
-                        <Label text="Telegram Bot Token:" styleClass="setting-label" prefWidth="200"/>
-                        <TextField fx:id="telegramTokenField" promptText="123456789:ABCdef..." prefWidth="250" styleClass="search-field"/>
-                    </HBox>
-                    <HBox spacing="15" alignment="CENTER_LEFT">
-                        <Label text="Telegram Chat / Group ID:" styleClass="setting-label" prefWidth="200"/>
-                        <TextField fx:id="telegramChatIdField" promptText="-100123456789" prefWidth="250" styleClass="search-field"/>
-                    </HBox>
-                    <HBox spacing="15" alignment="CENTER_LEFT">
-                        <Label text="Telegram Dispatch:" styleClass="setting-label" prefWidth="200"/>
-                        <CheckBox fx:id="telegramEnabled" text="Enabled" styleClass="setting-checkbox"/>
-                    </HBox>
-                    <HBox spacing="15" alignment="CENTER_LEFT">
-                        <Label text="Officer Email Dispatch:" styleClass="setting-label" prefWidth="200"/>
-                        <CheckBox fx:id="officerDispatchEnabled" text="Enabled" styleClass="setting-checkbox"/>
-                    </HBox>
-                    <HBox spacing="15" alignment="CENTER_LEFT">
-                        <Label text="Test Messaging:" styleClass="setting-label" prefWidth="200"/>
-                        <Button text="📲 Send Test Dispatch" onAction="#handleTestDispatch" styleClass="btn-secondary"/>
-                    </HBox>
-                </VBox>
-
-                <!-- System Settings -->
-                <VBox spacing="10" styleClass="settings-group">
-                    <Label text="System Settings" styleClass="settings-group-title"/>
-                    <HBox spacing="15" alignment="CENTER_LEFT">
-                        <Label text="Auto-Start Camera:" styleClass="setting-label" prefWidth="200"/>
+                        <Label text="Auto-Start Camera:" prefWidth="180" style="-fx-text-fill: #1E293B;"/>
                         <CheckBox fx:id="autoStartCamera" text="Enabled" styleClass="setting-checkbox"/>
                     </HBox>
+
                     <HBox spacing="15" alignment="CENTER_LEFT">
-                        <Label text="Snapshot Retention (days):" styleClass="setting-label" prefWidth="200"/>
-                        <Spinner fx:id="retentionDays" prefWidth="100" styleClass="control-spinner"/>
+                        <Label text="Alert Cooldown (sec):" prefWidth="180" style="-fx-text-fill: #1E293B;"/>
+                        <Spinner fx:id="cooldownSpinner" prefWidth="120" styleClass="glass-input"/>
                     </HBox>
+                    
                     <HBox spacing="15" alignment="CENTER_LEFT">
-                        <Label text="Database Status:" styleClass="setting-label" prefWidth="200"/>
+                        <Label text="Audio Alerts:" prefWidth="180" style="-fx-text-fill: #1E293B;"/>
+                        <CheckBox fx:id="audioEnabled" text="Enabled" styleClass="setting-checkbox"/>
+                    </HBox>
+                    
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Label text="Snapshot Retention:" prefWidth="180" style="-fx-text-fill: #1E293B;"/>
+                        <Spinner fx:id="retentionDays" prefWidth="120" styleClass="glass-input"/>
+                    </HBox>
+                </VBox>
+
+                <!-- Bento Card 3: Dispatch & Integration -->
+                <VBox spacing="14" styleClass="glass-bento-card" prefWidth="420">
+                    <Label text="📡 Officer Dispatch" styleClass="glass-bento-card-title"/>
+                    
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Label text="Officer Email:" prefWidth="140" style="-fx-text-fill: #1E293B;"/>
+                        <TextField fx:id="officerEmailField" promptText="officer@police.gov.in" HBox.hgrow="ALWAYS" styleClass="glass-input"/>
+                    </HBox>
+                    
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Label text="Telegram Token:" prefWidth="140" style="-fx-text-fill: #1E293B;"/>
+                        <TextField fx:id="telegramTokenField" promptText="123456789:ABCdef..." HBox.hgrow="ALWAYS" styleClass="glass-input"/>
+                    </HBox>
+                    
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Label text="Telegram Chat ID:" prefWidth="140" style="-fx-text-fill: #1E293B;"/>
+                        <TextField fx:id="telegramChatIdField" promptText="-100123456789" HBox.hgrow="ALWAYS" styleClass="glass-input"/>
+                    </HBox>
+                    
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <VBox spacing="8" prefWidth="140">
+                            <CheckBox fx:id="telegramEnabled" text="Telegram" styleClass="setting-checkbox"/>
+                            <CheckBox fx:id="officerDispatchEnabled" text="Email" styleClass="setting-checkbox"/>
+                        </VBox>
+                        <Button text="📲 Send Test Dispatch" onAction="#handleTestDispatch" styleClass="glass-btn-primary" HBox.hgrow="ALWAYS"/>
+                    </HBox>
+                </VBox>
+
+                <!-- Bento Card 4: Danger Zone & Actions -->
+                <VBox spacing="14" styleClass="glass-bento-card glass-bento-danger" prefWidth="420">
+                    <Label text="⚠️ Danger Zone" styleClass="glass-bento-card-title"/>
+                    
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Label text="Database Status:" prefWidth="180" style="-fx-text-fill: #1E293B;"/>
                         <Label fx:id="lblDbStatus" text="Checking..." styleClass="indicator-value"/>
                     </HBox>
-                </VBox>
 
-                <!-- Danger Zone -->
-                <VBox spacing="10" styleClass="settings-group" style="-fx-border-color: #ef4444;">
-                    <Label text="Danger Zone" styleClass="settings-group-title" style="-fx-text-fill: #ef4444;"/>
-                    <HBox spacing="15" alignment="CENTER_LEFT">
-                        <Label text="Clear All Records:" styleClass="setting-label" prefWidth="200"/>
-                        <Button text="⚠️ Clear System Data" onAction="#handleClearData"
-                                style="-fx-background-color: #ef4444; -fx-text-fill: white; -fx-font-weight: bold;" prefWidth="200"/>
+                    <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-padding: 10 0 0 0;">
+                        <Button text="🗑️ Clear All Data" onAction="#handleClearData" styleClass="glass-btn-danger" prefWidth="180"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button text="💾 Save Settings" onAction="#handleSaveSettings" styleClass="glass-btn-primary" prefWidth="180"/>
                     </HBox>
                 </VBox>
 
-                <Button text="💾 Save Settings" onAction="#handleSaveSettings"
-                        styleClass="btn-primary" prefWidth="200"/>
-            </VBox>
+            </FlowPane>
         </ScrollPane>
     </center>
 </BorderPane>
