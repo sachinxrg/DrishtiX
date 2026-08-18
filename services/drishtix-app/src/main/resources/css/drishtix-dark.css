@@ -456,7 +456,7 @@
 
 /* Stop toggle — red circle with ring */
 .btn-stop-circle {
-    -fx-background-color: #E63946;
+    -fx-background-color: linear-gradient(to bottom, #EF4444, #DC2626);
     -fx-text-fill: #FFFFFF;
     -fx-font-weight: bold;
     -fx-font-size: 12;
@@ -466,21 +466,21 @@
     -fx-max-height: 56;
     -fx-background-radius: 28;
     -fx-border-radius: 28;
-    -fx-border-color: #FCA5A5; /* Lighter red ring */
-    -fx-border-width: 3;
+    -fx-border-color: rgba(254, 202, 202, 0.8);
+    -fx-border-width: 2.5;
     -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, rgba(230, 57, 70, 0.3), 8, 0, 0, 2);
+    -fx-effect: dropshadow(gaussian, rgba(220, 38, 38, 0.35), 12, 0.1, 0, 4);
 }
 
 .btn-stop-circle:hover {
-    -fx-background-color: #F04C5A;
-    -fx-border-color: #FECACA;
-    -fx-effect: dropshadow(gaussian, rgba(230, 57, 70, 0.45), 12, 0, 0, 2);
+    -fx-background-color: linear-gradient(to bottom, #F87171, #EF4444);
+    -fx-border-color: #FFFFFF;
+    -fx-effect: dropshadow(gaussian, rgba(220, 38, 38, 0.55), 16, 0.15, 0, 4);
 }
 
 /* Start toggle — green circle with ring */
 .btn-start-circle {
-    -fx-background-color: #10B981;
+    -fx-background-color: linear-gradient(to bottom, #10B981, #059669);
     -fx-text-fill: #FFFFFF;
     -fx-font-weight: bold;
     -fx-font-size: 12;
@@ -490,34 +490,34 @@
     -fx-max-height: 56;
     -fx-background-radius: 28;
     -fx-border-radius: 28;
-    -fx-border-color: #6EE7B7; /* Lighter green ring */
-    -fx-border-width: 3;
+    -fx-border-color: rgba(167, 243, 208, 0.8);
+    -fx-border-width: 2.5;
     -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, rgba(16, 185, 129, 0.3), 8, 0, 0, 2);
+    -fx-effect: dropshadow(gaussian, rgba(16, 185, 129, 0.35), 12, 0.1, 0, 4);
 }
 
 .btn-start-circle:hover {
-    -fx-background-color: #059669;
-    -fx-border-color: #A7F3D0;
-    -fx-effect: dropshadow(gaussian, rgba(16, 185, 129, 0.45), 12, 0, 0, 2);
+    -fx-background-color: linear-gradient(to bottom, #34D399, #10B981);
+    -fx-border-color: #FFFFFF;
+    -fx-effect: dropshadow(gaussian, rgba(16, 185, 129, 0.55), 16, 0.15, 0, 4);
 }
 
 .btn-stop {
-    -fx-background-color: #FFFFFF;
+    -fx-background-color: rgba(255, 255, 255, 0.8);
     -fx-text-fill: #64748B;
     -fx-font-size: 12;
     -fx-padding: 8 20;
     -fx-background-radius: 10;
     -fx-cursor: hand;
-    -fx-border-color: #E2E8F0;
+    -fx-border-color: rgba(226, 232, 240, 0.8);
     -fx-border-radius: 10;
     -fx-border-width: 1;
 }
 
 .btn-stop:hover {
-    -fx-background-color: #FEF2F2;
+    -fx-background-color: rgba(254, 242, 242, 0.9);
     -fx-text-fill: #E63946;
-    -fx-border-color: rgba(230, 57, 70, 0.3);
+    -fx-border-color: rgba(230, 57, 70, 0.4);
 }
 
 .btn-danger {
@@ -535,14 +535,14 @@
 }
 
 .btn-mute {
-    -fx-background-color: #F1F5F9;
+    -fx-background-color: rgba(241, 245, 249, 0.8);
     -fx-text-fill: #1E293B;
     -fx-font-size: 14;
-    -fx-padding: 5 10;
-    -fx-background-radius: 8;
+    -fx-padding: 6 12;
+    -fx-background-radius: 10;
     -fx-cursor: hand;
-    -fx-border-color: #E2E8F0;
-    -fx-border-radius: 8;
+    -fx-border-color: rgba(226, 232, 240, 0.8);
+    -fx-border-radius: 10;
     -fx-border-width: 1;
 }
 
@@ -553,18 +553,46 @@
 }
 
 .btn-add-target {
-    -fx-background-color: #2A9D8F;
+    -fx-background-color: linear-gradient(to bottom, #2A9D8F, #21867A);
     -fx-text-fill: #FFFFFF;
     -fx-font-weight: bold;
     -fx-padding: 12 24;
-    -fx-background-radius: 12;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-color: rgba(255, 255, 255, 0.3);
+    -fx-border-width: 1;
     -fx-cursor: hand;
     -fx-font-size: 13;
+    -fx-effect: dropshadow(gaussian, rgba(42, 157, 143, 0.35), 10, 0.05, 0, 3);
 }
 
 .btn-add-target:hover {
-    -fx-background-color: #35B8A8;
-    -fx-effect: dropshadow(gaussian, rgba(42, 157, 143, 0.3), 10, 0, 0, 2);
+    -fx-background-color: linear-gradient(to bottom, #35B8A8, #2A9D8F);
+    -fx-effect: dropshadow(gaussian, rgba(42, 157, 143, 0.5), 14, 0.1, 0, 4);
+}
+
+/* --- Control Bar Controls (Slider & Combo) --- */
+.threshold-slider .track {
+    -fx-background-color: rgba(226, 232, 240, 0.8);
+    -fx-background-radius: 4;
+    -fx-pref-height: 6;
+}
+
+.threshold-slider .thumb {
+    -fx-background-color: #2A9D8F;
+    -fx-background-radius: 10;
+    -fx-pref-width: 16;
+    -fx-pref-height: 16;
+    -fx-effect: dropshadow(gaussian, rgba(42, 157, 143, 0.4), 6, 0, 0, 2);
+}
+
+.control-combo {
+    -fx-background-color: rgba(248, 250, 252, 0.85);
+    -fx-background-radius: 10;
+    -fx-border-color: rgba(226, 232, 240, 0.8);
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-font-size: 12;
 }
 
 
