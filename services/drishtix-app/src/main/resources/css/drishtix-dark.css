@@ -224,25 +224,28 @@
     -fx-font-weight: bold;
 }
 
-/* --- Stat Mini-Cards (light gray tiles) --- */
+/* --- Stat Mini-Cards (Frosted Glass Acrylic Tiles) --- */
 .stat-card,
 .stat-card-criminal,
 .stat-card-missing {
-    -fx-background-color: #F8FAFC;
-    -fx-background-radius: 12;
-    -fx-padding: 14;
+    -fx-background-color: rgba(248, 250, 252, 0.65);
+    -fx-background-radius: 14;
+    -fx-padding: 14 12;
     -fx-alignment: CENTER;
-    -fx-border-color: #E2E8F0;
+    -fx-border-color: rgba(255, 255, 255, 0.80) rgba(226, 232, 240, 0.50) rgba(226, 232, 240, 0.50) rgba(255, 255, 255, 0.80);
     -fx-border-width: 1;
-    -fx-border-radius: 12;
+    -fx-border-radius: 14;
+    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.03), 8, 0, 0, 2);
 }
 
 .stat-card-criminal {
-    -fx-border-color: rgba(230, 57, 70, 0.25);
+    -fx-background-color: rgba(254, 242, 242, 0.65);
+    -fx-border-color: rgba(239, 68, 68, 0.35);
 }
 
 .stat-card-missing {
-    -fx-border-color: rgba(42, 157, 143, 0.25);
+    -fx-background-color: rgba(240, 253, 250, 0.65);
+    -fx-border-color: rgba(42, 157, 143, 0.35);
 }
 
 .stat-title {
