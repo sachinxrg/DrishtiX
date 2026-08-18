@@ -33,11 +33,11 @@
 
 
 /* ============================================================
-   2. BENTO CARD — White card with subtle shadow
+   2. BENTO CARD — Glassmorphic Translucent Surface
    ============================================================ */
 .bento-card {
-    -fx-background-color: #FFFFFF;
-    -fx-border-color: #E2E8F0;
+    -fx-background-color: rgba(255, 255, 255, 0.78);
+    -fx-border-color: rgba(255, 255, 255, 0.70) rgba(226, 232, 240, 0.50) rgba(226, 232, 240, 0.50) rgba(255, 255, 255, 0.70);
     -fx-border-width: 1;
     -fx-background-radius: 16;
     -fx-border-radius: 16;
