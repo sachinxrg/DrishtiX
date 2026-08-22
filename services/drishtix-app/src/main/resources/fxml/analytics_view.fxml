@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.chart.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.drishtix.controller.AnalyticsController"
+            styleClass="view-pane, glass-bento-container">
+    <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+
+    <!-- ===== TOP: Header & Filter Toolbar ===== -->
+    <top>
+        <VBox spacing="14">
+            <!-- Row 1: Title Block -->
+            <HBox spacing="16" alignment="CENTER_LEFT">
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <Label text="📊" style="-fx-font-size: 26;"/>
+                    <VBox spacing="2">
+                        <Label text="DETECTION ANALYTICS" styleClass="view-title"/>
+                        <Label fx:id="lblDateRangeSubtitle" text="Intelligence and trends overview" styleClass="registry-subtitle"/>
+                    </VBox>
+                </HBox>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <!-- Quick Presets -->
+                <HBox spacing="8" alignment="CENTER_RIGHT">
+                    <Button text="7 Days" onAction="#handlePreset7Days" styleClass="neu-btn-secondary"/>
+                    <Button text="30 Days" onAction="#handlePreset30Days" styleClass="neu-btn-secondary"/>
+                    <Button text="All Time" onAction="#handlePresetAllTime" styleClass="neu-btn-secondary"/>
+                </HBox>
+            </HBox>
+
+            <!-- Row 2: Date Filter Toolbar -->
+            <HBox spacing="12" alignment="CENTER_LEFT" styleClass="registry-toolbar">
+                <padding><Insets top="4" bottom="4" left="0" right="0"/></padding>
+
+                <HBox spacing="8" alignment="CENTER_LEFT" styleClass="neu-search-group">
+                    <Label text="From:" style="-fx-text-fill: #64748B; -fx-padding: 0 0 0 8;"/>
+                    <DatePicker fx:id="dateFrom" prefWidth="140" styleClass="neu-search-field"/>
+                    <Label text="To:" style="-fx-text-fill: #64748B;"/>
+                    <DatePicker fx:id="dateTo" prefWidth="140" styleClass="neu-search-field"/>
+                </HBox>
+
+                <Button text="🔄 Refresh Analytics" onAction="#handleRefresh" styleClass="neu-btn-primary"/>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <Label fx:id="lblStatus" text="Ready" style="-fx-text-fill: #94A3B8; -fx-font-size: 11;"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <!-- ===== CENTER: Scrollable Bento Analytics Grid ===== -->
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="dashboard-scrollpane" vbarPolicy="AS_NEEDED" hbarPolicy="NEVER">
+            <padding><Insets top="14" right="4" bottom="10" left="0"/></padding>
+
+            <VBox spacing="16">
+                <!-- Section 1: 4 Glassmorphic KPI Stat Cards -->
+                <HBox spacing="14" alignment="CENTER">
+                    <!-- Stat Card 1: Total Detections -->
+                    <VBox HBox.hgrow="ALWAYS" alignment="CENTER_LEFT" spacing="6" styleClass="stat-card">
+                        <padding><Insets top="14" right="16" bottom="14" left="16"/></padding>
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <Label text="🎯" style="-fx-font-size: 16;"/>
+                            <Label text="TOTAL DETECTIONS" styleClass="stat-card-title"/>
+                        </HBox>
+                        <Label fx:id="lblTotalDetections" text="0" styleClass="stat-card-value"/>
+                        <Label text="Events in selected period" style="-fx-font-size: 10; -fx-text-fill: #94A3B8;"/>
+                    </VBox>
+
+                    <!-- Stat Card 2: Unique Targets -->
+                    <VBox HBox.hgrow="ALWAYS" alignment="CENTER_LEFT" spacing="6" styleClass="stat-card">
+                        <padding><Insets top="14" right="16" bottom="14" left="16"/></padding>
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <Label text="👥" style="-fx-font-size: 16;"/>
+                            <Label text="UNIQUE TARGETS" styleClass="stat-card-title"/>
+                        </HBox>
+                        <Label fx:id="lblUniqueTargets" text="0" styleClass="stat-card-value"/>
+                        <Label text="Distinct persons spotted" style="-fx-font-size: 10; -fx-text-fill: #94A3B8;"/>
+                    </VBox>
+
+                    <!-- Stat Card 3: Average Confidence -->
+                    <VBox HBox.hgrow="ALWAYS" alignment="CENTER_LEFT" spacing="6" styleClass="stat-card">
+                        <padding><Insets top="14" right="16" bottom="14" left="16"/></padding>
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <Label text="📈" style="-fx-font-size: 16;"/>
+                            <Label text="AVG CONFIDENCE" styleClass="stat-card-title"/>
+                        </HBox>
+                        <Label fx:id="lblAvgConfidence" text="0.0%" styleClass="stat-card-value" style="-fx-text-fill: #10B981;"/>
+                        <Label text="Mean recognition score" style="-fx-font-size: 10; -fx-text-fill: #94A3B8;"/>
+                    </VBox>
+
+                    <!-- Stat Card 4: Peak Activity Hour -->
+                    <VBox HBox.hgrow="ALWAYS" alignment="CENTER_LEFT" spacing="6" styleClass="stat-card">
+                        <padding><Insets top="14" right="16" bottom="14" left="16"/></padding>
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <Label text="⏰" style="-fx-font-size: 16;"/>
+                            <Label text="PEAK HOUR" styleClass="stat-card-title"/>
+                        </HBox>
+                        <Label fx:id="lblPeakHour" text="--:--" styleClass="stat-card-value" style="-fx-text-fill: #F59E0B;"/>
+                        <Label text="Highest frequency window" style="-fx-font-size: 10; -fx-text-fill: #94A3B8;"/>
+                    </VBox>
+                </HBox>
+
+                <!-- Section 2: Charts Row (Hourly Heatmap + Daily Trend) -->
+                <HBox spacing="14" prefHeight="300">
+                    <!-- Left: Hourly Distribution BarChart -->
+                    <VBox HBox.hgrow="ALWAYS" spacing="8" styleClass="glass-card" prefWidth="550">
+                        <padding><Insets top="12" right="14" bottom="12" left="14"/></padding>
+                        <Label text="Hourly Detection Distribution (24-Hour Heatmap)" styleClass="card-section-title"/>
+                        <BarChart fx:id="hourlyBarChart" legendVisible="false" animated="false" VBox.vgrow="ALWAYS">
+                            <xAxis><CategoryAxis fx:id="hourAxis" label="Hour of Day" tickLabelFill="#94A3B8"/></xAxis>
+                            <yAxis><NumberAxis fx:id="hourCountAxis" label="Detections" tickLabelFill="#94A3B8" minorTickVisible="false"/></yAxis>
+                        </BarChart>
+                    </VBox>
+
+                    <!-- Right: Daily Trend LineChart -->
+                    <VBox HBox.hgrow="ALWAYS" spacing="8" styleClass="glass-card" prefWidth="450">
+                        <padding><Insets top="12" right="14" bottom="12" left="14"/></padding>
+                        <Label text="Daily Detection Trend" styleClass="card-section-title"/>
+                        <LineChart fx:id="dailyLineChart" legendVisible="false" animated="false" VBox.vgrow="ALWAYS">
+                            <xAxis><CategoryAxis fx:id="dateAxis" label="Date" tickLabelFill="#94A3B8"/></xAxis>
+                            <yAxis><NumberAxis fx:id="dailyCountAxis" label="Count" tickLabelFill="#94A3B8" minorTickVisible="false"/></yAxis>
+                        </LineChart>
+                    </VBox>
+                </HBox>
+
+                <!-- Section 3: Bottom Row (Category Breakdown + Top Targets Table) -->
+                <HBox spacing="14" prefHeight="320">
+                    <!-- Left: Category Breakdown PieChart -->
+                    <VBox spacing="8" styleClass="glass-card" prefWidth="380">
+                        <padding><Insets top="12" right="14" bottom="12" left="14"/></padding>
+                        <Label text="Category Mix" styleClass="card-section-title"/>
+                        <PieChart fx:id="categoryPieChart" legendVisible="true" animated="false" VBox.vgrow="ALWAYS"/>
+                    </VBox>
+
+                    <!-- Right: Top-N Detected Targets Table -->
+                    <VBox HBox.hgrow="ALWAYS" spacing="8" styleClass="glass-card">
+                        <padding><Insets top="12" right="14" bottom="12" left="14"/></padding>
+                        <Label text="Top Detected Persons of Interest" styleClass="card-section-title"/>
+                        <TableView fx:id="topTargetsTable" VBox.vgrow="ALWAYS" styleClass="neu-table">
+                            <columns>
+                                <TableColumn fx:id="colRank" text="#" prefWidth="45" style="-fx-alignment: CENTER;"/>
+                                <TableColumn fx:id="colTargetName" text="Target Name" prefWidth="180"/>
+                                <TableColumn fx:id="colCategory" text="Category" prefWidth="140"/>
+                                <TableColumn fx:id="colTotalDetections" text="Detections" prefWidth="95" style="-fx-alignment: CENTER;"/>
+                                <TableColumn fx:id="colAvgConfidence" text="Avg Confidence" prefWidth="110" style="-fx-alignment: CENTER;"/>
+                                <TableColumn fx:id="colLastSeen" text="Last Seen" prefWidth="140" style="-fx-alignment: CENTER;"/>
+                            </columns>
+                            <placeholder>
+                                <Label text="No targets detected in selected time range" style="-fx-text-fill: #94A3B8;"/>
+                            </placeholder>
+                        </TableView>
+                    </VBox>
+                </HBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>
