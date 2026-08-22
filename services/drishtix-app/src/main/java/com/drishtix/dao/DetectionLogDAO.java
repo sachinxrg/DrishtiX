@@ -1,6 +1,7 @@
 package com.drishtix.dao;
 
 import com.drishtix.exception.DatabaseException;
+import com.drishtix.model.DailyDetectionCount;
 import com.drishtix.model.DetectionLog;
 import com.drishtix.model.HourlyDetectionCount;
 import com.drishtix.model.TargetCategory;
@@ -283,6 +284,68 @@ public class DetectionLogDAO {
 
         } catch (Exception e) {
             throw new DatabaseException("Failed to aggregate hourly detection distribution", e);
+        }
+    }
+
+    /**
+     * Aggregates daily detection counts for the trailing N days up to today.
+     * Returns an ordered list of DailyDetectionCount objects with every day in the range represented.
+     *
+     * @param lastNDays number of trailing days to include (e.g. 7 or 30)
+     * @return chronologically sorted list of DailyDetectionCount
+     */
+    public List<DailyDetectionCount> aggregateDailyTrend(int lastNDays) {
+        try {
+            if (lastNDays <= 0) lastNDays = 7;
+
+            LocalDate today = LocalDate.now();
+            LocalDate startDate = today.minusDays(lastNDays - 1);
+
+            Date fromDate = Date.from(startDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            Date toDate = Date.from(today.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+            // Initialize all dates with 0 counts
+            Map<LocalDate, Long> dayCounts = new LinkedHashMap<>();
+            for (int i = 0; i < lastNDays; i++) {
+                dayCounts.put(startDate.plusDays(i), 0L);
+            }
+
+            List<Document> pipeline = List.of(
+                    new Document("$match", and(
+                            gte("detection_timestamp", fromDate),
+                            lt("detection_timestamp", toDate)
+                    )),
+                    new Document("$group", new Document("_id",
+                            new Document("$dateToString", new Document("format", "%Y-%m-%d")
+                                    .append("date", "$detection_timestamp")
+                                    .append("timezone", ZoneId.systemDefault().getId())))
+                            .append("count", new Document("$sum", 1))),
+                    new Document("$sort", new Document("_id", 1))
+            );
+
+            try (MongoCursor<Document> cursor = collection().aggregate(pipeline).iterator()) {
+                while (cursor.hasNext()) {
+                    Document doc = cursor.next();
+                    String dateStr = doc.getString("_id");
+                    if (dateStr != null) {
+                        try {
+                            LocalDate parsed = LocalDate.parse(dateStr);
+                            long count = ((Number) doc.get("count")).longValue();
+                            dayCounts.put(parsed, count);
+                        } catch (Exception ignored) {
+                        }
+                    }
+                }
+            }
+
+            List<DailyDetectionCount> result = new ArrayList<>(dayCounts.size());
+            for (Map.Entry<LocalDate, Long> entry : dayCounts.entrySet()) {
+                result.add(new DailyDetectionCount(entry.getKey(), entry.getValue()));
+            }
+            return result;
+
+        } catch (Exception e) {
+            throw new DatabaseException("Failed to aggregate daily detection trend", e);
         }
     }
 
