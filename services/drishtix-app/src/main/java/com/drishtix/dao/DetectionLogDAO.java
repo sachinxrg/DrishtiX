@@ -497,6 +497,61 @@ public class DetectionLogDAO {
         }
     }
 
+    /**
+     * Aggregates detection counts bucketed into confidence score ranges.
+     *
+     * @param from start date (inclusive)
+     * @param to   end date (inclusive)
+     * @return Map of confidence bucket label (e.g. "90-100%") to detection count
+     */
+    public Map<String, Long> aggregateConfidenceDistribution(LocalDate from, LocalDate to) {
+        try {
+            Date fromDate = Date.from(from.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            Date toDate = Date.from(to.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+            Map<String, Long> buckets = new LinkedHashMap<>();
+            buckets.put("< 50%", 0L);
+            buckets.put("50% - 70%", 0L);
+            buckets.put("70% - 80%", 0L);
+            buckets.put("80% - 90%", 0L);
+            buckets.put("90% - 100%", 0L);
+
+            List<Document> pipeline = List.of(
+                    new Document("$match", and(
+                            gte("detection_timestamp", fromDate),
+                            lt("detection_timestamp", toDate)
+                    )),
+                    new Document("$project", new Document("score", "$match_confidence_score"))
+            );
+
+            try (MongoCursor<Document> cursor = collection().aggregate(pipeline).iterator()) {
+                while (cursor.hasNext()) {
+                    Document doc = cursor.next();
+                    Double score = doc.getDouble("score");
+                    if (score != null) {
+                        double pct = score <= 1.0 ? score * 100.0 : score;
+                        if (pct >= 90.0) {
+                            buckets.put("90% - 100%", buckets.get("90% - 100%") + 1);
+                        } else if (pct >= 80.0) {
+                            buckets.put("80% - 90%", buckets.get("80% - 90%") + 1);
+                        } else if (pct >= 70.0) {
+                            buckets.put("70% - 80%", buckets.get("70% - 80%") + 1);
+                        } else if (pct >= 50.0) {
+                            buckets.put("50% - 70%", buckets.get("50% - 70%") + 1);
+                        } else {
+                            buckets.put("< 50%", buckets.get("< 50%") + 1);
+                        }
+                    }
+                }
+            }
+
+            return buckets;
+
+        } catch (Exception e) {
+            throw new DatabaseException("Failed to aggregate confidence distribution", e);
+        }
+    }
+
     // ==================== Private Helpers ====================
 
     /**
