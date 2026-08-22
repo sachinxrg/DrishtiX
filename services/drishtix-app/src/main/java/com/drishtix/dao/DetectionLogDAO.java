@@ -5,6 +5,7 @@ import com.drishtix.model.DailyDetectionCount;
 import com.drishtix.model.DetectionLog;
 import com.drishtix.model.HourlyDetectionCount;
 import com.drishtix.model.TargetCategory;
+import com.drishtix.model.TargetDetectionSummary;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Sorts;
@@ -346,6 +347,153 @@ public class DetectionLogDAO {
 
         } catch (Exception e) {
             throw new DatabaseException("Failed to aggregate daily detection trend", e);
+        }
+    }
+
+    /**
+     * Aggregates the most frequently detected targets within a date range.
+     * Enriches the grouped results with target names and categories.
+     *
+     * @param limit maximum number of top targets to return (e.g. 5 or 10)
+     * @param from  start date (inclusive)
+     * @param to    end date (inclusive)
+     * @return sorted list of TargetDetectionSummary in descending order of detection count
+     */
+    public List<TargetDetectionSummary> aggregateTopTargets(int limit, LocalDate from, LocalDate to) {
+        try {
+            if (limit <= 0) limit = 10;
+
+            Date fromDate = Date.from(from.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            Date toDate = Date.from(to.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+            List<Document> pipeline = List.of(
+                    new Document("$match", and(
+                            gte("detection_timestamp", fromDate),
+                            lt("detection_timestamp", toDate)
+                    )),
+                    new Document("$group", new Document("_id", "$target_id")
+                            .append("totalCount", new Document("$sum", 1))
+                            .append("lastSeen", new Document("$max", "$detection_timestamp"))
+                            .append("avgConfidence", new Document("$avg", "$match_confidence_score"))),
+                    new Document("$sort", new Document("totalCount", -1)),
+                    new Document("$limit", limit)
+            );
+
+            List<TargetDetectionSummary> rawList = new ArrayList<>();
+            Set<Integer> targetIds = new HashSet<>();
+
+            try (MongoCursor<Document> cursor = collection().aggregate(pipeline).iterator()) {
+                while (cursor.hasNext()) {
+                    Document doc = cursor.next();
+                    int targetId = doc.getInteger("_id");
+                    long count = ((Number) doc.get("totalCount")).longValue();
+                    Date lastSeenDate = doc.getDate("lastSeen");
+                    LocalDateTime lastSeen = dateToLocalDateTime(lastSeenDate);
+                    double avgConf = doc.getDouble("avgConfidence") != null ? doc.getDouble("avgConfidence") : 0.0;
+
+                    targetIds.add(targetId);
+                    rawList.add(new TargetDetectionSummary(targetId, null, null, count, lastSeen, avgConf));
+                }
+            }
+
+            if (rawList.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            // Batch load targets from targets collection
+            Map<Integer, Document> targetMap = new HashMap<>();
+            MongoCollection<Document> targets = DatabaseManager.getInstance().getCollection("targets");
+            try (MongoCursor<Document> cursor = targets
+                    .find(in("_id", targetIds))
+                    .projection(new Document("full_name", 1).append("category", 1))
+                    .iterator()) {
+                while (cursor.hasNext()) {
+                    Document doc = cursor.next();
+                    targetMap.put(doc.getInteger("_id"), doc);
+                }
+            }
+
+            List<TargetDetectionSummary> enrichedList = new ArrayList<>(rawList.size());
+            for (TargetDetectionSummary raw : rawList) {
+                Document targetDoc = targetMap.get(raw.getTargetId());
+                String name = targetDoc != null ? targetDoc.getString("full_name") : "Target #" + raw.getTargetId();
+                String catStr = targetDoc != null ? targetDoc.getString("category") : null;
+                TargetCategory category = catStr != null ? TargetCategory.fromDbValue(catStr) : TargetCategory.CRIMINAL;
+
+                enrichedList.add(new TargetDetectionSummary(
+                        raw.getTargetId(),
+                        name,
+                        category,
+                        raw.getTotalDetections(),
+                        raw.getLastSeen(),
+                        raw.getAvgConfidence()
+                ));
+            }
+
+            return enrichedList;
+
+        } catch (Exception e) {
+            throw new DatabaseException("Failed to aggregate top targets", e);
+        }
+    }
+
+    /**
+     * Aggregates detection counts by TargetCategory for the given date range.
+     *
+     * @param from start date (inclusive)
+     * @param to   end date (inclusive)
+     * @return Map of TargetCategory to total detection count
+     */
+    public Map<TargetCategory, Long> aggregateCategoryBreakdown(LocalDate from, LocalDate to) {
+        try {
+            Date fromDate = Date.from(from.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            Date toDate = Date.from(to.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+            Map<TargetCategory, Long> breakdown = new EnumMap<>(TargetCategory.class);
+            breakdown.put(TargetCategory.CRIMINAL, 0L);
+            breakdown.put(TargetCategory.MISSING_PERSON, 0L);
+
+            // Group detections by target_id first
+            List<Document> pipeline = List.of(
+                    new Document("$match", and(
+                            gte("detection_timestamp", fromDate),
+                            lt("detection_timestamp", toDate)
+                    )),
+                    new Document("$group", new Document("_id", "$target_id")
+                            .append("count", new Document("$sum", 1)))
+            );
+
+            Map<Integer, Long> targetCounts = new HashMap<>();
+            try (MongoCursor<Document> cursor = collection().aggregate(pipeline).iterator()) {
+                while (cursor.hasNext()) {
+                    Document doc = cursor.next();
+                    int targetId = doc.getInteger("_id");
+                    long count = ((Number) doc.get("count")).longValue();
+                    targetCounts.put(targetId, count);
+                }
+            }
+
+            if (!targetCounts.isEmpty()) {
+                MongoCollection<Document> targets = DatabaseManager.getInstance().getCollection("targets");
+                try (MongoCursor<Document> cursor = targets
+                        .find(in("_id", targetCounts.keySet()))
+                        .projection(new Document("category", 1))
+                        .iterator()) {
+                    while (cursor.hasNext()) {
+                        Document doc = cursor.next();
+                        int targetId = doc.getInteger("_id");
+                        String catStr = doc.getString("category");
+                        TargetCategory category = catStr != null ? TargetCategory.fromDbValue(catStr) : TargetCategory.CRIMINAL;
+                        long count = targetCounts.getOrDefault(targetId, 0L);
+                        breakdown.put(category, breakdown.getOrDefault(category, 0L) + count);
+                    }
+                }
+            }
+
+            return breakdown;
+
+        } catch (Exception e) {
+            throw new DatabaseException("Failed to aggregate category breakdown", e);
         }
     }
 
