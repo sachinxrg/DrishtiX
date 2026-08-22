@@ -1273,3 +1273,117 @@
     -fx-effect: dropshadow(gaussian, #FFFFFF, 6, 0, -2, -2),
                 dropshadow(gaussian, rgba(0, 0, 0, 0.06), 6, 0, 2, 2);
 }
+
+/* ============================================================
+   29. ANALYTICS PAGE — CHARTS & BENTO METRICS
+   ============================================================ */
+
+/* Analytics Stat Card Titles & Values */
+.stat-card-title {
+    -fx-text-fill: #94A3B8;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-letter-spacing: 0.5px;
+}
+
+.stat-card-value {
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #F8FAFC;
+}
+
+/* Glass Card & Headers */
+.glass-card {
+    -fx-background-color: rgba(30, 41, 59, 0.7);
+    -fx-background-radius: 16;
+    -fx-border-color: rgba(255, 255, 255, 0.08);
+    -fx-border-width: 1;
+    -fx-border-radius: 16;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 12, 0, 0, 4);
+}
+
+.card-section-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #E2E8F0;
+}
+
+/* Chart Base Styling */
+.chart {
+    -fx-padding: 6px;
+    -fx-background-color: transparent;
+}
+
+.chart-plot-background {
+    -fx-background-color: transparent;
+}
+
+.chart-vertical-grid-lines,
+.chart-horizontal-grid-lines {
+    -fx-stroke: rgba(255, 255, 255, 0.06);
+    -fx-stroke-dash-array: 2 4;
+}
+
+.axis {
+    -fx-tick-label-fill: #94A3B8;
+    -fx-tick-label-font-size: 10px;
+}
+
+.axis-label {
+    -fx-text-fill: #64748B;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.axis-tick-mark,
+.axis-minor-tick-mark {
+    -fx-stroke: rgba(255, 255, 255, 0.1);
+}
+
+/* Hourly Bar Chart styling */
+.chart-bar {
+    -fx-bar-fill: #38BDF8;
+    -fx-background-radius: 4 4 0 0;
+}
+
+.chart-bar:hover {
+    -fx-bar-fill: #0EA5E9;
+}
+
+/* Daily Line Chart styling */
+.chart-series-line {
+    -fx-stroke: #10B981;
+    -fx-stroke-width: 2.5px;
+}
+
+.chart-line-symbol {
+    -fx-background-color: #10B981, #0F172A;
+    -fx-background-insets: 0, 2;
+    -fx-background-radius: 6px;
+    -fx-padding: 4px;
+}
+
+/* Pie Chart Slices */
+.data0.chart-pie {
+    -fx-pie-color: #EF4444; /* Criminal Red */
+}
+
+.data1.chart-pie {
+    -fx-pie-color: #00D4FF; /* Missing Cyan */
+}
+
+.chart-pie-label {
+    -fx-fill: #E2E8F0;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.chart-legend {
+    -fx-background-color: transparent;
+    -fx-padding: 8px;
+}
+
+.chart-legend-item {
+    -fx-text-fill: #94A3B8;
+    -fx-font-size: 11px;
+}
