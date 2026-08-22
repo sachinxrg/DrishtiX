@@ -1,7 +1,6 @@
 package com.drishtix.controller;
 
-import com.drishtix.model.TargetCategory;
-import com.drishtix.model.TargetDetectionSummary;
+import com.drishtix.model.*;
 import com.drishtix.service.DetectionAnalyticsService;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -17,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Controller for the Analytics Dashboard view.
@@ -73,6 +73,7 @@ public class AnalyticsController {
             topTargetsTable.setItems(topTargetsList);
         }
 
+        handleRefresh();
         log.info("AnalyticsController initialized successfully");
     }
 
@@ -199,5 +200,79 @@ public class AnalyticsController {
         }
 
         log.debug("handleRefresh triggered for range: {} to {}", from, to);
+
+        CompletableFuture.supplyAsync(() -> {
+            try {
+                return analyticsService.generateSnapshot(from, to);
+            } catch (Exception e) {
+                log.error("Failed to generate analytics snapshot", e);
+                return null;
+            }
+        }).thenAccept(snapshot -> {
+            Platform.runLater(() -> {
+                if (snapshot == null) {
+                    if (lblStatus != null) lblStatus.setText("⚠️ Failed to load analytics");
+                    return;
+                }
+
+                // 1. Populate KPI Stat Cards
+                if (lblTotalDetections != null) {
+                    lblTotalDetections.setText(String.valueOf(snapshot.getTotalDetections()));
+                }
+                if (lblUniqueTargets != null) {
+                    lblUniqueTargets.setText(String.valueOf(snapshot.getUniqueTargetsDetected()));
+                }
+                if (lblAvgConfidence != null) {
+                    lblAvgConfidence.setText(snapshot.getAvgConfidenceDisplay());
+                }
+                if (lblPeakHour != null) {
+                    lblPeakHour.setText(snapshot.getPeakHourDisplay());
+                }
+
+                // 2. Populate Hourly BarChart
+                if (hourlyBarChart != null) {
+                    hourlyBarChart.getData().clear();
+                    XYChart.Series<String, Number> hourlySeries = new XYChart.Series<>();
+                    hourlySeries.setName("Activity");
+                    for (HourlyDetectionCount h : snapshot.getHourlyDistribution()) {
+                        hourlySeries.getData().add(new XYChart.Data<>(h.getHourLabel(), h.getCount()));
+                    }
+                    hourlyBarChart.getData().add(hourlySeries);
+                }
+
+                // 3. Populate Daily Trend LineChart
+                if (dailyLineChart != null) {
+                    dailyLineChart.getData().clear();
+                    XYChart.Series<String, Number> dailySeries = new XYChart.Series<>();
+                    dailySeries.setName("Daily Detections");
+                    for (DailyDetectionCount d : snapshot.getDailyTrend()) {
+                        dailySeries.getData().add(new XYChart.Data<>(d.getDateLabel(), d.getCount()));
+                    }
+                    dailyLineChart.getData().add(dailySeries);
+                }
+
+                // 4. Populate Category PieChart
+                if (categoryPieChart != null) {
+                    categoryPieChart.getData().clear();
+                    long crimCount = snapshot.getCategoryBreakdown().getOrDefault(TargetCategory.CRIMINAL, 0L);
+                    long missCount = snapshot.getCategoryBreakdown().getOrDefault(TargetCategory.MISSING_PERSON, 0L);
+
+                    if (crimCount > 0 || missCount > 0) {
+                        PieChart.Data sliceCrim = new PieChart.Data(String.format("🔴 Criminal (%d)", crimCount), crimCount);
+                        PieChart.Data sliceMiss = new PieChart.Data(String.format("🔵 Missing (%d)", missCount), missCount);
+                        categoryPieChart.getData().addAll(sliceCrim, sliceMiss);
+                    }
+                }
+
+                // 5. Populate Top-N Targets Table
+                topTargetsList.setAll(snapshot.getTopTargets());
+
+                // 6. Update Status
+                if (lblStatus != null) {
+                    lblStatus.setText(String.format("Updated: %d events across %d targets",
+                            snapshot.getTotalDetections(), snapshot.getUniqueTargetsDetected()));
+                }
+            });
+        });
     }
 }
