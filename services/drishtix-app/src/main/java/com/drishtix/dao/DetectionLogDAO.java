@@ -2,6 +2,7 @@ package com.drishtix.dao;
 
 import com.drishtix.exception.DatabaseException;
 import com.drishtix.model.DetectionLog;
+import com.drishtix.model.HourlyDetectionCount;
 import com.drishtix.model.TargetCategory;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
@@ -229,6 +230,59 @@ public class DetectionLogDAO {
             return (int) deleted;
         } catch (Exception e) {
             throw new DatabaseException("Failed to delete detection logs for target: " + targetId, e);
+        }
+    }
+
+    /**
+     * Aggregates detection counts by hour of day (0–23) for the given date range.
+     * Returns a complete 24-element list where every hour is represented.
+     *
+     * @param from start date (inclusive)
+     * @param to   end date (inclusive)
+     * @return 24-element list of HourlyDetectionCount sorted from hour 0 to 23
+     */
+    public List<HourlyDetectionCount> aggregateHourlyDistribution(LocalDate from, LocalDate to) {
+        try {
+            Date fromDate = Date.from(from.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            Date toDate = Date.from(to.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+            // Initialize all 24 hours with 0 counts
+            long[] hourCounts = new long[24];
+
+            List<Document> pipeline = List.of(
+                    new Document("$match", and(
+                            gte("detection_timestamp", fromDate),
+                            lt("detection_timestamp", toDate)
+                    )),
+                    new Document("$group", new Document("_id",
+                            new Document("$hour", new Document("date", "$detection_timestamp")
+                                    .append("timezone", ZoneId.systemDefault().getId())))
+                            .append("count", new Document("$sum", 1))),
+                    new Document("$sort", new Document("_id", 1))
+            );
+
+            try (MongoCursor<Document> cursor = collection().aggregate(pipeline).iterator()) {
+                while (cursor.hasNext()) {
+                    Document doc = cursor.next();
+                    Object idVal = doc.get("_id");
+                    if (idVal instanceof Number) {
+                        int hour = ((Number) idVal).intValue();
+                        long count = ((Number) doc.get("count")).longValue();
+                        if (hour >= 0 && hour < 24) {
+                            hourCounts[hour] = count;
+                        }
+                    }
+                }
+            }
+
+            List<HourlyDetectionCount> result = new ArrayList<>(24);
+            for (int h = 0; h < 24; h++) {
+                result.add(new HourlyDetectionCount(h, hourCounts[h]));
+            }
+            return result;
+
+        } catch (Exception e) {
+            throw new DatabaseException("Failed to aggregate hourly detection distribution", e);
         }
     }
 
