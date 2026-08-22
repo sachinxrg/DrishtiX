@@ -65,6 +65,14 @@
                 </HBox>
             </VBox>
 
+            <VBox fx:id="navAnalytics" styleClass="nav-item" alignment="CENTER_LEFT">
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <padding><Insets left="6"/></padding>
+                    <Label text="📈" styleClass="nav-icon"/>
+                    <Label text="Analytics" styleClass="nav-label"/>
+                </HBox>
+            </VBox>
+
             <Region VBox.vgrow="ALWAYS"/>
 
             <VBox fx:id="navSettings" styleClass="nav-item" alignment="CENTER_LEFT">

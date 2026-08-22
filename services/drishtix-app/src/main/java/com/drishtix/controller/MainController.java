@@ -28,6 +28,7 @@ public class MainController {
     @FXML private VBox navRegistry;
     @FXML private VBox navScanner;
     @FXML private VBox navLogs;
+    @FXML private VBox navAnalytics;
     @FXML private VBox navSettings;
     @FXML private Label statusCamera;
     @FXML private Label statusDb;
@@ -46,6 +47,7 @@ public class MainController {
         navRegistry.setOnMouseClicked(e -> switchView("registry"));
         navScanner.setOnMouseClicked(e -> switchView("scanner"));
         navLogs.setOnMouseClicked(e -> switchView("logs"));
+        navAnalytics.setOnMouseClicked(e -> switchView("analytics"));
         navSettings.setOnMouseClicked(e -> switchView("settings"));
 
         // Load dashboard as the default hero view
@@ -109,6 +111,7 @@ public class MainController {
             case "registry" -> "/fxml/registry_view.fxml";
             case "scanner" -> "/fxml/image_scan_view.fxml";
             case "logs" -> "/fxml/detection_log_view.fxml";
+            case "analytics" -> "/fxml/analytics_view.fxml";
             case "settings" -> "/fxml/settings_view.fxml";
             default -> throw new IllegalArgumentException("Unknown view: " + viewName);
         };
@@ -120,6 +123,7 @@ public class MainController {
         navRegistry.getStyleClass().remove("nav-active");
         navScanner.getStyleClass().remove("nav-active");
         navLogs.getStyleClass().remove("nav-active");
+        navAnalytics.getStyleClass().remove("nav-active");
         navSettings.getStyleClass().remove("nav-active");
 
         // Set active
@@ -128,6 +132,7 @@ public class MainController {
             case "registry" -> navRegistry;
             case "scanner" -> navScanner;
             case "logs" -> navLogs;
+            case "analytics" -> navAnalytics;
             case "settings" -> navSettings;
             default -> navDashboard;
         };
