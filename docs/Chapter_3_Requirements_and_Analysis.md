@@ -4,40 +4,58 @@
 
 ## 3.1 Problem Definition
 
-### 3.1.1 The Passive Surveillance Crisis
+### 3.1.1 The Core Flaw: Recording vs. Reacting
 
-The global deployment of over one billion CCTV cameras represents one of the largest capital investments in public safety infrastructure ever undertaken. Yet the operational return on this investment remains critically undermined by a single architectural flaw: **traditional CCTV infrastructure produces passive video, not actionable intelligence**.
+The world has over one billion CCTV cameras, yet the vast majority of them do exactly the same thing — they **record video and store it on a hard drive**. That's it. They don't think, they don't recognize anyone, and they certainly don't raise an alarm.
 
-In the prevailing "record and review" paradigm, the interpretive burden — determining whether a wanted criminal, a missing child, or an absconding suspect has appeared in the camera's field of view — is delegated entirely to human operators. A typical command-and-control centre requires a single surveillance operator to simultaneously monitor between 16 and 64 multiplexed camera feeds, mentally cross-referencing each face against printed First Information Report (FIR) photographs pinned to a corkboard or stored in unindexed binder volumes. The cognitive demands of this task are immense, and the ergonomic reality is sobering.
+The actual work of figuring out *who* appeared on camera is left entirely to a human operator sitting in a control room, watching 16 to 64 screens simultaneously, trying to match every passing face against a stack of printed photographs. This is an impossible task. Research in human factors has proven that a person's ability to stay alert during monotonous visual monitoring **drops below 50% accuracy within just 20 minutes**. This isn't a training problem — it's a fundamental limitation of human attention.
 
-### 3.1.2 The Vigilance Decrement
+The result? A wanted criminal can walk through a surveilled corridor, board a bus, and disappear long before anyone reviews the footage. The "alert," if it comes at all, arrives hours or even days later during a post-incident forensic review. The footage ends up as courtroom evidence — not as a tool for catching the suspect in real time.
 
-Decades of human factors research have established that sustained vigilance in monotonous visual monitoring tasks degrades below **50% accuracy within the first 20 minutes** of a shift. This phenomenon, formally documented as the *vigilance decrement*, is not a failure of training or discipline — it is a well-characterized limitation of human attentional capacity. When an operator is scanning 32 simultaneous feeds for a specific face, the probability of detecting that face in any given 5-second window approaches statistical negligibility.
+**In simple terms:**
+- **Traditional CCTV** = A security camera that just records. Somebody has to watch the tape later.
+- **DrishtiX** = A security camera that **watches for you**, recognizes faces in real time, and instantly tells you when someone on a watchlist appears.
 
-The operational latency of the traditional workflow is measured not in milliseconds but in **hours to days**:
+### 3.1.2 Traditional vs. DrishtiX: A Side-by-Side Comparison
 
+The flowchart below contrasts the slow, human-dependent traditional CCTV workflow with the fully automated, sub-second DrishtiX detection loop:
+
+```mermaid
+flowchart LR
+    subgraph Traditional["🔴 Traditional CCTV Workflow"]
+        direction LR
+        A1["📷 Camera\nCaptures Frame"] --> A2["💾 NVR/DVR\nRecords to Disk"]
+        A2 --> A3["👁️ Human Operator\nManual Review"]
+        A3 --> A4["📞 Alert Raised\n(If Ever)"]
+        A3 -.->|"⏱️ Hours to Days"| A4
+    end
+
+    subgraph DrishtiX["🟢 DrishtiX Automated Loop"]
+        direction LR
+        B1["📷 Camera\nCaptures Frame"] --> B2["🧠 YuNet AI\nDetects Faces\n~2ms"]
+        B2 --> B3["🔍 SFace AI\nRecognizes Identity\n~150ms"]
+        B3 --> B4["🚨 Alert Delivered\nAudio + Sidebar + Telegram"]
+        B3 -.->|"⚡ < 200 milliseconds"| B4
+    end
+
+    Traditional ~~~ DrishtiX
 ```
-┌───────────┐     ┌────────────┐     ┌──────────────┐     ┌──────────────┐
-│  Camera   │────▶│  NVR/DVR   │────▶│  Manual      │────▶│  Alert       │
-│  Captures │     │  Records   │     │  Review      │     │  (if any)    │
-│  Frame    │     │  to Disk   │     │  by Operator │     │  to Officer  │
-└───────────┘     └────────────┘     └──────────────┘     └──────────────┘
-    t = 0           t = 0              t = hours            t = hours+
-```
 
-A wanted criminal can traverse a surveilled corridor, board public transport, and vanish entirely — and the alert, if it ever materializes, arrives only during post-incident forensic review. The footage becomes courtroom evidence rather than an operational tool for interdiction.
+**The key difference**: Traditional surveillance takes **hours to days** to maybe produce an alert. DrishtiX does it in **under 200 milliseconds** — faster than you can blink.
 
 ### 3.1.3 The Alert Fatigue Problem
 
-Even when automated face detection is deployed, poorly designed alert systems compound the problem through **alert fatigue**. If the system generates a modal popup dialog for every detection event, the operator's primary visual resource — the live camera feed — is repeatedly occluded. If the same target is re-detected every 2 seconds, the operator is bombarded with hundreds of identical alerts per hour, each requiring manual dismissal. Within minutes, operators develop "popup blindness" and begin reflexively closing alerts without reviewing them, negating the value of the automated system entirely.
+Even when some automated face detection is bolted onto a traditional system, poor design can make things *worse*. If every detection pops up a modal dialog box that covers the camera feed, the operator's screen is constantly blocked. If the same person is re-detected every 2 seconds, the operator gets bombarded with hundreds of identical popups per hour. Within minutes, operators start reflexively clicking "close" without even reading the alert — a phenomenon known as **alert fatigue**.
 
-### 3.1.4 The DrishtiX Solution
+### 3.1.4 How DrishtiX Solves All Three Problems
 
-DrishtiX v3.0 is engineered to resolve all three failure modes simultaneously:
+DrishtiX v3.0 is engineered to address each of these failure modes:
 
-1. **Eliminate Human Vigilance Dependency**: Replace the manual face-matching task with automated deep learning inference (YuNet + SFace + OSNet), collapsing the surveillance-to-action pipeline to under 200 milliseconds.
-2. **Non-Blocking Alert Delivery**: Deliver all alerts as styled, scrollable sidebar cards that never occlude the live camera feed.
-3. **Intelligent Cooldown Management**: Enforce per-target cooldown windows (default: 30 seconds) that suppress redundant alerts while ensuring no unique detection is missed.
+| Problem | DrishtiX Solution |
+|---|---|
+| **Human vigilance decay** | AI-powered automated face recognition replaces the human matching task entirely |
+| **Slow response times** | The entire pipeline runs in under 200 milliseconds, end-to-end |
+| **Alert fatigue** | Alerts are delivered as non-blocking sidebar cards that never cover the live camera feed, with smart cooldowns to suppress duplicate alerts |
 
 ---
 
@@ -45,35 +63,35 @@ DrishtiX v3.0 is engineered to resolve all three failure modes simultaneously:
 
 ### 3.2.1 Functional Requirements
 
+The following table summarizes the core features that DrishtiX must provide:
+
 | ID | Requirement | Description |
 |---|---|---|
-| FR-01 | **Live Video Capture** | Capture and render live video from a connected camera (USB, integrated, or RTSP) at a sustained 15+ FPS. |
-| FR-02 | **Multi-Target Face Detection** | Detect and localize 9–10+ simultaneous faces in a single frame using the YuNet DNN model, returning bounding boxes and 5-point landmarks. |
-| FR-03 | **Real-Time Face Recognition** | Extract 128-dimensional SFace embeddings from detected faces and match against the watchlist gallery via cosine similarity (threshold: 0.363). |
-| FR-04 | **Body Re-Identification** | When a recognized target's face is lost (head turn, occlusion), maintain persistent tracking via OSNet 512-dim body embeddings and KCF/CSRT object trackers. |
-| FR-05 | **Non-Blocking Sidebar Alerts** | Deliver detection alerts as styled cards in a scrollable sidebar, showing: target name, category badge (CRIMINAL/MISSING), confidence score, case number, live snapshot vs. database photo, and timestamp. |
-| FR-06 | **Target Registration** | Allow operators to register new targets by uploading a facial photograph, specifying name, category, case number, and description. Automatically extract and store the SFace embedding. |
-| FR-07 | **Target Management** | Provide search, filter (by category), deactivate, and delete operations on the target registry with confirmation dialogs. |
-| FR-08 | **Multi-Channel Alert Dispatch** | On positive detection, simultaneously trigger: (a) audible alarm (category-specific WAV), (b) Telegram push notification with snapshot, and (c) sidebar alert card. |
-| FR-09 | **Background Watchlist Ingestion** | Automatically ingest wanted profiles from the FBI API (REST/JSON), CBI Wanted List (HTML scraping), and TrackChild Portal (HTML scraping) on a configurable schedule. |
-| FR-10 | **Runtime Configuration** | Allow operators to adjust detection thresholds, cooldown periods, audio mute, tracker type, and ingestion settings without restarting the application. |
-| FR-11 | **Audit Logging** | Record all critical operations (target add/edit/delete, configuration changes, alert acknowledgements) to an immutable audit trail collection. |
-| FR-12 | **Reactive Dashboard Metrics** | Display real-time counters for Total Targets, Criminals, Missing Persons, and Detections Today, updated reactively via JavaFX `IntegerProperty` bindings. |
+| FR-01 | **Live Video Capture** | Capture and display live video from a connected camera (USB, integrated, or RTSP network stream) at 15+ FPS |
+| FR-02 | **Multi-Face Detection** | Detect and locate 9–10+ faces simultaneously in a single frame using the YuNet deep learning model |
+| FR-03 | **Real-Time Face Recognition** | Extract SFace embeddings from detected faces and match them against the watchlist database using cosine similarity |
+| FR-04 | **Body Re-Identification** | When a recognized person's face is lost (turned head, occlusion), maintain tracking using body-based OSNet embeddings and KCF/CSRT trackers |
+| FR-05 | **Non-Blocking Sidebar Alerts** | Display detection alerts as styled cards in a scrollable sidebar — showing name, category, confidence, case number, snapshot, and timestamp — without blocking the camera feed |
+| FR-06 | **Target Registration** | Allow operators to register new persons of interest by uploading a photo, entering identifying details, and automatically computing the face embedding |
+| FR-07 | **Multi-Channel Alerts** | On a positive match, simultaneously trigger an audible alarm, a Telegram push notification with a snapshot, and a sidebar alert card |
+| FR-08 | **Background Watchlist Sync** | Automatically ingest wanted profiles from external sources (FBI API, CBI, TrackChild) on a configurable schedule, without disrupting live surveillance |
+| FR-09 | **Runtime Configuration** | Let operators adjust detection thresholds, cooldown periods, audio settings, and ingestion schedules without restarting the application |
+| FR-10 | **Audit Logging** | Record all critical operations (target additions, deletions, configuration changes, alert events) to an immutable audit trail |
 
 ### 3.2.2 Non-Functional Requirements
 
-| NFR ID | Category | Requirement | Target | Justification |
+These are the performance and quality benchmarks the system must meet:
+
+| NFR ID | Category | Requirement | Target | Why It Matters |
 |---|---|---|---|---|
-| NFR-01 | **Latency** | End-to-end pipeline: frame capture → annotated alert delivery | ≤ 200 ms | Faster than human blink reflex (300–400 ms), making the system perceptually instantaneous |
-| NFR-02 | **Detection Speed** | YuNet face detection inference per frame | ≤ 5 ms (target ~2 ms) | Must run on the capture thread without dropping frames |
-| NFR-03 | **Recognition Speed** | SFace embedding extraction + gallery match per face | ≤ 150 ms | Runs on dedicated 4-thread recognition pool, never blocking the UI |
-| NFR-04 | **Frame Rate** | Live camera feed rendering rate | ≥ 15 FPS | Minimum for perceptually smooth video; 30 FPS preferred |
-| NFR-05 | **Memory Safety** | Alert queue bounded size | 50 cards max | Prevents unbounded heap growth during extended shifts |
-| NFR-06 | **Uptime** | Continuous operation without memory leaks or crashes | 99.5% over 8-hour shifts | `Mat.release()` + bounded alert queue + daemon threads |
-| NFR-07 | **Scalability** | Watchlist gallery capacity | 10,000+ profiles | ConcurrentHashMap gallery with O(n) scan, pre-computed centroids |
-| NFR-08 | **Privacy** | Data locality | 100% on-device | Zero cloud dependency — no frames, embeddings, or PII leave the machine |
-| NFR-09 | **Thermal** | CPU utilization sustainability | ≤ 60% sustained | Frame-skipping (inference every 2nd frame) + KCF (~0.3 ms) trackers |
-| NFR-10 | **Resilience** | Graceful degradation when MongoDB is unavailable | Hardcoded defaults | ConfigurationService falls back to `loadDefaults()` |
+| NFR-01 | **UI Latency** | Time from detection event to alert card appearing on screen | **≤ 100 ms** | The operator must perceive alerts as instantaneous — no perceptible lag between detection and notification |
+| NFR-02 | **Inference Latency** | SFace embedding extraction + gallery matching per face | **≤ 150 ms** | Recognition runs on a dedicated 4-thread pool, ensuring the camera feed never stutters |
+| NFR-03 | **End-to-End Latency** | Total pipeline: frame capture → annotated alert delivery | **≤ 200 ms** | Faster than a human blink (300–400 ms), making the system perceptually instantaneous |
+| NFR-04 | **Uptime** | Continuous operation without crashes or memory leaks | **99.5%** | Must sustain uninterrupted 8–12 hour operational shifts without degradation |
+| NFR-05 | **Scalability** | Watchlist gallery capacity | **10,000+ profiles** | The system must handle large-scale watchlists using efficient ConcurrentHashMap storage with pre-computed centroids |
+| NFR-06 | **Frame Rate** | Live camera feed rendering | **≥ 15 FPS** | Minimum for smooth, usable video; 30 FPS preferred |
+| NFR-07 | **Privacy** | Data locality | **100% on-device** | No frames, embeddings, or personally identifiable information ever leave the machine |
+| NFR-08 | **Thermal Safety** | Sustained CPU utilization | **≤ 60%** | Frame-skipping and lightweight trackers prevent thermal throttling on laptops |
 
 ---
 
@@ -81,311 +99,306 @@ DrishtiX v3.0 is engineered to resolve all three failure modes simultaneously:
 
 ### 3.3.1 Iterative Development Phases
 
-DrishtiX v3.0 was developed through four iterative architectural upgrade phases, each building upon the validated output of the previous phase:
+DrishtiX v3.0 was built in four incremental phases. Each phase was completed and validated before the next one began, ensuring a stable foundation at every stage:
 
-```
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                     DrishtiX v3.0 Development Timeline                       │
-├──────────┬───────────────────────────────────────────────────────────────────┤
-│ Phase 1  │  Deep Learning CV Pipeline Migration                             │
-│          │  ├─ YuNet ONNX integration (FaceDetectorYN)                      │
-│          │  ├─ SFace ONNX integration (FaceRecognizerSF)                    │
-│          │  ├─ ThreadLocal<FaceRecognizerSF> for pool safety                │
-│          │  ├─ 128-dim embedding gallery (ConcurrentHashMap)                │
-│          │  └─ Legacy Haar/LBPH fallback preservation                       │
-├──────────┼───────────────────────────────────────────────────────────────────┤
-│ Phase 2  │  UI/UX Modernization & Bento Grid Dashboard                     │
-│          │  ├─ FXML layout redesign (65/35 split, GridPane bento)           │
-│          │  ├─ CSS dark theme (WCAG AA compliant)                           │
-│          │  ├─ Non-blocking sidebar alert queue (50-card cap)               │
-│          │  ├─ Reactive IntegerProperty stat counters                       │
-│          │  └─ Category-coded alert badges (red/blue pills)                 │
-├──────────┼───────────────────────────────────────────────────────────────────┤
-│ Phase 3  │  Dynamic Alert Queue & Multi-Channel Notifications               │
-│          │  ├─ Frame-skip strategy (inference every Nth frame)              │
-│          │  ├─ KCF/CSRT inter-frame tracker integration                    │
-│          │  ├─ OSNet body re-identification (512-dim embeddings)            │
-│          │  ├─ Facial-to-Spatial Handoff (body lock mechanism)              │
-│          │  ├─ Telegram Bot API push notifications                          │
-│          │  └─ Background Ingestion Engine (FBI/CBI/TrackChild)             │
-├──────────┼───────────────────────────────────────────────────────────────────┤
-│ Phase 4  │  State Management, Threading Fixes & Production Hardening        │
-│          │  ├─ Alert card duplication race condition fix                     │
-│          │  ├─ IntegerProperty binding desynchronization fix                │
-│          │  ├─ Platform.runLater() standardization for all UI mutations     │
-│          │  ├─ Recognition pool pre-warming (eliminate cold-start penalty)  │
-│          │  ├─ 5-pool threading architecture formalization                  │
-│          │  └─ Graceful shutdown hooks (ThreadPools.shutdownAll())          │
-└──────────┴───────────────────────────────────────────────────────────────────┘
-```
+- **Phase 1: Core AI Integration (4 weeks)**
+  - Replaced legacy Haar Cascade and LBPH algorithms with YuNet (detection) and SFace (recognition) deep learning models
+  - Integrated ONNX model loading through OpenCV's DNN module
+  - Built a thread-safe embedding gallery using `ConcurrentHashMap`
+  - Preserved legacy Haar/LBPH as a fallback option
 
-### 3.3.2 Gantt Chart (Simplified)
+- **Phase 2: UI Modernization (3 weeks)**
+  - Redesigned the entire interface around a single-screen Bento Grid dashboard
+  - Implemented a WCAG AA-compliant dark theme via CSS
+  - Built the non-blocking sidebar alert queue with a 50-card memory cap
+  - Added reactive stat counters bound to JavaFX `IntegerProperty` for live metric updates
+
+- **Phase 3: Alert Pipeline & Background Sync (4 weeks)**
+  - Implemented the frame-skip strategy (run AI inference every Nth frame, use lightweight trackers in between)
+  - Integrated KCF/CSRT object trackers for inter-frame face position interpolation
+  - Added OSNet body re-identification for persistent tracking when faces are lost
+  - Built the Telegram Bot API push notification system
+  - Created the Background Ingestion Engine (automated FBI/CBI/TrackChild scraping)
+
+- **Phase 4: Production Hardening (2 weeks)**
+  - Fixed alert card duplication race conditions
+  - Standardized all UI mutations to use `Platform.runLater()` for thread safety
+  - Added recognition pool pre-warming to eliminate cold-start latency
+  - Formalized the multi-pool threading architecture with graceful shutdown hooks
+
+### 3.3.2 Simplified Gantt Chart
 
 | Phase | Duration | Key Deliverable |
 |---|---|---|
-| Phase 1: DNN Pipeline | 4 weeks | YuNet + SFace operational on CPU |
-| Phase 2: UI/UX | 3 weeks | Bento grid dashboard, dark theme |
-| Phase 3: Alert & Tracking | 4 weeks | Body lock, Telegram, ingestion engine |
-| Phase 4: Hardening | 2 weeks | Race condition fixes, pre-warming, shutdown |
-| **Total** | **13 weeks** | **Production-ready v3.0** |
+| Phase 1: Core AI Integration | 4 weeks | YuNet + SFace fully operational on CPU |
+| Phase 2: UI Modernization | 3 weeks | Bento Grid dashboard with dark theme |
+| Phase 3: Alert Pipeline & Background Sync | 4 weeks | Body lock, Telegram push, ingestion engine |
+| Phase 4: Production Hardening | 2 weeks | Race condition fixes, pre-warming, shutdown hooks |
+| **Total** | **13 weeks** | **Production-ready DrishtiX v3.0** |
 
 ---
 
 ## 3.4 Software and Hardware Requirements
 
-### 3.4.1 Software Requirements
+### 3.4.1 Software Requirements (Tech Stack)
 
-| Component | Minimum Version | Recommended | Purpose |
-|---|---|---|---|
-| **Java Runtime** | JDK 17 (LTS) | JDK 17.0.10+ | Platform runtime |
-| **JavaFX** | 21.0.2 | 21.0.2 | GPU-accelerated desktop UI |
-| **OpenCV** | 4.9.0 | 4.9.0 (via JavaCV 1.5.10) | DNN inference, tracking |
-| **MongoDB** | 5.0 | 5.1+ | Document persistence |
-| **Operating System** | Windows 10 x64 | Windows 11 x64 | Primary deployment target |
-| **Apache Maven** | 3.8+ | 3.9+ | Build and dependency management |
+DrishtiX is built on a focused, well-integrated tech stack designed for **maximum performance on a single machine** with zero cloud dependencies:
+
+| Component | Version | Purpose |
+|---|---|---|
+| **Java** | JDK 17+ (LTS) | Core application runtime — long-term support ensures stability |
+| **JavaFX** | 21.0.2+ | GPU-accelerated desktop UI framework for rendering the dashboard, live video feed, and alert cards |
+| **OpenCV** | 4.9.0+ (via JavaCV 1.5.10) | Computer vision engine — provides the DNN module for YuNet/SFace inference, KCF/CSRT tracking, and image processing |
+| **MySQL** | 8.0+ | Relational database for persistent storage of target profiles, embeddings, detection logs, and configuration |
+| **Apache Maven** | 3.8+ | Build tool and dependency manager — produces a single fat JAR for deployment |
+| **Python** | 3.10+ (optional) | Runs the standalone FastAPI ReID microservice for OSNet body embeddings |
+
+> **Key Design Principle**: The entire system — Java application, database, AI models, and all processing — runs on a single standard laptop. There is **no cloud dependency**. No frames, no embeddings, no personal data ever leaves the machine. This makes DrishtiX suitable for air-gapped, secure, and field deployments where internet connectivity cannot be guaranteed.
 
 ### 3.4.2 Hardware Requirements
 
-| Component | Minimum Specification | Recommended Specification | Rationale |
+| Component | Minimum | Recommended | Why |
 |---|---|---|---|
-| **Processor** | Intel Core i5 (8th Gen) / AMD Ryzen 5 | Intel Core i7 (10th Gen+) with integrated Intel UHD/Iris Xe | YuNet + SFace ONNX inference on CPU; 4+ cores for 5-pool threading |
-| **RAM** | 8 GB DDR4 | 16 GB DDR4 | JVM heap (512 MB) + MongoDB WiredTiger cache (1–2 GB) + native Mat buffers |
-| **Storage** | 256 GB SSD | 512 GB NVMe SSD | ONNX models (~10 MB), MongoDB data, ingestion images, snapshots |
-| **Camera** | 720p USB webcam | 1080p integrated/USB camera | Higher resolution improves small-face detection at distance |
-| **GPU** | Not required (CPU-only) | Integrated Intel UHD/Iris Xe | JavaFX Prism uses iGPU for scene graph rendering; ONNX inference remains CPU |
-| **Network** | Not required for core operation | Broadband for Telegram alerts + ingestion | Telegram push, FBI/CBI/TrackChild scraping |
-| **Display** | 1366×768 | 1920×1080 (Full HD) | Dashboard designed for minimum 1024×700; optimal at 1280×800 |
+| **Processor** | Intel Core i5 (8th Gen) / AMD Ryzen 5 | Intel Core i7 (10th Gen+) with Iris Xe | 4+ cores needed for the multi-pool threading architecture; iGPU accelerates JavaFX rendering |
+| **RAM** | 8 GB DDR4 | 16 GB DDR4 | JVM heap + MySQL buffer pool + native OpenCV frame buffers |
+| **Storage** | 256 GB SSD | 512 GB NVMe SSD | ONNX AI models (~10 MB), database, ingested images, detection snapshots |
+| **Camera** | 720p USB webcam | 1080p integrated/USB | Higher resolution improves small-face detection accuracy at distance |
+| **GPU** | Not required (CPU-only operation) | Integrated Intel UHD/Iris Xe | JavaFX uses the iGPU for UI rendering; AI inference runs on CPU |
+| **Network** | Not required for core operation | Broadband (for Telegram alerts + watchlist ingestion) | Core surveillance is fully offline; network is optional for push alerts and data scraping |
+| **Display** | 1366 × 768 | 1920 × 1080 (Full HD) | Dashboard is optimized for 1280×800+; Full HD provides the best experience |
 
-> **Note on NPU/GPU Acceleration**: While the current architecture executes all ONNX inference on CPU via OpenCV's built-in DNN module, the system is architecturally prepared for hardware acceleration. Laptops equipped with Intel Neural Processing Units (NPU) can leverage **OpenVINO** as an inference backend, and systems with NVIDIA discrete GPUs can use **TensorRT**, both accessible through the OpenCV DNN module's backend selector without source code changes.
+> **Note on Future Hardware Acceleration**: The ONNX-based architecture is ready for hardware acceleration without code changes. Laptops with an Intel NPU can use **OpenVINO** as an inference backend, and systems with NVIDIA GPUs can use **CUDA/TensorRT** — both selectable through OpenCV's backend API.
 
 ---
 
 ## 3.5 Preliminary Product Description
 
-### 3.5.1 Dashboard-Centric User Interface
+### 3.5.1 Dashboard-Centric Interface
 
-The DrishtiX v3.0 user interface is designed around a single-screen, **dashboard-centric** philosophy: all critical information — live video, detection alerts, system status, and target management — is accessible without navigating away from the primary view. The operator must never lose sight of the live camera feed.
+The DrishtiX interface is designed around one simple principle: **the operator should never lose sight of the live camera feed**.
 
-**Layout Architecture (65/35 Bento Grid Split)**:
+Instead of forcing users to switch between multiple tabs or windows, everything lives on a single, unified dashboard screen. The layout follows a **70/30 split**:
 
+- **70% of the screen (left side)**: Dedicated to the **live surveillance feed** — the camera video with real-time AI-drawn bounding boxes around detected faces, color-coded by category (red for criminals, cyan for missing persons, green for unknown faces, amber for body-lock tracking).
+
+- **30% of the screen (right side)**: Houses the **alert queue and system status** — a scrollable list of detection alert cards, live stat counters (total targets, detections today, criminal matches, missing person matches), and quick-action controls.
+
+This layout ensures that no alert, popup, or control panel ever covers the camera feed. The operator always has full visual awareness.
+
+### 3.5.2 The 70/30 UI Layout
+
+```mermaid
+graph TD
+    subgraph Screen["DrishtiX Dashboard — 70/30 Layout"]
+        subgraph Left["📹 LEFT PANEL — 70% Width"]
+            LV["🎥 LIVE SURVEILLANCE FEED<br/>━━━━━━━━━━━━━━━━━━━━━━<br/>• Real-time camera video<br/>• YuNet bounding boxes<br/>• Color-coded categories<br/>  🔴 Criminal | 🔵 Missing<br/>  🟢 Unknown | 🟠 Body Lock"]
+            CB["🎛️ CONTROL BAR<br/>━━━━━━━━━━━━━━━━━━━━━━<br/>Confidence Slider │ Camera Selector │ Start/Stop │ Mute │ FPS Counter"]
+        end
+
+        subgraph Right["📊 RIGHT PANEL — 30% Width"]
+            ST["📈 SYSTEM STATUS<br/>━━━━━━━━━━━━━━<br/>Total Targets │ Today's Scans<br/>Criminal Matches │ Missing Persons"]
+            AQ["🚨 ALERT QUEUE<br/>━━━━━━━━━━━━━━<br/>Alert Card #1<br/>  Name │ Category │ 94.7%<br/>  📸 DB Photo │ Live Snap<br/>━━━━━━━━━━━━━━<br/>Alert Card #2<br/>  Name │ Category │ 87.2%<br/>  📸 DB Photo │ Live Snap<br/>━━━━━━━━━━━━━━<br/>... (max 50 cards)"]
+            AB["➕ ADD TARGET BUTTON"]
+        end
+
+        LV --> CB
+        ST --> AQ
+        AQ --> AB
+    end
 ```
-┌─────────────────────────────────────┬──────────────────────┐
-│                                     │   System Status       │
-│     LIVE SURVEILLANCE FEED          │   ┌──────┬──────┐    │
-│     (Camera ImageView)              │   │Total │Today │    │
-│                                     │   │Tgts  │Scans │    │
-│     • YuNet bounding boxes drawn    │   ├──────┼──────┤    │
-│     • Category-coded colors:        │   │Crim  │Miss  │    │
-│       RED = Criminal                │   │Match │Prsns │    │
-│       CYAN = Missing Person         │   └──────┴──────┘    │
-│       GREEN = Unknown               │                      │
-│       AMBER = Body Lock (face lost) │   Live Alert Queue    │
-│                                     │   ┌─────────────┐    │
-├─────────────────────────────────────┤   │ 🚨 Alert #1  │    │
-│   Control Bar                       │   │ Name | Cat   │    │
-│   ┌────────────────┐ ┌────┐ ┌────┐ │   │ [DB] [Live]  │    │
-│   │ Threshold ──○──│ │Cam▾│ │STOP│ │   ├─────────────┤    │
-│   └────────────────┘ └────┘ └────┘ │   │ 🔍 Alert #2  │    │
-│   FPS: 15  |  🔇 Mute              │   └─────────────┘    │
-└─────────────────────────────────────┤   [+ Add Target]     │
-                                      └──────────────────────┘
-```
 
-**Key UI Elements**:
+### 3.5.3 Alert Card Design
 
-| Element | Location | Function |
+Each alert card in the sidebar is a self-contained intelligence unit. An operator can glance at it and immediately understand *who* was detected, *when*, and *how confident* the system is:
+
+| Field | What It Shows | Purpose |
 |---|---|---|
-| **Camera Feed** | Left 65%, Row 0 | Real-time video with annotated bounding boxes |
-| **Stats Panel** | Right 35%, Row 0 (top) | Reactive counters bound to `IntegerProperty` |
-| **Control Bar** | Left 65%, Row 1 | Confidence slider, camera selector, start/stop button, mute toggle, FPS counter |
-| **Alert Queue** | Right 35%, Row 0–1 | Scrollable list of non-blocking alert cards (max 50) |
-| **Header Bar** | Full width, top | "Dashboard" title, notification bell (🔔), profile icon (👤) |
+| **Target Name** | Full name from the watchlist database | Instant identification |
+| **Category Badge** | Color-coded pill — 🔴 CRIMINAL or 🔵 MISSING PERSON | Visual priority at a glance |
+| **Confidence Score** | Cosine similarity percentage (e.g., 94.7%) | Helps the operator judge match quality |
+| **Case/FIR Number** | Official case reference number | Immediate legal cross-reference |
+| **Database Photo** | The stored reference photo (left side) | Side-by-side visual verification |
+| **Live Snapshot** | The frame crop at the moment of detection (right side) | Side-by-side visual verification |
+| **Timestamp** | Exact time of detection | Forensic and shift-log documentation |
 
-### 3.5.2 Alert Card Anatomy
+### 3.5.4 Memory-Safe Alert Queue
 
-Each sidebar alert card is a self-contained intelligence unit, displaying:
+The alert queue enforces a strict **50-card cap**. When the queue is full and a new alert arrives, the oldest card is automatically removed. Combined with a per-target cooldown window (default: 30 seconds) that suppresses duplicate alerts for the same person, this ensures:
 
-| Field | Source | Purpose |
-|---|---|---|
-| Target Name | `TargetRegistry.fullName` | Immediate identification |
-| Category Badge | `TargetCategory` (CRIMINAL / MISSING_PERSON) | Color-coded pill: red or blue |
-| Confidence Score | Cosine similarity × 100 | Operator verification metric |
-| Case/FIR Number | `TargetRegistry.caseNumber` | Immediate legal reference |
-| Database Photo | `TargetRegistry.profileImagePath` | Side-by-side verification (left) |
-| Live Snapshot | Frame crop at detection time | Side-by-side verification (right) |
-| Timestamp | `LocalDateTime.now()` | Forensic and shift-log reference |
-
-### 3.5.3 Memory-Safe Alert Queue
-
-The alert queue enforces a strict **50-card memory cap** (`MAX_ALERT_QUEUE_SIZE = 50`). When the queue reaches capacity, the oldest alert card is removed before a new one is prepended. Combined with the per-target cooldown window (default: 30 seconds), this architecture guarantees bounded memory consumption regardless of surveillance duration, enabling uninterrupted 8–12-hour operational shifts without heap exhaustion.
+- **No memory bloat**: The application can run for 8–12 hour shifts without heap exhaustion.
+- **No alert flooding**: Operators see only fresh, unique detections — not hundreds of duplicates.
 
 ---
 
 ## 3.6 Conceptual Models
 
-### 3.6.1 Data Flow Diagram: Detection-to-Alert Pipeline
+### 3.6.1 The Three-Pool Threading Architecture (Plain English)
 
-```
-                    ┌──────────────────┐
-                    │   Camera Device  │
-                    │   (VideoCapture) │
-                    └────────┬─────────┘
-                             │  Raw BGR Frame (640×480 or 1080p)
-                             ▼
-              ┌──────────────────────────────┐
-              │    Video Inference Pool       │
-              │    (2 daemon threads)         │
-              │                              │
-              │  ┌────────────────────────┐  │
-              │  │  Frame Counter Check   │  │
-              │  │  (every Nth frame?)    │  │
-              │  └──────┬─────────┬───────┘  │
-              │    YES  │         │  NO      │
-              │         ▼         ▼          │
-              │  ┌────────────┐  ┌────────┐  │
-              │  │ YuNet DNN  │  │ KCF /  │  │
-              │  │ Detection  │  │ CSRT   │  │
-              │  │ (~2 ms)    │  │ Update │  │
-              │  └──────┬─────┘  │(~0.3ms)│  │
-              │         │        └────┬───┘  │
-              │         ▼             │      │
-              │  ┌─────────────┐     │      │
-              │  │ Face Align  │     │      │
-              │  │ (112×112)   │     │      │
-              │  └──────┬──────┘     │      │
-              └─────────┼────────────┼──────┘
-                        │            │
-         ┌──────────────▼────────────▼────────────────┐
-         │     Recognition Inference Pool              │
-         │     (4 daemon threads, CompletableFuture)   │
-         │                                             │
-         │  ┌─────────────┐    ┌───────────────────┐  │
-         │  │ SFace DNN   │    │ OSNet DNN         │  │
-         │  │ 128-dim     │    │ 512-dim body      │  │
-         │  │ embedding   │    │ embedding         │  │
-         │  └──────┬──────┘    └────────┬──────────┘  │
-         │         │                    │              │
-         │  ┌──────▼──────┐   ┌────────▼──────────┐  │
-         │  │ Gallery     │   │ Body Lock         │  │
-         │  │ Cosine      │   │ Fusion            │  │
-         │  │ Matching    │   │ (α·face + β·body) │  │
-         │  │ (≥ 0.363)   │   │                   │  │
-         │  └──────┬──────┘   └────────┬──────────┘  │
-         └─────────┼───────────────────┼──────────────┘
-                   │  MATCH?           │
-                   ▼ YES               │
-    ┌──────────────────────────────────▼──────────────┐
-    │          Alert Orchestration Layer               │
-    │                                                  │
-    │  ┌──────────┐  ┌──────────────┐  ┌───────────┐ │
-    │  │ Audio    │  │ Telegram Bot │  │ Sidebar   │ │
-    │  │ Alert    │  │ Push (async) │  │ Alert     │ │
-    │  │ Pool     │  │ + Snapshot   │  │ Card      │ │
-    │  │ (1 thd)  │  │              │  │ (UI thd)  │ │
-    │  └──────────┘  └──────────────┘  └───────────┘ │
-    │                                                  │
-    │  ┌──────────────────────────────────────────┐   │
-    │  │ Detection Log → MongoDB (async persist)  │   │
-    │  └──────────────────────────────────────────┘   │
-    └──────────────────────────────────────────────────┘
-```
+The biggest challenge of running AI on a laptop is preventing the application from **freezing**. If you try to run face detection, face recognition, and draw the video feed all on the same thread, the app will stutter, lag, and become unusable.
 
-### 3.6.2 Threading Architecture: The Five-Pool Contract
+DrishtiX solves this by splitting the work across **three main thread pools**, each responsible for a distinct job. Think of it like a restaurant kitchen:
 
-The DrishtiX threading model is designed to satisfy a single invariant: **DNN inference must never starve the JavaFX Application Thread of rendering cycles**. The five pools are isolated by strict contracts:
+1. **The Main UI Thread** (the waiter) — This thread's only job is to keep the screen updated. It draws the video frames, renders the alert cards, and responds to button clicks. It never does any heavy lifting. **Rule**: No task running on this thread may take longer than 16 milliseconds, or the screen will visibly stutter.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                   JavaFX Application Thread                  │
-│  • Scene graph rendering (ImageView frame updates)          │
-│  • Alert card injection (Platform.runLater())               │
-│  • IntegerProperty counter updates                          │
-│  • FXML event handlers                                      │
-│  Contract: NO computation > 16ms per callback               │
-├─────────────────────────────────────────────────────────────┤
-│                   Video Inference Pool (2 threads)           │
-│  • Camera frame capture (OpenCVFrameGrabber.grab())         │
-│  • YuNet face detection (~2ms)                              │
-│  • Tracker initialization & update (KCF/CSRT)              │
-│  • Frame-skip decision logic                                │
-│  Contract: Yield frames to UI at ≥ 15 FPS                  │
-├─────────────────────────────────────────────────────────────┤
-│              Recognition Inference Pool (4 threads)          │
-│  • SFace embedding extraction (ThreadLocal model)           │
-│  • OSNet body embedding extraction                          │
-│  • Gallery cosine similarity scan                           │
-│  • Body lock fusion (α·face + β·body)                      │
-│  Contract: Independent per-face; never block capture        │
-├─────────────────────────────────────────────────────────────┤
-│                   Audio Alert Pool (1 thread)                │
-│  • javax.sound.sampled WAV playback                         │
-│  Contract: Fire-and-forget; never block inference           │
-├─────────────────────────────────────────────────────────────┤
-│                   Ingestion Pool (2 threads, MIN priority)   │
-│  • FBI API REST polling                                     │
-│  • CBI/TrackChild HTML scraping via JSoup                   │
-│  • 2-second rate limiting between HTTP requests             │
-│  Contract: MIN priority; never steal CPU from inference      │
-├─────────────────────────────────────────────────────────────┤
-│                   Scheduled Pool (1 thread)                  │
-│  • Snapshot file cleanup                                    │
-│  • Configuration periodic refresh                           │
-└─────────────────────────────────────────────────────────────┘
+2. **The Video Capture Thread** (the prep cook) — This thread grabs frames from the camera and runs the lightweight **YuNet face detection** model (~2ms per frame). It decides: "Is this a frame where we need full AI analysis, or can we use a quick tracker estimate?" On most frames, it uses a fast KCF tracker (~0.3ms) to interpolate face positions. Only every Nth frame does it trigger a full detection pass.
+
+3. **The AI Inference Pool** (the head chef) — This is a pool of **4 parallel threads** that handle the heavy computational work: extracting SFace face embeddings, computing cosine similarity against the entire watchlist gallery, and running OSNet body re-identification. Because this pool is independent from the video thread, the camera feed keeps running smoothly even while the AI is crunching numbers.
+
+In addition to these three core pools, DrishtiX also runs two background support pools:
+- **Audio Alert Pool** (1 thread) — Plays alarm sounds and sends Telegram notifications without blocking anything else.
+- **Ingestion Pool** (2 threads, lowest priority) — Runs the background web scrapers (FBI, CBI, TrackChild) on a schedule, at minimum CPU priority so it never steals resources from the camera or AI.
+
+### 3.6.2 Threading Data Flow Diagram
+
+The following diagram shows how data flows through the three main pools — from the camera, through AI processing, to the operator's screen:
+
+```mermaid
+flowchart TD
+    CAM["📷 Camera Device<br/>(VideoCapture)"]
+
+    subgraph VCP["🟦 VIDEO CAPTURE THREAD<br/>(CachedThreadPool)"]
+        GRAB["Grab Raw Frame<br/>(BGR 640×480 or 1080p)"]
+        SKIP{"Every Nth<br/>Frame?"}
+        YUNET["🧠 YuNet Detection<br/>(~2ms per frame)"]
+        KCF["⚡ KCF Tracker Update<br/>(~0.3ms — interpolate<br/>bounding boxes)"]
+        ALIGN["Align & Crop Faces<br/>(112×112 pixels)"]
+    end
+
+    subgraph RIP["🟧 AI INFERENCE POOL<br/>(4 Fixed Threads — CompletableFuture)"]
+        SFACE["🧠 SFace Embedding<br/>Extraction (128-dim)"]
+        OSNET["🧠 OSNet Body<br/>Embedding (512-dim)"]
+        MATCH["📊 Gallery Cosine<br/>Similarity Matching<br/>(threshold ≥ 0.363)"]
+        FUSE["🔗 Body Lock Fusion<br/>(α·face + β·body)"]
+    end
+
+    subgraph UIT["🟩 MAIN UI THREAD<br/>(JavaFX Application Thread)"]
+        RENDER["🖥️ Render Annotated<br/>Video Frame<br/>(ImageView update)"]
+        ALERT["🚨 Inject Alert Card<br/>into Sidebar<br/>(Platform.runLater)"]
+        STATS["📈 Update Live<br/>Stat Counters<br/>(IntegerProperty bindings)"]
+    end
+
+    subgraph SIDE["🟪 BACKGROUND POOLS"]
+        AUDIO["🔊 Audio Alert Pool<br/>(Play WAV alarm)"]
+        TELEGRAM["📱 Telegram Push<br/>(Send snapshot + metadata)"]
+        INGEST["🌐 Ingestion Pool<br/>(FBI / CBI / TrackChild<br/>scraping on 6-hour timer)"]
+    end
+
+    DB[("💾 Database<br/>(MySQL 8.0+)")]
+
+    CAM --> GRAB
+    GRAB --> SKIP
+    SKIP -- "YES → Full Detection" --> YUNET
+    SKIP -- "NO → Quick Track" --> KCF
+    YUNET --> ALIGN
+    KCF --> RENDER
+
+    ALIGN --> SFACE
+    ALIGN --> OSNET
+    SFACE --> MATCH
+    OSNET --> FUSE
+    MATCH -- "✅ MATCH FOUND" --> ALERT
+    MATCH -- "✅ MATCH FOUND" --> AUDIO
+    MATCH -- "✅ MATCH FOUND" --> TELEGRAM
+    FUSE --> MATCH
+
+    ALERT --> RENDER
+    MATCH --> STATS
+
+    MATCH --> DB
+    INGEST --> DB
+
+    YUNET --> RENDER
 ```
 
-### 3.6.3 Entity Relationship Model
+### 3.6.3 The Threading Contract (Summary)
 
-```
-┌──────────────────┐       ┌──────────────────┐
-│   targets         │       │  target_images    │
-├──────────────────┤       ├──────────────────┤
-│ targetId (PK)    │──┐    │ _id              │
-│ fullName         │  │    │ targetId (FK)    │
-│ category         │  ├───▶│ imagePath        │
-│ caseNumber       │  │    │ embedding[128]   │
-│ description      │  │    └──────────────────┘
-│ profileImagePath │  │
-│ isActive         │  │    ┌──────────────────┐
-│ createdAt        │  │    │ person_embeddings │
-└──────────────────┘  │    ├──────────────────┤
-                      ├───▶│ targetId (FK)    │
-                      │    │ embedding[128]   │
-                      │    │ modelVersion     │
-                      │    └──────────────────┘
-                      │
-                      │    ┌──────────────────┐
-                      │    │  detection_logs   │
-                      │    ├──────────────────┤
-                      └───▶│ targetId (FK)    │
-                           │ timestamp        │
-                           │ confidence       │
-                           │ snapshotPath     │
-                           │ cameraId         │
-                           └──────────────────┘
+Each pool operates under a strict contract to guarantee that the application never freezes:
 
-┌──────────────────┐   ┌──────────────────┐   ┌──────────────────┐
-│   config          │   │   audit_log       │   │  camera_sources   │
-├──────────────────┤   ├──────────────────┤   ├──────────────────┤
-│ key (PK)         │   │ action           │   │ cameraId (PK)    │
-│ value            │   │ details          │   │ name             │
-└──────────────────┘   │ timestamp        │   │ uri              │
-                       │ userId           │   │ isActive         │
-                       └──────────────────┘   └──────────────────┘
-```
-
-### 3.6.4 Use Case Summary
-
-| Use Case | Primary Actor | Trigger | System Response |
+| Pool | Threads | Strict Rule | What Happens If Violated |
 |---|---|---|---|
-| **UC-01**: Monitor Live Feed | Operator | Camera started | Render annotated video at 15+ FPS with bounding boxes |
-| **UC-02**: Detect Known Target | System (auto) | Face matched ≥ 0.363 | Inject sidebar alert card + audio + Telegram push |
-| **UC-03**: Register New Target | Operator | Click "Add Target" | Upload photo → extract embedding → store in gallery |
-| **UC-04**: Search Targets | Operator | Type in search field | Filter target table by name or case number |
-| **UC-05**: Deactivate Target | Operator | Click "Deactivate" | Mark target inactive; suppress future alerts |
-| **UC-06**: Delete Target | Operator | Click "Delete" (2-step confirm) | Permanently remove target + embeddings + logs |
-| **UC-07**: Adjust Threshold | Operator | Move confidence slider | Live-update recognition sensitivity |
-| **UC-08**: Ingest FBI Data | System (scheduled) | 6-hour timer fires | Poll FBI API → download photos → auto-register |
-| **UC-09**: Body Lock Tracking | System (auto) | Recognized face lost | OSNet handoff → KCF tracker → persistent lock |
-| **UC-10**: View Detection History | Operator | Navigate to Registry | Display historical detection logs with timestamps |
+| **Main UI Thread** | 1 (JavaFX) | No callback may exceed **16ms** | Screen freezes — frames drop, buttons become unresponsive |
+| **Video Capture Pool** | 2 (daemon) | Must yield frames at **≥ 15 FPS** | Video feed stutters — operator loses situational awareness |
+| **Recognition Inference Pool** | 4 (fixed) | Each face is independent — **never block capture** | Camera thread stalls waiting for AI — causes cascading FPS drop |
+| **Audio Alert Pool** | 1 (daemon) | Fire-and-forget — **never block inference** | Alarm playback delays recognition of the next face |
+| **Ingestion Pool** | 2 (MIN priority) | **Lowest CPU priority** — never steal cycles from inference | Web scraping slows down the AI — defeats the purpose of the system |
+
+### 3.6.4 Entity Relationship Model
+
+The database stores four primary entity types with clear relationships:
+
+```mermaid
+erDiagram
+    TARGETS {
+        int targetId PK
+        string fullName
+        string category
+        string caseNumber
+        string description
+        string profileImagePath
+        boolean isActive
+        datetime createdAt
+    }
+
+    TARGET_IMAGES {
+        int id PK
+        int targetId FK
+        string imagePath
+        float[] embedding_128dim
+    }
+
+    PERSON_EMBEDDINGS {
+        int id PK
+        int targetId FK
+        float[] embedding_128dim
+        string modelVersion
+    }
+
+    DETECTION_LOGS {
+        int id PK
+        int targetId FK
+        datetime timestamp
+        float confidence
+        string snapshotPath
+        string cameraId
+    }
+
+    CONFIG {
+        string key PK
+        string value
+    }
+
+    AUDIT_LOG {
+        int id PK
+        string action
+        string details
+        datetime timestamp
+        string userId
+    }
+
+    CAMERA_SOURCES {
+        string cameraId PK
+        string name
+        string uri
+        boolean isActive
+    }
+
+    TARGETS ||--o{ TARGET_IMAGES : "has photos"
+    TARGETS ||--o{ PERSON_EMBEDDINGS : "has embeddings"
+    TARGETS ||--o{ DETECTION_LOGS : "triggers detections"
+    CAMERA_SOURCES ||--o{ DETECTION_LOGS : "captures on"
+```
+
+### 3.6.5 Use Case Summary
+
+| Use Case | Who Triggers It | What Happens |
+|---|---|---|
+| **UC-01**: Monitor Live Feed | Operator starts camera | System renders annotated video at 15+ FPS with color-coded bounding boxes |
+| **UC-02**: Detect Known Target | System (automatic) | Face matched → sidebar alert + audio alarm + Telegram push notification |
+| **UC-03**: Register New Target | Operator clicks "Add Target" | Upload photo → AI extracts embedding → stored in watchlist gallery |
+| **UC-04**: Search Targets | Operator types in search field | Target table filters by name or case number in real time |
+| **UC-05**: Adjust Threshold | Operator moves confidence slider | Recognition sensitivity updates live without restart |
+| **UC-06**: Background Ingestion | System (scheduled, every 6 hours) | Scrapes FBI/CBI/TrackChild → downloads photos → auto-registers new targets |
+| **UC-07**: Body Lock Tracking | System (automatic) | Recognized face lost → OSNet body handoff → KCF tracker maintains persistent lock |
+| **UC-08**: View Detection History | Operator navigates to registry | Historical detection logs displayed with timestamps, confidence, and snapshots |
 
 ---

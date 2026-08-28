@@ -1,0 +1,293 @@
+/* ==========================================================================
+   DrishtiX v4.0 — Tactical Dark Command Theme (QSS)
+   Colors:
+     Background Primary:   #0D0F14
+     Background Secondary: #1A1D24
+     Background Tertiary:  #252830
+     Border Default:       #2E3140
+     Text Primary:         #E8EAED
+     Text Secondary:       #9AA0A6
+     Accent Blue:          #4A9EFF
+     Accent Green:         #34D399
+     Accent Red:           #FF4D2E
+     Accent Cyan:          #00D4FF
+     Accent Amber:         #FBBF24
+   ========================================================================== */
+
+/* ─── Global Reset & Window ─────────────────────────────────────────────── */
+QWidget {
+    background-color: #0D0F14;
+    color: #E8EAED;
+    font-family: "Segoe UI", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 13px;
+    selection-background-color: #4A9EFF;
+    selection-color: #FFFFFF;
+}
+
+QMainWindow {
+    background-color: #0D0F14;
+}
+
+/* ─── Frames & Bento Cards ───────────────────────────────────────────────── */
+QFrame.bento-card, QFrame.card-panel {
+    background-color: #1A1D24;
+    border: 1px solid #2E3140;
+    border-radius: 8px;
+}
+
+QFrame.bento-card:hover {
+    border: 1px solid #3E4354;
+}
+
+/* ─── Navigation Sidebar ─────────────────────────────────────────────────── */
+QFrame#NavSidebar {
+    background-color: #12141A;
+    border-right: 1px solid #222530;
+}
+
+QPushButton.nav-btn {
+    background-color: transparent;
+    color: #9AA0A6;
+    text-align: left;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 13px;
+    border: none;
+}
+
+QPushButton.nav-btn:hover {
+    background-color: #1A1D24;
+    color: #E8EAED;
+}
+
+QPushButton.nav-btn:checked, QPushButton.nav-btn.active {
+    background-color: #1E2330;
+    color: #4A9EFF;
+    font-weight: 600;
+    border-left: 3px solid #4A9EFF;
+}
+
+/* ─── Buttons ────────────────────────────────────────────────────────────── */
+QPushButton {
+    background-color: #252830;
+    color: #E8EAED;
+    border: 1px solid #2E3140;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-weight: 500;
+    min-height: 20px;
+}
+
+QPushButton:hover {
+    background-color: #2E3240;
+    border-color: #4A9EFF;
+}
+
+QPushButton:pressed {
+    background-color: #1A1D24;
+}
+
+QPushButton:disabled {
+    background-color: #15171E;
+    color: #555A65;
+    border-color: #222530;
+}
+
+QPushButton.btn-primary {
+    background-color: #4A9EFF;
+    color: #FFFFFF;
+    border: 1px solid #4A9EFF;
+    font-weight: 600;
+}
+
+QPushButton.btn-primary:hover {
+    background-color: #3B8BE6;
+}
+
+QPushButton.btn-danger {
+    background-color: rgba(255, 77, 46, 0.15);
+    color: #FF4D2E;
+    border: 1px solid #FF4D2E;
+}
+
+QPushButton.btn-danger:hover {
+    background-color: #FF4D2E;
+    color: #FFFFFF;
+}
+
+QPushButton.btn-success {
+    background-color: rgba(52, 211, 153, 0.15);
+    color: #34D399;
+    border: 1px solid #34D399;
+}
+
+QPushButton.btn-success:hover {
+    background-color: #34D399;
+    color: #0D0F14;
+}
+
+/* ─── Input Fields ───────────────────────────────────────────────────────── */
+QLineEdit, QTextEdit, QPlainTextEdit, QSpinBox, QDoubleSpinBox, QComboBox {
+    background-color: #1A1D24;
+    color: #E8EAED;
+    border: 1px solid #2E3140;
+    border-radius: 6px;
+    padding: 6px 10px;
+}
+
+QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus, QComboBox:focus {
+    border: 1px solid #4A9EFF;
+    background-color: #1E222C;
+}
+
+QComboBox::drop-down {
+    border: none;
+    padding-right: 8px;
+}
+
+QComboBox QAbstractItemView {
+    background-color: #1A1D24;
+    border: 1px solid #2E3140;
+    selection-background-color: #4A9EFF;
+    selection-color: #FFFFFF;
+}
+
+/* ─── Tables & Lists ─────────────────────────────────────────────────────── */
+QTableView, QTableWidget, QListView, QListWidget, QTreeView {
+    background-color: #1A1D24;
+    border: 1px solid #2E3140;
+    border-radius: 6px;
+    gridline-color: #252830;
+    alternate-background-color: #16181F;
+}
+
+QHeaderView::section {
+    background-color: #14161D;
+    color: #9AA0A6;
+    padding: 8px;
+    border: none;
+    border-bottom: 1px solid #2E3140;
+    border-right: 1px solid #222530;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+QTableView::item {
+    padding: 6px;
+    border-bottom: 1px solid #222530;
+}
+
+QTableView::item:selected {
+    background-color: rgba(74, 158, 255, 0.2);
+    color: #4A9EFF;
+}
+
+/* ─── Scrollbars ─────────────────────────────────────────────────────────── */
+QScrollBar:vertical {
+    background: #12141A;
+    width: 8px;
+    margin: 0px;
+    border-radius: 4px;
+}
+
+QScrollBar::handle:vertical {
+    background: #2E3140;
+    min-height: 20px;
+    border-radius: 4px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #4A9EFF;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical,
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background: none;
+    border: none;
+}
+
+/* ─── Status Bar ─────────────────────────────────────────────────────────── */
+QFrame#StatusBar {
+    background-color: #0A0C0F;
+    border-top: 1px solid #1E212B;
+}
+
+QLabel.status-metric {
+    font-family: "JetBrains Mono", "Consolas", monospace;
+    font-size: 11px;
+    color: #9AA0A6;
+}
+
+QLabel.metric-value {
+    font-family: "JetBrains Mono", "Consolas", monospace;
+    font-weight: bold;
+    color: #34D399;
+}
+
+/* ─── Bento KPI Cards ────────────────────────────────────────────────────── */
+QFrame.kpi-card {
+    background-color: #1A1D24;
+    border: 1px solid #2E3140;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+QLabel.kpi-title {
+    color: #9AA0A6;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+QLabel.kpi-val {
+    color: #E8EAED;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+/* ─── Badges & Tags ──────────────────────────────────────────────────────── */
+QLabel.badge-criminal {
+    background-color: rgba(255, 77, 46, 0.2);
+    color: #FF4D2E;
+    border: 1px solid rgba(255, 77, 46, 0.4);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+QLabel.badge-missing {
+    background-color: rgba(0, 212, 255, 0.2);
+    color: #00D4FF;
+    border: 1px solid rgba(0, 212, 255, 0.4);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* ─── Alert Sidebar ──────────────────────────────────────────────────────── */
+QFrame#AlertSidebar {
+    background-color: #14161D;
+    border-left: 1px solid #222530;
+}
+
+QFrame.alert-card-criminal {
+    background-color: #1E1618;
+    border: 1px solid rgba(255, 77, 46, 0.4);
+    border-left: 4px solid #FF4D2E;
+    border-radius: 6px;
+    padding: 8px;
+}
+
+QFrame.alert-card-missing {
+    background-color: #141D22;
+    border: 1px solid rgba(0, 212, 255, 0.4);
+    border-left: 4px solid #00D4FF;
+    border-radius: 6px;
+    padding: 8px;
+}
+
+QFrame.alert-card:hover {
+    background-color: #252834;
+}
