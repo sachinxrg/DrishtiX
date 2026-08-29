@@ -21,7 +21,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from drishtix.core.constants import APP_NAME, APP_VERSION, NAV_SIDEBAR_WIDTH
+from drishtix.core.constants import APP_NAME, APP_VERSION, ASSETS_DIR, NAV_SIDEBAR_WIDTH
 from drishtix.ui.views.analytics_view import AnalyticsView
 from drishtix.ui.views.dashboard_view import DashboardView
 from drishtix.ui.views.detection_log_view import DetectionLogView
@@ -66,6 +66,11 @@ class MainWindow(QMainWindow):
         sidebar = self._create_sidebar()
         workspace.addWidget(sidebar)
 
+        # Set Window Icon from assets if available
+        logo_path = ASSETS_DIR / "drishtix_logo.png"
+        if logo_path.exists():
+            self.setWindowIcon(QIcon(str(logo_path)))
+
         # 2. Central QStackedWidget
         self.content_stack = QStackedWidget()
 
@@ -95,42 +100,73 @@ class MainWindow(QMainWindow):
         self._select_view(0)
 
     def _create_sidebar(self) -> QFrame:
-        """Create navigation sidebar."""
+        """Create navigation sidebar with official logo and polished navigation."""
         sidebar = QFrame()
         sidebar.setObjectName("NavSidebar")
         sidebar.setFixedWidth(NAV_SIDEBAR_WIDTH)
 
         layout = QVBoxLayout(sidebar)
-        layout.setContentsMargins(12, 16, 12, 16)
-        layout.setSpacing(6)
+        layout.setContentsMargins(14, 18, 14, 16)
+        layout.setSpacing(8)
 
-        # Logo & App Title
+        # Logo & App Title Container
+        brand_card = QFrame()
+        brand_card.setStyleSheet("background: transparent; border: none; margin-bottom: 8px;")
+        brand_layout = QVBoxLayout(brand_card)
+        brand_layout.setContentsMargins(0, 0, 0, 0)
+        brand_layout.setSpacing(6)
+
         header_layout = QHBoxLayout()
-        header_layout.setSpacing(8)
+        header_layout.setSpacing(10)
+        header_layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
 
-        lbl_logo = QLabel("👁️")
-        lbl_logo.setStyleSheet("font-size: 20px;")
-        header_layout.addWidget(lbl_logo)
+        # Official Logo Image
+        self.lbl_logo = QLabel()
+        self.lbl_logo.setFixedSize(36, 36)
+        logo_path = ASSETS_DIR / "drishtix_logo.png"
+        if logo_path.exists():
+            pm = QPixmap(str(logo_path)).scaled(
+                36, 36, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation
+            )
+            self.lbl_logo.setPixmap(pm)
+        else:
+            self.lbl_logo.setText("👁️")
+            self.lbl_logo.setStyleSheet("font-size: 24px;")
+        header_layout.addWidget(self.lbl_logo)
+
+        # Title & Badge
+        title_vbox = QVBoxLayout()
+        title_vbox.setSpacing(1)
+        title_vbox.setContentsMargins(0, 0, 0, 0)
 
         lbl_title = QLabel("DRISHTIX")
-        lbl_title.setStyleSheet("font-weight: 800; font-size: 16px; letter-spacing: 1.5px; color: #E8EAED;")
-        header_layout.addWidget(lbl_title)
+        lbl_title.setStyleSheet("font-weight: 900; font-size: 16px; letter-spacing: 1.8px; color: #0F172A;")
+        title_vbox.addWidget(lbl_title)
+
+        lbl_subtitle = QLabel("TACTICAL EDGE AI")
+        lbl_subtitle.setStyleSheet("color: #4F6BFB; font-size: 9px; font-weight: 800; letter-spacing: 1px;")
+        title_vbox.addWidget(lbl_subtitle)
+
+        header_layout.addLayout(title_vbox)
         header_layout.addStretch()
+        brand_layout.addLayout(header_layout)
 
-        layout.addLayout(header_layout)
+        # Divider line
+        div = QFrame()
+        div.setFixedHeight(1)
+        div.setStyleSheet("background-color: #E2E8F0; margin-top: 4px; margin-bottom: 8px;")
+        brand_layout.addWidget(div)
 
-        lbl_subtitle = QLabel("TACTICAL PERIMETER AI")
-        lbl_subtitle.setStyleSheet("color: #555A65; font-size: 9px; font-weight: bold; margin-bottom: 16px; margin-left: 2px;")
-        layout.addWidget(lbl_subtitle)
+        layout.addWidget(brand_card)
 
-        # Nav Items
+        # Nav Items with refined icons & labels
         nav_items = [
-            ("Dashboard", 0),
-            ("Target Registry", 1),
-            ("Detection Logs", 2),
-            ("Analytics & KPIs", 3),
-            ("Forensic Image Scan", 4),
-            ("Settings & Config", 5),
+            ("📊  Dashboard", 0),
+            ("🎯  Target Registry", 1),
+            ("📜  Detection Logs", 2),
+            ("📈  Analytics & KPIs", 3),
+            ("🔍  Forensic Scanner", 4),
+            ("⚙️  Settings & Config", 5),
         ]
 
         for text, index in nav_items:
@@ -141,10 +177,23 @@ class MainWindow(QMainWindow):
 
         layout.addStretch()
 
-        # Footer Version Info
-        lbl_ver = QLabel(f"DrishtiX Edge {APP_VERSION}")
-        lbl_ver.setStyleSheet("color: #444855; font-size: 10px;")
-        layout.addWidget(lbl_ver)
+        # Footer Version Info Card
+        ver_card = QFrame()
+        ver_card.setStyleSheet("background-color: #F1F5F9; border-radius: 10px; padding: 6px 10px; border: 1px solid #E2E8F0;")
+        ver_layout = QHBoxLayout(ver_card)
+        ver_layout.setContentsMargins(6, 4, 6, 4)
+        ver_layout.setSpacing(6)
+
+        dot = QLabel("●")
+        dot.setStyleSheet("color: #10B981; font-size: 10px;")
+        ver_layout.addWidget(dot)
+
+        lbl_ver = QLabel(f"DrishtiX {APP_VERSION}")
+        lbl_ver.setStyleSheet("color: #64748B; font-size: 11px; font-weight: 600;")
+        ver_layout.addWidget(lbl_ver)
+        ver_layout.addStretch()
+
+        layout.addWidget(ver_card)
 
         return sidebar
 

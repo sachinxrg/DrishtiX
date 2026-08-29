@@ -53,7 +53,7 @@ class AddTargetDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Register New Target")
         self.setFixedSize(480, 520)
-        self.setStyleSheet("background-color: #1A1D24; color: #E8EAED;")
+        self.setStyleSheet("background-color: #F8FAFC; color: #0F172A;")
         self.selected_image_path: Optional[str] = None
 
         self.detector = FaceDetectionService()
@@ -96,7 +96,7 @@ class AddTargetDialog(QDialog):
         layout.addWidget(QLabel("Target Photo (Face Image) *"))
         photo_row = QHBoxLayout()
         self.lbl_photo_status = QLabel("No image selected")
-        self.lbl_photo_status.setStyleSheet("color: #9AA0A6; font-size: 11px;")
+        self.lbl_photo_status.setStyleSheet("color: #64748B; font-size: 11px;")
         photo_row.addWidget(self.lbl_photo_status, stretch=1)
 
         btn_browse = QPushButton("Browse Image...")
@@ -130,7 +130,7 @@ class AddTargetDialog(QDialog):
         if file_path:
             self.selected_image_path = file_path
             self.lbl_photo_status.setText(Path(file_path).name)
-            self.lbl_photo_status.setStyleSheet("color: #34D399; font-weight: 500;")
+            self.lbl_photo_status.setStyleSheet("color: #10B981; font-weight: 500;")
 
     def _save_target(self) -> None:
         name = self.txt_name.text().strip()
@@ -343,8 +343,16 @@ class RegistryView(QWidget):
         dlg.exec()
 
     def _toggle_active(self, target_id: int, current_status: bool) -> None:
+        new_status = not current_status
         with get_session() as session:
-            TargetDAO.set_active(session, target_id, not current_status)
+            TargetDAO.set_active(session, target_id, new_status)
+            AuditDAO.log_action(
+                session=session,
+                action="TARGET_STATUS_CHANGED",
+                entity_type="TargetRegistry",
+                entity_id=target_id,
+                details=f"Target {'activated' if new_status else 'deactivated'}",
+            )
         GalleryManager.get_instance().reload_gallery()
         self.load_targets()
 

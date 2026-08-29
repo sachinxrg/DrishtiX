@@ -17,7 +17,7 @@ class VideoLabel(QLabel):
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.setStyleSheet("background-color: #07090C; border-radius: 6px;")
+        self.setStyleSheet("background-color: #0F172A; border-radius: 12px;")
         self.setMinimumSize(480, 270)
         self._current_pixmap: Optional[QPixmap] = None
 
@@ -55,13 +55,13 @@ class VideoLabel(QLabel):
             painter.drawPixmap(x, y, scaled)
 
             # Draw subtle tactical grid lines over letterbox borders
-            painter.setPen(QPen(QColor(46, 49, 64, 100), 1, Qt.PenStyle.DashLine))
+            painter.setPen(QPen(QColor(79, 107, 251, 60), 1, Qt.PenStyle.DashLine))
             painter.drawLine(x, 0, x, h)
             painter.drawLine(x + scaled.width(), 0, x + scaled.width(), h)
 
         else:
             # Standby Tactical HUD Placeholder
-            painter.setPen(QPen(QColor(30, 33, 45), 1, Qt.PenStyle.SolidLine))
+            painter.setPen(QPen(QColor(51, 65, 85), 1, Qt.PenStyle.SolidLine))
 
             # Center Crosshair
             cx, cy = w // 2, h // 2
@@ -71,7 +71,7 @@ class VideoLabel(QLabel):
             painter.drawEllipse(QPoint(cx, cy), 16, 16)
 
             # Placeholder Text
-            painter.setPen(QPen(QColor(154, 160, 166), 1))
+            painter.setPen(QPen(QColor(203, 213, 225), 1))
             painter.setFont(QFont("Segoe UI", 12, QFont.Weight.DemiBold))
             painter.drawText(
                 QRect(0, cy + 30, w, 40),
@@ -79,7 +79,7 @@ class VideoLabel(QLabel):
                 "AWAITING VIDEO STREAM",
             )
             painter.setFont(QFont("Segoe UI", 9))
-            painter.setPen(QPen(QColor(85, 90, 101), 1))
+            painter.setPen(QPen(QColor(148, 163, 184), 1))
             painter.drawText(
                 QRect(0, cy + 65, w, 30),
                 Qt.AlignmentFlag.AlignCenter,

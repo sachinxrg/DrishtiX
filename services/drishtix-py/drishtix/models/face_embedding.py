@@ -17,7 +17,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 
 import numpy as np
-from sqlalchemy import DateTime, ForeignKey, LargeBinary, func
+from sqlalchemy import DateTime, ForeignKey, LargeBinary, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from drishtix.models.base import Base
@@ -53,7 +53,13 @@ class FaceEmbedding(Base):
     embedding_vector: Mapped[bytes] = mapped_column(
         LargeBinary,
         nullable=False,
-        comment="128 float32 values as raw bytes (512 bytes)",
+        comment="128 or 512 float32 values as raw bytes",
+    )
+    model_version: Mapped[Optional[str]] = mapped_column(
+        String(50),
+        default="sface_128",
+        nullable=True,
+        comment="Model that produced this embedding (e.g. sface_128, arcface_512)",
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=func.now(), nullable=False

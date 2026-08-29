@@ -9,6 +9,7 @@ Migrated from: com.drishtix.controller.AnalyticsController (Java)
 from typing import Optional
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -79,7 +80,7 @@ class AnalyticsView(QWidget):
         # ─── Header ──────────────────────────────────────────────────
         header = QHBoxLayout()
         lbl_title = QLabel("TACTICAL INTELLIGENCE ANALYTICS")
-        lbl_title.setStyleSheet("font-weight: 700; font-size: 14px; color: #E8EAED; letter-spacing: 0.5px;")
+        lbl_title.setStyleSheet("font-weight: 700; font-size: 14px; color: #0F172A; letter-spacing: 0.5px;")
         header.addWidget(lbl_title)
 
         header.addStretch()
@@ -135,7 +136,7 @@ class AnalyticsView(QWidget):
         top_targets_layout.setSpacing(8)
 
         lbl_top_title = QLabel("TOP IDENTIFIED TARGETS")
-        lbl_top_title.setStyleSheet("font-weight: bold; font-size: 11px; color: #E8EAED;")
+        lbl_top_title.setStyleSheet("font-weight: bold; font-size: 11px; color: #0F172A;")
         top_targets_layout.addWidget(lbl_top_title)
 
         self.top_table = QTableWidget()
@@ -164,10 +165,10 @@ class AnalyticsView(QWidget):
         """Query aggregation metrics and update all widgets/charts."""
         # 1. Update KPIs
         kpis: AnalyticsKPIs = DetectionAnalyticsService.get_kpis()
-        self.kpi_total.set_value(f"{kpis.total_detections:,}", "#4A9EFF")
-        self.kpi_unique.set_value(f"{kpis.unique_targets:,}", "#34D399")
-        self.kpi_confidence.set_value(f"{kpis.avg_confidence * 100:.1f}%", "#FBBF24")
-        self.kpi_cameras.set_value(str(kpis.active_cameras), "#E8EAED")
+        self.kpi_total.set_value(f"{kpis.total_detections:,}", "#4F6BFB")
+        self.kpi_unique.set_value(f"{kpis.unique_targets:,}", "#10B981")
+        self.kpi_confidence.set_value(f"{kpis.avg_confidence * 100:.1f}%", "#F59E0B")
+        self.kpi_cameras.set_value(str(kpis.active_cameras), "#0F172A")
 
         # 2. Update Charts
         hourly_data = DetectionAnalyticsService.get_hourly_distribution()
@@ -199,5 +200,5 @@ class AnalyticsView(QWidget):
             # Hits
             hits_item = QTableWidgetItem(str(item.get("count", 0)))
             hits_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            hits_item.setForeground(Qt.GlobalColor.cyan)
+            hits_item.setForeground(QColor("#4F6BFB"))
             self.top_table.setItem(row, 2, hits_item)

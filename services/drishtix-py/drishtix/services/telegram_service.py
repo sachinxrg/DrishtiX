@@ -11,6 +11,7 @@ import logging
 from pathlib import Path
 from typing import Optional
 
+import threading
 import httpx
 
 logger = logging.getLogger(__name__)
@@ -18,6 +19,9 @@ logger = logging.getLogger(__name__)
 
 class TelegramService:
     """Dispatches tactical alert notifications to Telegram."""
+
+    _instance: Optional["TelegramService"] = None
+    _singleton_lock = threading.Lock()
 
     def __init__(
         self,
@@ -28,6 +32,14 @@ class TelegramService:
         self.bot_token = bot_token
         self.chat_id = chat_id
         self.enabled = enabled
+
+    @classmethod
+    def get_instance(cls) -> "TelegramService":
+        """Thread-safe singleton accessor."""
+        with cls._singleton_lock:
+            if cls._instance is None:
+                cls._instance = cls()
+            return cls._instance
 
     def update_config(self, bot_token: str, chat_id: str, enabled: bool) -> None:
         """Update Telegram credentials."""

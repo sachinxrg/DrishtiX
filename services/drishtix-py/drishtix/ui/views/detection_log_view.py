@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Optional
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QComboBox,
     QFileDialog,
@@ -139,7 +140,7 @@ class DetectionLogView(QWidget):
                 # Confidence
                 item_conf = QTableWidgetItem(log.confidence_display)
                 item_conf.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                item_conf.setForeground(Qt.GlobalColor.green)
+                item_conf.setForeground(QColor("#10B981"))
                 self.table.setItem(row, 3, item_conf)
 
                 # Location

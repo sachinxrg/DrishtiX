@@ -25,7 +25,7 @@ class TacticalBarChart(QFrame):
         layout.setContentsMargins(8, 8, 8, 8)
 
         # Setup dark styled figure
-        self.figure = Figure(figsize=(5, 3), dpi=100, facecolor="#1A1D24")
+        self.figure = Figure(figsize=(5, 3), dpi=100, facecolor="#F8FAFC")
         self.canvas = FigureCanvas(self.figure)
         self.canvas.setStyleSheet("background-color: transparent;")
         layout.addWidget(self.canvas)
@@ -34,11 +34,11 @@ class TacticalBarChart(QFrame):
         self._format_axes()
 
     def _format_axes(self) -> None:
-        self.ax.set_facecolor("#1A1D24")
-        self.ax.tick_params(colors="#9AA0A6", labelsize=9)
+        self.ax.set_facecolor("#F8FAFC")
+        self.ax.tick_params(colors="#64748B", labelsize=9)
         for spine in self.ax.spines.values():
-            spine.set_color("#2E3140")
-        self.ax.grid(True, linestyle="--", alpha=0.2, color="#9AA0A6")
+            spine.set_color("#E2E8F0")
+        self.ax.grid(True, linestyle="--", alpha=0.3, color="#CBD5E1")
 
     def update_data(self, hourly_data: List[Dict[str, int]]) -> None:
         """Render 24-hour bar chart."""
@@ -51,15 +51,15 @@ class TacticalBarChart(QFrame):
         self.ax.bar(
             hours,
             counts,
-            color="#4A9EFF",
-            edgecolor="#3B8BE6",
+            color="#4F6BFB",
+            edgecolor="#3E56E0",
             alpha=0.85,
             width=0.7,
         )
 
-        self.ax.set_title("24-Hour Detection Timeline", color="#E8EAED", fontsize=11, fontweight="bold", pad=8)
-        self.ax.set_xlabel("Hour of Day", color="#9AA0A6", fontsize=9)
-        self.ax.set_ylabel("Detections", color="#9AA0A6", fontsize=9)
+        self.ax.set_title("24-Hour Detection Timeline", color="#0F172A", fontsize=11, fontweight="bold", pad=8)
+        self.ax.set_xlabel("Hour of Day", color="#64748B", fontsize=9)
+        self.ax.set_ylabel("Detections", color="#64748B", fontsize=9)
         self.ax.set_xticks(range(0, 24, 3))
         self.figure.tight_layout()
         self.canvas.draw()
@@ -75,7 +75,7 @@ class TacticalPieChart(QFrame):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(8, 8, 8, 8)
 
-        self.figure = Figure(figsize=(4, 3), dpi=100, facecolor="#1A1D24")
+        self.figure = Figure(figsize=(4, 3), dpi=100, facecolor="#F8FAFC")
         self.canvas = FigureCanvas(self.figure)
         self.canvas.setStyleSheet("background-color: transparent;")
         layout.addWidget(self.canvas)
@@ -85,15 +85,15 @@ class TacticalPieChart(QFrame):
     def update_data(self, category_data: List[Dict[str, object]]) -> None:
         """Render category donut chart."""
         self.ax.clear()
-        self.ax.set_facecolor("#1A1D24")
+        self.ax.set_facecolor("#F8FAFC")
 
         labels = []
         counts = []
         colors = []
 
         color_map = {
-            "CRIMINAL": "#FF4D2E",
-            "MISSING_PERSON": "#00D4FF",
+            "CRIMINAL": "#F43F5E",
+            "MISSING_PERSON": "#06B6D4",
         }
 
         for item in category_data:
@@ -107,7 +107,7 @@ class TacticalPieChart(QFrame):
         if not counts:
             labels = ["No Data"]
             counts = [1]
-            colors = ["#2E3140"]
+            colors = ["#E2E8F0"]
 
         wedges, texts, autotexts = self.ax.pie(
             counts,
@@ -115,15 +115,15 @@ class TacticalPieChart(QFrame):
             autopct="%1.1f%%" if counts != [1] else "",
             startangle=140,
             colors=colors,
-            textprops={"color": "#E8EAED", "fontsize": 9},
-            wedgeprops={"width": 0.5, "edgecolor": "#1A1D24", "linewidth": 2},
+            textprops={"color": "#334155", "fontsize": 9},
+            wedgeprops={"width": 0.5, "edgecolor": "#F8FAFC", "linewidth": 2},
         )
 
         for at in autotexts:
-            at.set_color("#0D0F14")
+            at.set_color("#FFFFFF")
             at.set_fontweight("bold")
 
-        self.ax.set_title("Category Distribution", color="#E8EAED", fontsize=11, fontweight="bold", pad=8)
+        self.ax.set_title("Category Distribution", color="#0F172A", fontsize=11, fontweight="bold", pad=8)
         self.figure.tight_layout()
         self.canvas.draw()
 
@@ -138,7 +138,7 @@ class TacticalLineChart(QFrame):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(8, 8, 8, 8)
 
-        self.figure = Figure(figsize=(6, 3), dpi=100, facecolor="#1A1D24")
+        self.figure = Figure(figsize=(6, 3), dpi=100, facecolor="#F8FAFC")
         self.canvas = FigureCanvas(self.figure)
         self.canvas.setStyleSheet("background-color: transparent;")
         layout.addWidget(self.canvas)
@@ -147,11 +147,11 @@ class TacticalLineChart(QFrame):
         self._format_axes()
 
     def _format_axes(self) -> None:
-        self.ax.set_facecolor("#1A1D24")
-        self.ax.tick_params(colors="#9AA0A6", labelsize=8)
+        self.ax.set_facecolor("#F8FAFC")
+        self.ax.tick_params(colors="#64748B", labelsize=8)
         for spine in self.ax.spines.values():
-            spine.set_color("#2E3140")
-        self.ax.grid(True, linestyle="--", alpha=0.2, color="#9AA0A6")
+            spine.set_color("#E2E8F0")
+        self.ax.grid(True, linestyle="--", alpha=0.3, color="#CBD5E1")
 
     def update_data(self, trend_data: List[Dict[str, object]]) -> None:
         """Render daily trend line."""
@@ -169,17 +169,17 @@ class TacticalLineChart(QFrame):
             dates,
             counts,
             marker="o",
-            color="#34D399",
+            color="#10B981",
             linewidth=2,
             markersize=5,
-            markerfacecolor="#0D0F14",
-            markeredgecolor="#34D399",
+            markerfacecolor="#F8FAFC",
+            markeredgecolor="#10B981",
             markeredgewidth=2,
         )
 
-        self.ax.fill_between(dates, counts, color="#34D399", alpha=0.15)
+        self.ax.fill_between(dates, counts, color="#10B981", alpha=0.10)
 
-        self.ax.set_title("Multi-Day Detection Trend", color="#E8EAED", fontsize=11, fontweight="bold", pad=8)
-        self.ax.set_ylabel("Incidents", color="#9AA0A6", fontsize=9)
+        self.ax.set_title("Multi-Day Detection Trend", color="#0F172A", fontsize=11, fontweight="bold", pad=8)
+        self.ax.set_ylabel("Incidents", color="#64748B", fontsize=9)
         self.figure.tight_layout()
         self.canvas.draw()

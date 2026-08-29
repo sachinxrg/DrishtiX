@@ -15,6 +15,8 @@ detection:
   inference_interval: 1
 
 recognition:
+  engine: "sface"
+  model_pack: "buffalo_s"
   model_path: "models/face_recognition_sface_2021dec.onnx"
   match_threshold: 0.58
   pool_size: 4

@@ -36,6 +36,12 @@ SFACE_EMBEDDING_DIM = 128             # SFace output vector dimensionality
 SFACE_INPUT_SIZE = (112, 112)         # Aligned face crop input resolution
 EMBEDDING_BYTE_SIZE = SFACE_EMBEDDING_DIM * 4  # 128 float32s → 512 bytes
 
+INSIGHTFACE_EMBEDDING_DIM = 512       # InsightFace / ArcFace output vector dimensionality
+INSIGHTFACE_DEFAULT_PACK = "buffalo_s"  # Default model pack (buffalo_s for CPU, buffalo_l for GPU)
+INSIGHTFACE_MATCH_THRESHOLD = 0.45    # ArcFace cosine similarity threshold
+RECOGNITION_ENGINE_SFACE = "sface"
+RECOGNITION_ENGINE_INSIGHTFACE = "insightface"
+
 # ─── Alert System ──────────────────────────────────────────────────
 DEFAULT_ALERT_COOLDOWN_SECONDS = 30
 MAX_ALERT_QUEUE_SIZE = 50

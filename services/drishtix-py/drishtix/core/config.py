@@ -47,11 +47,22 @@ class DetectionSettings(BaseModel):
 
 
 class RecognitionSettings(BaseModel):
-    """SFace face recognition model configuration."""
+    """Face recognition model configuration (SFace or InsightFace)."""
 
+    engine: str = "sface"                 # "sface" (128-D) or "insightface" (512-D)
+    model_pack: str = "buffalo_s"         # "buffalo_s" or "buffalo_l"
     model_path: str = "models/face_recognition_sface_2021dec.onnx"
     match_threshold: float = Field(default=0.45, ge=0.1, le=1.0)
     pool_size: int = Field(default=4, ge=1, le=16)
+
+    @field_validator("engine")
+    @classmethod
+    def validate_engine(cls, v: str) -> str:
+        valid = {"sface", "insightface"}
+        lower = v.lower()
+        if lower not in valid:
+            raise ValueError(f"Invalid recognition engine '{v}'. Must be one of: {valid}")
+        return lower
 
 
 class AlertSettings(BaseModel):
@@ -63,12 +74,15 @@ class AlertSettings(BaseModel):
     telegram_enabled: bool = False
     telegram_bot_token: str = ""
     telegram_chat_id: str = ""
+    snapshot_retention_days: int = Field(default=30, ge=1, le=365, description="Auto-delete snapshots older than this")
 
 
 class DatabaseSettings(BaseModel):
     """SQLite database configuration."""
 
     path: str = "data/drishtix.db"
+    log_retention_days: int = Field(default=30, ge=1, le=365, description="Auto-delete detection logs older than this")
+    encryption_key: str = Field(default="", description="SQLCipher encryption key. Empty = no encryption.")
 
 
 class TrackingSettings(BaseModel):

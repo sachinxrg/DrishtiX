@@ -2,7 +2,8 @@
 DrishtiX v4.0 — Tactical Command Status Bar.
 
 Real-time bottom bar showing system diagnostics, rolling FPS, camera health,
-database connectivity, active target count, and memory RSS usage.
+database connectivity, active target count, and memory RSS usage
+enclosed in sleek frosted telemetry capsules.
 """
 
 import os
@@ -19,12 +20,12 @@ from drishtix.services.gallery_manager import GalleryManager
 
 
 class StatusBar(QFrame):
-    """Bottom telemetry and diagnostics bar."""
+    """Bottom frosted telemetry and diagnostics bar."""
 
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self.setObjectName("StatusBar")
-        self.setFixedHeight(STATUS_BAR_HEIGHT)
+        self.setFixedHeight(STATUS_BAR_HEIGHT + 4)  # 36px height
 
         self._process = psutil.Process(os.getpid())
 
@@ -38,44 +39,62 @@ class StatusBar(QFrame):
 
     def _init_ui(self) -> None:
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(16, 0, 16, 0)
-        layout.setSpacing(24)
+        layout.setContentsMargins(14, 0, 14, 0)
+        layout.setSpacing(10)
 
-        # 1. System Status
+        # 1. System Status Capsule
         self.lbl_system = QLabel("● SYSTEM READY")
-        self.lbl_system.setStyleSheet("color: #34D399; font-weight: bold; font-size: 11px;")
+        self.lbl_system.setStyleSheet(
+            "background-color: #ECFDF5; color: #059669; border: 1px solid #A7F3D0; "
+            "border-radius: 6px; padding: 2px 8px; font-weight: 800; font-size: 10.5px;"
+        )
         layout.addWidget(self.lbl_system)
 
-        # 2. Camera Status
+        # 2. Camera Status Capsule
         self.lbl_camera = QLabel("CAM: DISCONNECTED")
-        self.lbl_camera.setStyleSheet("color: #FF4D2E; font-size: 11px; font-weight: 500;")
+        self.lbl_camera.setStyleSheet(
+            "background-color: #FFF1F2; color: #F43F5E; border: 1px solid #FECDD3; "
+            "border-radius: 6px; padding: 2px 8px; font-size: 10.5px; font-weight: 700;"
+        )
         layout.addWidget(self.lbl_camera)
 
-        # 3. FPS Metric
+        # 3. FPS Metric Capsule
         self.lbl_fps = QLabel("FPS: 0.0")
-        self.lbl_fps.setStyleSheet("color: #9AA0A6; font-family: monospace; font-size: 11px;")
+        self.lbl_fps.setStyleSheet(
+            "background-color: #F1F5F9; color: #64748B; border: 1px solid #E2E8F0; "
+            "border-radius: 6px; padding: 2px 8px; font-family: monospace; font-size: 10.5px; font-weight: 700;"
+        )
         layout.addWidget(self.lbl_fps)
 
-        # 4. Database Status
+        # 4. Database Status Capsule
         self.lbl_db = QLabel("DB: CONNECTED")
-        self.lbl_db.setStyleSheet("color: #34D399; font-size: 11px;")
+        self.lbl_db.setStyleSheet(
+            "background-color: #ECFDF5; color: #059669; border: 1px solid #A7F3D0; "
+            "border-radius: 6px; padding: 2px 8px; font-size: 10.5px; font-weight: 700;"
+        )
         layout.addWidget(self.lbl_db)
 
-        # 5. Active Target Count
+        # 5. Active Target Count Capsule
         self.lbl_targets = QLabel("TARGETS: 0")
-        self.lbl_targets.setStyleSheet("color: #4A9EFF; font-size: 11px; font-weight: 500;")
+        self.lbl_targets.setStyleSheet(
+            "background-color: #EEF2FF; color: #4F6BFB; border: 1px solid #C7D2FE; "
+            "border-radius: 6px; padding: 2px 8px; font-size: 10.5px; font-weight: 700;"
+        )
         layout.addWidget(self.lbl_targets)
 
         layout.addStretch()
 
-        # 6. Memory RSS Usage
+        # 6. Memory RSS Usage Capsule
         self.lbl_memory = QLabel("RAM: 0 MB")
-        self.lbl_memory.setStyleSheet("color: #9AA0A6; font-family: monospace; font-size: 11px;")
+        self.lbl_memory.setStyleSheet(
+            "background-color: #F1F5F9; color: #64748B; border: 1px solid #E2E8F0; "
+            "border-radius: 6px; padding: 2px 8px; font-family: monospace; font-size: 10.5px; font-weight: 700;"
+        )
         layout.addWidget(self.lbl_memory)
 
-        # 7. Version
+        # 7. Version Pill
         lbl_version = QLabel("v4.0.0-tactical")
-        lbl_version.setStyleSheet("color: #555A65; font-size: 10px;")
+        lbl_version.setStyleSheet("color: #94A3B8; font-size: 10.5px; font-weight: 600; padding: 2px 4px;")
         layout.addWidget(lbl_version)
 
     def _wire_signals(self) -> None:
@@ -86,25 +105,46 @@ class StatusBar(QFrame):
         signal_bus.gallery_reloaded.connect(self._on_gallery_reloaded)
 
     def _on_fps_updated(self, fps: float) -> None:
-        color = "#34D399" if fps >= 15.0 else ("#FBBF24" if fps >= 8.0 else "#FF4D2E")
+        if fps >= 15.0:
+            bg, fg, border = "#ECFDF5", "#059669", "#A7F3D0"
+        elif fps >= 8.0:
+            bg, fg, border = "#FFFBEB", "#D97706", "#FDE68A"
+        else:
+            bg, fg, border = "#FFF1F2", "#F43F5E", "#FECDD3"
+
         self.lbl_fps.setText(f"FPS: {fps:.1f}")
-        self.lbl_fps.setStyleSheet(f"color: {color}; font-family: monospace; font-weight: bold; font-size: 11px;")
+        self.lbl_fps.setStyleSheet(
+            f"background-color: {bg}; color: {fg}; border: 1px solid {border}; "
+            "border-radius: 6px; padding: 2px 8px; font-family: monospace; font-weight: 800; font-size: 10.5px;"
+        )
 
     def _on_camera_status(self, connected: bool) -> None:
         if connected:
             self.lbl_camera.setText("CAM: ONLINE")
-            self.lbl_camera.setStyleSheet("color: #34D399; font-weight: bold; font-size: 11px;")
+            self.lbl_camera.setStyleSheet(
+                "background-color: #ECFDF5; color: #059669; border: 1px solid #A7F3D0; "
+                "border-radius: 6px; padding: 2px 8px; font-weight: 800; font-size: 10.5px;"
+            )
         else:
             self.lbl_camera.setText("CAM: OFFLINE")
-            self.lbl_camera.setStyleSheet("color: #FF4D2E; font-weight: bold; font-size: 11px;")
+            self.lbl_camera.setStyleSheet(
+                "background-color: #FFF1F2; color: #F43F5E; border: 1px solid #FECDD3; "
+                "border-radius: 6px; padding: 2px 8px; font-weight: 800; font-size: 10.5px;"
+            )
 
     def _on_db_status(self, connected: bool) -> None:
         if connected:
             self.lbl_db.setText("DB: ONLINE")
-            self.lbl_db.setStyleSheet("color: #34D399; font-size: 11px;")
+            self.lbl_db.setStyleSheet(
+                "background-color: #ECFDF5; color: #059669; border: 1px solid #A7F3D0; "
+                "border-radius: 6px; padding: 2px 8px; font-size: 10.5px; font-weight: 700;"
+            )
         else:
             self.lbl_db.setText("DB: OFFLINE")
-            self.lbl_db.setStyleSheet("color: #FF4D2E; font-size: 11px;")
+            self.lbl_db.setStyleSheet(
+                "background-color: #FFF1F2; color: #F43F5E; border: 1px solid #FECDD3; "
+                "border-radius: 6px; padding: 2px 8px; font-size: 10.5px; font-weight: 700;"
+            )
 
     def _on_gallery_reloaded(self, count: int) -> None:
         self.lbl_targets.setText(f"TARGETS: {count}")

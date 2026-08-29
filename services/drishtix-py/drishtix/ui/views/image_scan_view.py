@@ -57,13 +57,13 @@ class ImageScanView(QWidget):
         # ─── Top Control Toolbar ─────────────────────────────────────
         toolbar = QHBoxLayout()
         lbl_title = QLabel("FORENSIC CROWD IMAGE SCANNER")
-        lbl_title.setStyleSheet("font-weight: 700; font-size: 13px; color: #E8EAED; letter-spacing: 0.5px;")
+        lbl_title.setStyleSheet("font-weight: 700; font-size: 13px; color: #0F172A; letter-spacing: 0.5px;")
         toolbar.addWidget(lbl_title)
 
         toolbar.addStretch()
 
         self.lbl_status = QLabel("Load high-resolution image to analyze")
-        self.lbl_status.setStyleSheet("color: #9AA0A6; font-size: 12px; margin-right: 12px;")
+        self.lbl_status.setStyleSheet("color: #64748B; font-size: 12px; margin-right: 12px;")
         toolbar.addWidget(self.lbl_status)
 
         btn_load = QPushButton("Select Image...")
@@ -98,7 +98,7 @@ class ImageScanView(QWidget):
         matches_layout.setSpacing(4)
 
         lbl_matches_hdr = QLabel("IDENTIFIED TARGETS IN IMAGE")
-        lbl_matches_hdr.setStyleSheet("font-weight: bold; font-size: 11px; color: #9AA0A6;")
+        lbl_matches_hdr.setStyleSheet("font-weight: bold; font-size: 11px; color: #64748B;")
         matches_layout.addWidget(lbl_matches_hdr)
 
         self.scroll_matches = QScrollArea()
@@ -112,7 +112,7 @@ class ImageScanView(QWidget):
         self.matches_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
         self.lbl_no_matches = QLabel("No targets identified in current image")
-        self.lbl_no_matches.setStyleSheet("color: #555A65; font-size: 11px;")
+        self.lbl_no_matches.setStyleSheet("color: #94A3B8; font-size: 11px;")
         self.matches_layout.addWidget(self.lbl_no_matches)
 
         self.scroll_matches.setWidget(self.matches_container)
@@ -134,7 +134,7 @@ class ImageScanView(QWidget):
                 self.image_label.set_frame(mat_to_qpixmap(cv_img))
                 self.btn_scan.setEnabled(True)
                 self.lbl_status.setText(f"Ready: {Path(file_path).name} ({cv_img.shape[1]}x{cv_img.shape[0]})")
-                self.lbl_status.setStyleSheet("color: #34D399;")
+                self.lbl_status.setStyleSheet("color: #10B981;")
                 self._clear_matches()
 
     def _clear_matches(self) -> None:
@@ -143,7 +143,7 @@ class ImageScanView(QWidget):
             if item.widget():
                 item.widget().deleteLater()
         self.lbl_no_matches = QLabel("Click 'Run Deep Scan' to analyze faces")
-        self.lbl_no_matches.setStyleSheet("color: #555A65; font-size: 11px;")
+        self.lbl_no_matches.setStyleSheet("color: #94A3B8; font-size: 11px;")
         self.matches_layout.addWidget(self.lbl_no_matches)
 
     def _run_scan(self) -> None:
@@ -151,7 +151,7 @@ class ImageScanView(QWidget):
             return
 
         self.lbl_status.setText("Running YuNet multi-target detection & SFace matching...")
-        self.lbl_status.setStyleSheet("color: #FBBF24;")
+        self.lbl_status.setStyleSheet("color: #F59E0B;")
         self.progress_bar.show()
         self.progress_bar.setRange(0, 0)  # Indeterminate animation
 
@@ -173,6 +173,10 @@ class ImageScanView(QWidget):
         # Step 2: Extract embeddings & match against gallery
         for det in detections:
             emb = self.recognizer.extract_embedding(self._loaded_image, det.raw_row)
+            demographics = self.recognizer.estimate_demographics(self._loaded_image)
+            face_age = demographics.age if demographics else None
+            face_gender = demographics.gender if demographics else None
+
             if emb is not None:
                 match = self.gallery.match_embedding(emb)
                 if match is not None:
@@ -184,6 +188,8 @@ class ImageScanView(QWidget):
                         name=match.target.full_name,
                         category=match.target.category,
                         confidence=match.confidence,
+                        age=face_age,
+                        gender=face_gender,
                     )
                     # Trigger alert record
                     self.alert_service.process_match(
@@ -193,13 +199,15 @@ class ImageScanView(QWidget):
                         location_tag="Forensic Image Scan",
                     )
                 else:
-                    # Draw Unknown face box
+                    # Draw Unknown face box with demographics
                     draw_tactical_bbox(
                         frame=annotated,
                         bbox=det.bbox,
                         name="Unknown",
                         category=None,
                         confidence=None,
+                        age=face_age,
+                        gender=face_gender,
                     )
             else:
                 draw_tactical_bbox(
@@ -208,6 +216,8 @@ class ImageScanView(QWidget):
                     name="Unknown",
                     category=None,
                     confidence=None,
+                    age=face_age,
+                    gender=face_gender,
                 )
 
         # Update Display Frame
@@ -224,15 +234,17 @@ class ImageScanView(QWidget):
                     "category": m.target.category,
                     "case_number": m.target.case_number or "N/A",
                     "confidence": m.confidence,
+                    "age": face_age,
+                    "gender": face_gender,
                 }
                 card = AlertCard(card_data, self.matches_container)
                 self.matches_layout.addWidget(card)
         else:
             lbl_none = QLabel("No registered watchlist targets recognized in image.")
-            lbl_none.setStyleSheet("color: #9AA0A6; font-size: 11px; padding: 10px;")
+            lbl_none.setStyleSheet("color: #64748B; font-size: 11px; padding: 10px;")
             self.matches_layout.addWidget(lbl_none)
 
         self.lbl_status.setText(
             f"Scan Complete: {detected_count} faces detected, {len(matches_found)} matched in {elapsed:.0f}ms"
         )
-        self.lbl_status.setStyleSheet("color: #34D399; font-weight: bold;")
+        self.lbl_status.setStyleSheet("color: #10B981; font-weight: bold;")

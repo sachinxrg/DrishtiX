@@ -54,6 +54,7 @@ class EmbeddingDAO:
         target_id: int,
         vector: np.ndarray,
         source_image_id: Optional[int] = None,
+        model_version: Optional[str] = None,
     ) -> FaceEmbedding:
         """
         Store a new embedding vector for a target.
@@ -61,22 +62,29 @@ class EmbeddingDAO:
         Args:
             session: SQLAlchemy session.
             target_id: ID of the target this embedding belongs to.
-            vector: 128-dimensional numpy float32 array.
+            vector: 128 or 512-dimensional numpy float32 array.
             source_image_id: Optional ID of the source TargetImage.
+            model_version: Model identifier (e.g. 'sface_128', 'arcface_512').
 
         Returns:
             The created FaceEmbedding entity.
         """
+        # Auto-detect model version from vector dimensionality if not specified
+        if model_version is None:
+            dim = vector.shape[0] if vector.ndim == 1 else 0
+            model_version = f"auto_{dim}d"
+
         embedding = FaceEmbedding(
             target_id=target_id,
             source_image_id=source_image_id,
             embedding_vector=FaceEmbedding.from_vector(vector),
+            model_version=model_version,
         )
         session.add(embedding)
         session.flush()
         logger.info(
-            "Embedding created: id=%d, target_id=%d, dims=%d",
-            embedding.embedding_id, target_id, len(vector),
+            "Embedding created: id=%d, target_id=%d, dims=%d, model=%s",
+            embedding.embedding_id, target_id, len(vector), model_version,
         )
         return embedding
 

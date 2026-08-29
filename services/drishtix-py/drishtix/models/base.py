@@ -25,12 +25,16 @@ class Base(DeclarativeBase):
     pass
 
 
-def create_db_engine(db_path: str = "data/drishtix.db") -> Engine:
+def create_db_engine(db_path: str = "data/drishtix.db", encryption_key: str = "") -> Engine:
     """
     Create and configure the SQLite engine with WAL mode and foreign keys.
 
+    When encryption_key is non-empty, applies PRAGMA key for SQLCipher
+    at-rest encryption (requires pysqlcipher3 or equivalent driver).
+
     Args:
         db_path: Relative or absolute path to the SQLite database file.
+        encryption_key: Optional SQLCipher encryption passphrase.
 
     Returns:
         Configured SQLAlchemy Engine instance.
@@ -47,10 +51,17 @@ def create_db_engine(db_path: str = "data/drishtix.db") -> Engine:
         echo=False,
     )
 
+    # Capture encryption_key in closure for the event listener
+    _enc_key = encryption_key
+
     # Enable WAL mode and foreign keys on every new connection
     @event.listens_for(engine, "connect")
     def _set_sqlite_pragmas(dbapi_conn, connection_record):
         cursor = dbapi_conn.cursor()
+        # SQLCipher encryption: must be first PRAGMA after connection
+        if _enc_key:
+            cursor.execute(f"PRAGMA key='{_enc_key}'")
+            logger.info("SQLCipher encryption enabled for database.")
         cursor.execute("PRAGMA journal_mode=WAL")
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.execute("PRAGMA busy_timeout=5000")
