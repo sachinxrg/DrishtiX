@@ -14,7 +14,6 @@ import asyncio
 import logging
 import re
 import time
-from pathlib import Path
 from typing import List, Optional, Set
 
 import cv2
@@ -33,6 +32,7 @@ from drishtix.models.target_registry import TargetRegistry
 from drishtix.services.face_detection import FaceDetectionService
 from drishtix.services.face_recognition import FaceRecognitionService
 from drishtix.services.gallery_manager import GalleryManager
+from drishtix.utils.path_utils import to_stored_path
 
 logger = logging.getLogger(__name__)
 
@@ -230,6 +230,12 @@ class IngestionService:
                                         description_parts.append(f"⚠ {item['warning_message']}")
                                     desc = " | ".join(description_parts) if description_parts else None
 
+                                    # Stored relative to the project root, not
+                                    # to cwd, so the downloaded photo is still
+                                    # found on a launch from another directory.
+                                    # Computed once here instead of twice below.
+                                    rel_image_path = to_stored_path(local_path)
+
                                     with get_session() as session:
                                         # Create Target
                                         target = TargetRegistry(
@@ -237,7 +243,7 @@ class IngestionService:
                                             category=category,
                                             case_number=case_number,
                                             description=desc,
-                                            profile_image_path=str(local_path.relative_to(Path.cwd())),
+                                            profile_image_path=rel_image_path,
                                             is_active=True,
                                         )
                                         TargetDAO.create(session, target)
@@ -245,7 +251,7 @@ class IngestionService:
                                         # Create TargetImage
                                         tgt_img = TargetImage(
                                             target_id=target.target_id,
-                                            image_path=str(local_path.relative_to(Path.cwd())),
+                                            image_path=rel_image_path,
                                             image_order=0,
                                         )
                                         TargetDAO.add_image(session, tgt_img)

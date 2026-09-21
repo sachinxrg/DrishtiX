@@ -10,8 +10,8 @@ as compile-time defaults and structural limits.
 from pathlib import Path
 
 # ─── Application Identity ──────────────────────────────────────────
-APP_NAME = "DrishtiX v4.0"
-APP_VERSION = "4.0.0"
+APP_NAME = "DrishtiX v5.0"
+APP_VERSION = "5.0.0"
 
 # ─── Paths ──────────────────────────────────────────────────────────
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -54,10 +54,10 @@ CAPTURE_TARGET_FPS = 30
 MAX_STALE_TRACKER_FRAMES = 10
 
 # ─── UI Layout ──────────────────────────────────────────────────────
-NAV_SIDEBAR_WIDTH = 220
-ALERT_SIDEBAR_WIDTH = 380
-STATUS_BAR_HEIGHT = 32
-ALERT_CARD_THUMBNAIL_SIZE = 64
+NAV_SIDEBAR_WIDTH = 240
+ALERT_SIDEBAR_WIDTH = 340
+STATUS_BAR_HEIGHT = 36
+ALERT_CARD_THUMBNAIL_SIZE = 52
 STATUS_UPDATE_INTERVAL_MS = 500
 
 # ─── Camera ─────────────────────────────────────────────────────────

@@ -13,8 +13,8 @@ the same person across consecutive frames.
 """
 
 import logging
-import time
 import threading
+import time
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta

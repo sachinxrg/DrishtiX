@@ -1,11 +1,12 @@
 """
-DrishtiX v4.0 — Target Registry View.
+DrishtiX v5.0 — Target Registry View.
 
 Management interface for registering, updating, and removing watchlist targets
-with automatic SFace embedding extraction upon face photo upload.
+with automatic SFace/ArcFace embedding extraction upon face photo upload.
 """
 
 import logging
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -39,9 +40,18 @@ from drishtix.dao.session import get_session
 from drishtix.dao.target_dao import TargetDAO
 from drishtix.models.target_image import TargetImage
 from drishtix.models.target_registry import TargetRegistry
+from drishtix.services.erasure_service import ErasureService
 from drishtix.services.face_detection import FaceDetectionService
 from drishtix.services.face_recognition import FaceRecognitionService
 from drishtix.services.gallery_manager import GalleryManager
+from drishtix.ui.icons import render_svg_icon
+from drishtix.ui.style_utils import apply_class
+from drishtix.ui.theme_tokens import Color, Spacing
+from drishtix.ui.widgets.empty_state import EmptyStateWidget
+from drishtix.ui.widgets.glass_card import CardVariant, GlassCard
+from drishtix.ui.widgets.pill_badge import PillBadge, PillStatus
+from drishtix.ui.widgets.section_header import SectionHeader
+from drishtix.utils.path_utils import resolve_stored_path, to_stored_path
 
 logger = logging.getLogger(__name__)
 
@@ -52,8 +62,8 @@ class AddTargetDialog(QDialog):
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self.setWindowTitle("Register New Target")
-        self.setFixedSize(480, 520)
-        self.setStyleSheet("background-color: #F8FAFC; color: #0F172A;")
+        self.setFixedSize(500, 540)
+        apply_class(self, "glass-card-heavy")
         self.selected_image_path: Optional[str] = None
 
         self.detector = FaceDetectionService()
@@ -63,8 +73,17 @@ class AddTargetDialog(QDialog):
 
     def _init_ui(self) -> None:
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setContentsMargins(24, 24, 24, 24)
         layout.setSpacing(12)
+
+        # Dialog Header
+        hdr = QLabel("REGISTER WATCHLIST TARGET")
+        apply_class(hdr, "type-h2")
+        layout.addWidget(hdr)
+
+        sub = QLabel("Upload biometric face image to compute neural embedding vector.")
+        apply_class(sub, "type-caption")
+        layout.addWidget(sub)
 
         # 1. Full Name
         layout.addWidget(QLabel("Full Name *"))
@@ -75,8 +94,8 @@ class AddTargetDialog(QDialog):
         # 2. Category
         layout.addWidget(QLabel("Classification Category *"))
         self.cmb_category = QComboBox()
-        self.cmb_category.addItem("CRIMINAL", TargetCategory.CRIMINAL.value)
-        self.cmb_category.addItem("MISSING_PERSON", TargetCategory.MISSING_PERSON.value)
+        self.cmb_category.addItem("CRIMINAL (Red Alert)", TargetCategory.CRIMINAL.value)
+        self.cmb_category.addItem("MISSING PERSON (Cyan Alert)", TargetCategory.MISSING_PERSON.value)
         layout.addWidget(self.cmb_category)
 
         # 3. Case Number
@@ -86,17 +105,17 @@ class AddTargetDialog(QDialog):
         layout.addWidget(self.txt_case)
 
         # 4. Description
-        layout.addWidget(QLabel("Notes / Description"))
+        layout.addWidget(QLabel("Notes / Identifying Description"))
         self.txt_desc = QTextEdit()
-        self.txt_desc.setPlaceholderText("Identifying marks, known locations, etc.")
-        self.txt_desc.setFixedHeight(60)
+        self.txt_desc.setPlaceholderText("Identifying marks, tattoos, known aliases...")
+        self.txt_desc.setFixedHeight(54)
         layout.addWidget(self.txt_desc)
 
         # 5. Photo Picker
         layout.addWidget(QLabel("Target Photo (Face Image) *"))
         photo_row = QHBoxLayout()
         self.lbl_photo_status = QLabel("No image selected")
-        self.lbl_photo_status.setStyleSheet("color: #64748B; font-size: 11px;")
+        apply_class(self.lbl_photo_status, "type-caption")
         photo_row.addWidget(self.lbl_photo_status, stretch=1)
 
         btn_browse = QPushButton("Browse Image...")
@@ -114,7 +133,7 @@ class AddTargetDialog(QDialog):
         btn_row.addWidget(btn_cancel)
 
         self.btn_save = QPushButton("Register Target")
-        self.btn_save.setProperty("class", "btn-primary")
+        apply_class(self.btn_save, "btn-primary")
         self.btn_save.clicked.connect(self._save_target)
         btn_row.addWidget(self.btn_save)
 
@@ -125,12 +144,12 @@ class AddTargetDialog(QDialog):
             self,
             "Select Target Photo",
             "",
-            "Images (*.png *.jpg *.jpeg *.bmp)",
+            "Images (*.png *.jpg *.jpeg *.bmp *.webp)",
         )
         if file_path:
             self.selected_image_path = file_path
-            self.lbl_photo_status.setText(Path(file_path).name)
-            self.lbl_photo_status.setStyleSheet("color: #10B981; font-weight: 500;")
+            self.lbl_photo_status.setText(f"✓ {Path(file_path).name}")
+            self.lbl_photo_status.setStyleSheet(f"color: {Color.SAFE_BOLD}; font-weight: 600;")
 
     def _save_target(self) -> None:
         name = self.txt_name.text().strip()
@@ -142,7 +161,6 @@ class AddTargetDialog(QDialog):
             QMessageBox.warning(self, "Validation Error", "Target photo is required for facial recognition.")
             return
 
-        # Load image with OpenCV
         cv_img = cv2.imread(self.selected_image_path)
         if cv_img is None:
             QMessageBox.critical(self, "Image Error", "Failed to load selected image file.")
@@ -151,7 +169,6 @@ class AddTargetDialog(QDialog):
         # Detect face & extract embedding
         detections = self.detector.detect_faces(cv_img)
         if not detections:
-            # SFace direct extraction fallback if YuNet doesn't find face landmarks
             embedding = self.recognizer.extract_embedding(cv_img)
         else:
             best_det = max(detections, key=lambda d: d.confidence)
@@ -164,11 +181,13 @@ class AddTargetDialog(QDialog):
         # Copy image to GALLERY_DIR
         GALLERY_DIR.mkdir(parents=True, exist_ok=True)
         sanitized = "".join(c for c in name if c.isalnum() or c in (" ", "_")).rstrip()
-        dest_filename = f"target_{sanitized[:20].replace(' ', '_')}_{Path(self.selected_image_path).suffix}"
-        dest_path = GALLERY_DIR / dest_filename
+        stem = sanitized[:20].replace(" ", "_") or "target"
+        suffix = Path(self.selected_image_path).suffix or ".jpg"
+        stamp = datetime.now().strftime("%Y%m%d%H%M%S%f")
+        dest_path = GALLERY_DIR / f"target_{stem}_{stamp}{suffix}"
         cv2.imwrite(str(dest_path), cv_img)
 
-        rel_path = str(dest_path.relative_to(Path.cwd()))
+        rel_path = to_stored_path(dest_path)
 
         # Save to SQLite
         try:
@@ -183,7 +202,6 @@ class AddTargetDialog(QDialog):
                 )
                 TargetDAO.create(session, target)
 
-                # Save TargetImage
                 tgt_img = TargetImage(
                     target_id=target.target_id,
                     image_path=rel_path,
@@ -191,7 +209,6 @@ class AddTargetDialog(QDialog):
                 )
                 TargetDAO.add_image(session, tgt_img)
 
-                # Save FaceEmbedding
                 EmbeddingDAO.create(
                     session=session,
                     target_id=target.target_id,
@@ -199,7 +216,6 @@ class AddTargetDialog(QDialog):
                     source_image_id=tgt_img.image_id,
                 )
 
-                # Audit
                 AuditDAO.log_action(
                     session=session,
                     action="TARGET_CREATED",
@@ -208,10 +224,8 @@ class AddTargetDialog(QDialog):
                     details=f"Created target '{name}' ({target.category})",
                 )
 
-            # Reload in-memory gallery
             GalleryManager.get_instance().reload_gallery()
             signal_bus.targets_changed.emit()
-
             self.accept()
         except Exception as e:
             logger.error("Failed to register target: %s", e)
@@ -229,16 +243,30 @@ class RegistryView(QWidget):
 
     def _init_ui(self) -> None:
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(16, 16, 16, 16)
-        layout.setSpacing(12)
+        layout.setContentsMargins(Spacing.LG, Spacing.LG, Spacing.LG, Spacing.LG)
+        layout.setSpacing(Spacing.MD)
+
+        # ─── Section Header ──────────────────────────────────────────
+        header = SectionHeader(
+            "TARGET WATCHLIST REGISTRY",
+            "Register, monitor and manage biometric target identities",
+            icon="target",
+        )
+        self.badge_count = PillBadge("0 TARGETS", PillStatus.NEUTRAL)
+        header.add_action(self.badge_count)
+        layout.addWidget(header)
 
         # ─── Action Toolbar ──────────────────────────────────────────
-        toolbar = QHBoxLayout()
+        filter_card = QFrame()
+        apply_class(filter_card, "neu-inset")
+        toolbar = QHBoxLayout(filter_card)
+        toolbar.setContentsMargins(10, 8, 10, 8)
         toolbar.setSpacing(10)
 
         # Search box
         self.txt_search = QLineEdit()
-        self.txt_search.setPlaceholderText("🔍 Search targets by name or case number...")
+        self.txt_search.setPlaceholderText("Search targets by name or case number...")
+        self.txt_search.setClearButtonEnabled(True)
         self.txt_search.setFixedWidth(280)
         self.txt_search.textChanged.connect(self._on_search_changed)
         toolbar.addWidget(self.txt_search)
@@ -253,37 +281,65 @@ class RegistryView(QWidget):
 
         toolbar.addStretch()
 
-        btn_add = QPushButton("+ Register New Target")
-        btn_add.setProperty("class", "btn-primary")
+        btn_add = QPushButton("Register New Target")
+        apply_class(btn_add, "btn-primary")
+        btn_add.setIcon(render_svg_icon("user_plus", normal_color=Color.WHITE, size=15))
         btn_add.clicked.connect(self._open_add_dialog)
         toolbar.addWidget(btn_add)
 
-        layout.addLayout(toolbar)
+        layout.addWidget(filter_card)
 
-        # ─── Target Table ────────────────────────────────────────────
+        # ─── Target Table in GlassCard ────────────────────────────────
+        table_card = GlassCard(variant=CardVariant.GLASS)
+        table_card.set_accessible_info("Target Watchlist", "List of registered watchlist targets")
+        card_layout = table_card.content_layout()
+        card_layout.setContentsMargins(8, 8, 8, 8)
+
         self.table = QTableWidget()
-        self.table.setColumnCount(6)
+        card_layout.addWidget(self.table)
+
+        # Empty state widget
+        self.empty_state = EmptyStateWidget(
+            icon="target",
+            message="No Watchlist Targets Registered\nClick 'Register New Target' to enroll a face photo into the gallery.",
+            action_text="Register Target",
+            action_callback=self._open_add_dialog,
+        )
+        card_layout.addWidget(self.empty_state)
+        self.empty_state.hide()
+
+        layout.addWidget(table_card, stretch=1)
+
+        self.table.setColumnCount(7)
         self.table.setHorizontalHeaderLabels([
             "ID",
+            "Photo",
             "Target Name",
             "Category",
             "Case Reference",
             "Status",
             "Actions",
         ])
-        self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
-        self.table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
+        self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
+        self.table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeMode.Stretch)
         self.table.verticalHeader().setVisible(False)
+        self.table.verticalHeader().setDefaultSectionSize(44)
         self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.table.setAlternatingRowColors(True)
-
-        layout.addWidget(self.table)
 
     def _wire_signals(self) -> None:
         signal_bus.targets_changed.connect(self.load_targets)
 
     def load_targets(self) -> None:
         """Fetch and populate target registry from SQLite."""
+        try:
+            self._load_targets()
+        except Exception:
+            logger.exception("Failed to load target registry")
+            self.badge_count.set_text("LOAD FAILED")
+            self.badge_count.set_status(PillStatus.CRITICAL)
+
+    def _load_targets(self) -> None:
         query = self.txt_search.text().strip()
         selected_cat = self.cmb_filter.currentData()
 
@@ -296,44 +352,69 @@ class RegistryView(QWidget):
             if selected_cat:
                 targets = [t for t in targets if t.category == selected_cat]
 
+            if not targets:
+                self.table.hide()
+                self.empty_state.show()
+                self.badge_count.set_text("0 TARGETS")
+                self.badge_count.set_status(PillStatus.NEUTRAL)
+                return
+
+            self.empty_state.hide()
+            self.table.show()
             self.table.setRowCount(len(targets))
+            self.badge_count.set_text(f"{len(targets)} TARGETS")
+            self.badge_count.set_status(PillStatus.SAFE)
 
             for row, t in enumerate(targets):
-                # ID
-                item_id = QTableWidgetItem(str(t.target_id))
+                # 0. ID
+                item_id = QTableWidgetItem(f"#{t.target_id}")
                 item_id.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table.setItem(row, 0, item_id)
 
-                # Name
+                # 1. Thumbnail Photo
+                lbl_thumb = QLabel()
+                lbl_thumb.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                if t.profile_image_path:
+                    abs_p = resolve_stored_path(t.profile_image_path)
+                    if abs_p.exists():
+                        pm = QPixmap(str(abs_p)).scaled(32, 32, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation)
+                        lbl_thumb.setPixmap(pm)
+                    else:
+                        lbl_thumb.setText("👤")
+                else:
+                    lbl_thumb.setText("👤")
+                self.table.setCellWidget(row, 1, lbl_thumb)
+
+                # 2. Name
                 item_name = QTableWidgetItem(t.full_name)
                 item_name.setTextAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
-                self.table.setItem(row, 1, item_name)
+                self.table.setItem(row, 2, item_name)
 
-                # Category Badge
+                # 3. Category Badge
                 is_crim = (t.category == "CRIMINAL")
                 cat_label = QLabel(t.category.replace("_", " "))
                 cat_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-                cat_label.setProperty("class", "badge-criminal" if is_crim else "badge-missing")
-                self.table.setCellWidget(row, 2, cat_label)
+                apply_class(cat_label, "badge-criminal" if is_crim else "badge-missing")
+                self.table.setCellWidget(row, 3, cat_label)
 
-                # Case
+                # 4. Case Reference
                 item_case = QTableWidgetItem(t.case_number or "N/A")
                 item_case.setTextAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
-                self.table.setItem(row, 3, item_case)
+                self.table.setItem(row, 4, item_case)
 
-                # Status Toggle
+                # 5. Status Toggle
                 btn_status = QPushButton("ACTIVE" if t.is_active else "INACTIVE")
-                btn_status.setProperty("class", "btn-success" if t.is_active else "")
+                apply_class(btn_status, "btn-success" if t.is_active else "")
                 btn_status.setFixedHeight(26)
                 btn_status.clicked.connect(lambda _, tid=t.target_id, act=t.is_active: self._toggle_active(tid, act))
-                self.table.setCellWidget(row, 4, btn_status)
+                self.table.setCellWidget(row, 5, btn_status)
 
-                # Delete Action
+                # 6. Delete Action
                 btn_del = QPushButton("Delete")
-                btn_del.setProperty("class", "btn-danger")
+                apply_class(btn_del, "btn-danger-ghost")
                 btn_del.setFixedHeight(26)
                 btn_del.clicked.connect(lambda _, tid=t.target_id, nm=t.full_name: self._delete_target(tid, nm))
-                self.table.setCellWidget(row, 5, btn_del)
+                self.table.setCellWidget(row, 6, btn_del)
 
     def _on_search_changed(self) -> None:
         self.load_targets()
@@ -344,16 +425,21 @@ class RegistryView(QWidget):
 
     def _toggle_active(self, target_id: int, current_status: bool) -> None:
         new_status = not current_status
-        with get_session() as session:
-            TargetDAO.set_active(session, target_id, new_status)
-            AuditDAO.log_action(
-                session=session,
-                action="TARGET_STATUS_CHANGED",
-                entity_type="TargetRegistry",
-                entity_id=target_id,
-                details=f"Target {'activated' if new_status else 'deactivated'}",
-            )
-        GalleryManager.get_instance().reload_gallery()
+        try:
+            with get_session() as session:
+                TargetDAO.set_active(session, target_id, new_status)
+                AuditDAO.log_action(
+                    session=session,
+                    action="TARGET_STATUS_CHANGED",
+                    entity_type="TargetRegistry",
+                    entity_id=target_id,
+                    details=f"Target {'activated' if new_status else 'deactivated'}",
+                )
+            GalleryManager.get_instance().reload_gallery()
+        except Exception as e:
+            logger.error("Failed to change status for target %s: %s", target_id, e)
+            QMessageBox.critical(self, "Database Error", f"Failed to update target: {e}")
+
         self.load_targets()
 
     def _delete_target(self, target_id: int, name: str) -> None:
@@ -364,14 +450,24 @@ class RegistryView(QWidget):
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
         if reply == QMessageBox.StandardButton.Yes:
-            with get_session() as session:
-                TargetDAO.delete(session, target_id)
-                AuditDAO.log_action(
-                    session=session,
-                    action="TARGET_DELETED",
-                    entity_type="TargetRegistry",
-                    entity_id=target_id,
-                    details=f"Deleted target '{name}'",
+            try:
+                receipt = ErasureService.erase_target(
+                    target_id=target_id,
+                    reason=f"Manual deletion by operator for target '{name}'",
                 )
-            GalleryManager.get_instance().reload_gallery()
+                if not receipt.success:
+                    with get_session() as session:
+                        TargetDAO.delete(session, target_id)
+                        AuditDAO.log_action(
+                            session=session,
+                            action="TARGET_DELETED",
+                            entity_type="TargetRegistry",
+                            entity_id=target_id,
+                            details=f"Deleted target '{name}'",
+                        )
+                    GalleryManager.get_instance().reload_gallery()
+            except Exception as e:
+                logger.error("Failed to delete target '%s': %s", name, e)
+                QMessageBox.critical(self, "Database Error", f"Failed to delete target: {e}")
+
             self.load_targets()

@@ -16,6 +16,7 @@ import logging
 from contextlib import contextmanager
 from typing import Generator
 
+from sqlalchemy import text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -93,7 +94,7 @@ def test_connection() -> bool:
         if _engine is None:
             return False
         with _engine.connect() as conn:
-            conn.execute(conn.engine.dialect.do_ping(conn))
+            conn.execute(text("SELECT 1")).scalar_one()
         return True
     except Exception as e:
         logger.error("Database connection test failed: %s", e)

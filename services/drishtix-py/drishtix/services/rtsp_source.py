@@ -20,8 +20,8 @@ Usage:
 """
 
 import logging
-import time
 import threading
+import time
 from dataclasses import dataclass
 from typing import Optional, Tuple, Union
 

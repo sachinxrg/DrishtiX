@@ -1,6 +1,7 @@
 """Unit tests for InsightFace 512-D vector matching, dynamic gallery sizing, and demographic telemetry."""
 
 import numpy as np
+
 from drishtix.core.constants import INSIGHTFACE_EMBEDDING_DIM
 from drishtix.models.face_embedding import FaceEmbedding
 from drishtix.services.face_recognition import FaceRecognitionService

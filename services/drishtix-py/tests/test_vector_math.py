@@ -1,6 +1,7 @@
 """Unit tests for vector mathematics and SIMD cosine similarity."""
 
 import numpy as np
+
 from drishtix.utils.vector_math import (
     batch_cosine_similarity,
     cosine_similarity,

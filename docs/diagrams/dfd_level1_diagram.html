@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DFD Level 1 — DrishtiX Tactical Surveillance Platform</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1920px;
+    height: 1080px;
+    background: #FFFFFF;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #1E293B;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Slide Banner Header */
+  .slide-header-banner {
+    display: flex;
+    align-items: center;
+    padding: 24px 65px 12px 65px;
+    gap: 16px;
+  }
+  .header-icon {
+    width: 48px;
+    height: 48px;
+    background: #DC2626;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #FFFFFF;
+    font-size: 24px;
+    box-shadow: 0 3px 6px rgba(220, 38, 38, 0.25);
+  }
+  .header-text h1 {
+    font-size: 28px;
+    font-weight: 800;
+    color: #1E293B;
+    line-height: 1.1;
+  }
+  .header-text p {
+    font-size: 14.5px;
+    font-style: italic;
+    color: #64748B;
+    margin-top: 3px;
+  }
+
+  /* Main Container Frame */
+  .diagram-frame {
+    margin: 6px 55px 0 55px;
+    height: 900px;
+    border: 1.5px solid #CBD5E1;
+    border-radius: 12px;
+    background: #FFFFFF;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  }
+
+  .diagram-title {
+    text-align: center;
+    font-size: 16px;
+    font-weight: 800;
+    color: #1E3A8A;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding-top: 16px;
+  }
+
+  /* Entities (Rectangles) */
+  .entity-rect {
+    position: absolute;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-weight: 700;
+    font-size: 12.5px;
+    padding: 8px 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    z-index: 20;
+    line-height: 1.35;
+  }
+  .entity-operator {
+    background: #DCFCE7;
+    border: 1.5px solid #16A34A;
+    color: #14532D;
+  }
+  .entity-admin {
+    background: #FEE2E2;
+    border: 1.5px solid #DC2626;
+    color: #991B1B;
+  }
+  .entity-ai {
+    background: #F3E8FF;
+    border: 1.5px solid #9333EA;
+    color: #6B21A8;
+  }
+  .entity-officer {
+    background: #FEF9C3;
+    border: 1.5px solid #CA8A04;
+    color: #854D0E;
+  }
+  .entity-external {
+    background: #E0F2FE;
+    border: 1.5px solid #0284C7;
+    color: #075985;
+  }
+
+  /* Processes (Circles) */
+  .process-circle {
+    position: absolute;
+    width: 105px;
+    height: 105px;
+    border: 2px solid #2563EB;
+    border-radius: 50%;
+    background: #FFFFFF;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: #1E3A8A;
+    padding: 6px;
+    box-shadow: 0 2px 5px rgba(37,99,235,0.08);
+    z-index: 20;
+    line-height: 1.25;
+  }
+  .process-num {
+    font-size: 12px;
+    font-weight: 800;
+    color: #2563EB;
+    margin-bottom: 2px;
+  }
+
+  /* Data Stores (Green Open-ended Capsules) */
+  .datastore-capsule {
+    position: absolute;
+    width: 135px;
+    height: 46px;
+    background: #DCFCE7;
+    border-top: 1.5px solid #16A34A;
+    border-bottom: 1.5px solid #16A34A;
+    border-left: 2px solid #16A34A;
+    border-right: none;
+    border-radius: 6px 0 0 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #14532D;
+    padding: 3px;
+    z-index: 20;
+    line-height: 1.2;
+  }
+  .datastore-id {
+    font-size: 10.5px;
+    font-weight: 800;
+    color: #15803D;
+  }
+
+  /* SVG Flow Layer */
+  svg.dfd-flow-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  .diagram-caption {
+    position: absolute;
+    bottom: 15px;
+    width: 100%;
+    text-align: center;
+    font-size: 12px;
+    font-style: italic;
+    color: #64748B;
+  }
+
+  /* Slide Footer */
+  .slide-outer-footer {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 65px;
+    font-size: 12px;
+    color: #94A3B8;
+    font-weight: 600;
+  }
+  .slide-outer-footer span:last-child {
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+
+  <!-- Top Slide Banner Header -->
+  <div class="slide-header-banner">
+    <div class="header-icon">&#8644;</div>
+    <div class="header-text">
+      <h1>Data Flow Diagram — Level 1</h1>
+      <p>Process decomposition and data stores</p>
+    </div>
+  </div>
+
+  <!-- Main Diagram Container -->
+  <div class="diagram-frame">
+    <div class="diagram-title">
+      DFD LEVEL 1 — DRISHTIX AI-POWERED TACTICAL SURVEILLANCE & WATCHLIST PLATFORM
+    </div>
+
+    <!-- SVG Flow Layer -->
+    <svg class="dfd-flow-layer">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#334155" />
+        </marker>
+      </defs>
+
+      <!-- All Arrow Lines -->
+      <g stroke="#334155" stroke-width="1.2" fill="none" marker-end="url(#arrow)">
+        <!-- OPERATOR to 1.0 (Enrollment) -->
+        <path d="M 210 320 L 460 320" />
+        <!-- 1.0 to OPERATOR (Status) -->
+        <path d="M 460 345 L 210 345" />
+
+        <!-- 1.0 to D1 (Write Profile) -->
+        <path d="M 515 375 L 515 440" />
+        <!-- D1 to 1.0 (Read Profile) -->
+        <path d="M 495 440 L 495 375" />
+
+        <!-- 1.0 to 3.0 (Enrolled ROI) -->
+        <path d="M 565 320 L 895 320" />
+
+        <!-- OPERATOR to 2.0 (Stream Params) -->
+        <path d="M 210 490 L 460 490" />
+        <!-- 2.0 to OPERATOR (Video Feed HUD) -->
+        <path d="M 460 515 L 210 515" />
+
+        <!-- 2.0 to D2 (Camera Telemetry) -->
+        <path d="M 515 565 L 515 620" />
+
+        <!-- 2.0 to 3.0 (Aligned Crops) -->
+        <path d="M 565 510 L 720 510 L 720 350 L 895 350" />
+
+        <!-- 3.0 to AI SERVICE (Tensors) -->
+        <path d="M 945 285 L 945 195" />
+        <!-- AI SERVICE to 3.0 (Vectors) -->
+        <path d="M 975 195 L 975 285" />
+
+        <!-- D1 to 3.0 (Centroid Gallery) -->
+        <path d="M 585 460 L 780 460 L 780 335 L 895 335" />
+
+        <!-- 3.0 to 4.0 (Candidate Matches) -->
+        <path d="M 1000 340 L 1320 340 L 1320 460" />
+
+        <!-- 4.0 to D3 (Confirmed Logs) -->
+        <path d="M 1370 565 L 1370 620" />
+
+        <!-- 4.0 to D4 (Queued Alerts) -->
+        <path d="M 1320 530 L 1100 530 L 1100 620" />
+
+        <!-- 4.0 to OFFICER (Dispatch / Push) -->
+        <path d="M 1425 490 L 1600 490" />
+        <!-- OFFICER to 4.0 (Verification) -->
+        <path d="M 1600 520 L 1425 520" />
+
+        <!-- 4.0 to OPERATOR (Alert Cards) -->
+        <path d="M 1340 460 L 1340 430 L 210 430" />
+
+        <!-- EXTERNAL APIS to 1.0 (Wanted Ingestion) -->
+        <path d="M 1600 710 L 790 710 L 790 305 L 565 305" />
+
+        <!-- ADMIN to 5.0 (DPDP Erasure/Retention) -->
+        <path d="M 210 730 L 895 730" />
+        <!-- 5.0 to D5 (Audit Records) -->
+        <path d="M 1000 730 L 1260 730" />
+
+        <!-- ADMIN to 6.0 (System Config) -->
+        <path d="M 210 760 L 350 760 L 350 810 L 895 810" />
+        <!-- 6.0 to D6 (Telemetry & Settings) -->
+        <path d="M 1000 810 L 1260 810" />
+
+        <!-- D3 to 6.0 (Forensic Logs) -->
+        <path d="M 1340 666 L 1340 790 L 1000 790" />
+
+        <!-- 6.0 to ADMIN (KPI Reports) -->
+        <path d="M 895 830 L 330 830 L 330 780 L 210 780" />
+      </g>
+
+      <!-- Text Labels with crisp background badges -->
+      <g font-size="9" font-weight="600" fill="#334155" text-anchor="middle">
+        <!-- OPERATOR - 1.0 -->
+        <rect x="235" y="308" width="180" height="15" rx="3" fill="#FFFFFF" opacity="0.95"/>
+        <text x="325" y="319">Target Registration / Watchlist Photos</text>
+
+        <rect x="245" y="347" width="160" height="15" rx="3" fill="#FFFFFF" opacity="0.95"/>
+        <text x="325" y="358">Enrollment Status / Confirmation</text>
+
+        <!-- 1.0 - D1 -->
+        <rect x="520" y="402" width="90" height="14" rx="2" fill="#FFFFFF" opacity="0.95"/>
+        <text x="565" y="412">Target Profile Data</text>
+
+        <!-- 1.0 - 3.0 -->
+        <rect x="620" y="310" width="125" height="15" rx="3" fill="#FFFFFF" opacity="0.95"/>
+        <text x="682" y="321">Enrolled Face Crops</text>
+
+        <!-- OPERATOR - 2.0 -->
+        <rect x="230" y="478" width="185" height="15" rx="3" fill="#FFFFFF" opacity="0.95"/>
+        <text x="322" y="489">RTSP Stream URI / Camera Config</text>
+
+        <rect x="235" y="518" width="175" height="15" rx="3" fill="#FFFFFF" opacity="0.95"/>
+        <text x="322" y="529">Live HUD Video / Bounding Boxes</text>
+
+        <!-- 2.0 - D2 -->
+        <rect x="520" y="585" width="105" height="14" rx="2" fill="#FFFFFF" opacity="0.95"/>
+        <text x="572" y="595">Stream Frame State</text>
+
+        <!-- 2.0 - 3.0 -->
+        <rect x="620" y="430" width="145" height="15" rx="3" fill="#FFFFFF" opacity="0.95"/>
+        <text x="692" y="441">Aligned Face & Body ROIs</text>
+
+        <!-- 3.0 - AI Engine -->
+        <rect x="880" y="235" width="60" height="14" rx="2" fill="#FFFFFF" opacity="0.95"/>
+        <text x="910" y="245">Crop Tensors</text>
+
+        <rect x="980" y="235" width="105" height="14" rx="2" fill="#FFFFFF" opacity="0.95"/>
+        <text x="1032" y="245">128-D / 512-D Vectors</text>
+
+        <!-- D1 - 3.0 -->
+        <rect x="795" y="360" width="85" height="14" rx="2" fill="#FFFFFF" opacity="0.95"/>
+        <text x="837" y="370">Centroid Gallery</text>
+
+        <!-- 3.0 - 4.0 -->
+        <rect x="1110" y="328" width="170" height="15" rx="3" fill="#FFFFFF" opacity="0.95"/>
+        <text x="1195" y="339">Cosine Match (Sim &ge; 0.363)</text>
+
+        <!-- 4.0 - D3 -->
+        <rect x="1375" y="585" width="125" height="14" rx="2" fill="#FFFFFF" opacity="0.95"/>
+        <text x="1437" y="595">Detection Logs & Snaps</text>
+
+        <!-- 4.0 - D4 -->
+        <rect x="1140" y="545" width="105" height="14" rx="2" fill="#FFFFFF" opacity="0.95"/>
+        <text x="1192" y="555">Tactical Alert Queue</text>
+
+        <!-- 4.0 - OFFICER -->
+        <rect x="1445" y="478" width="145" height="15" rx="3" fill="#FFFFFF" opacity="0.95"/>
+        <text x="1517" y="489">Telegram Push / Dispatch</text>
+
+        <rect x="1450" y="523" width="135" height="15" rx="3" fill="#FFFFFF" opacity="0.95"/>
+        <text x="1517" y="534">Officer Incident Feedback</text>
+
+        <!-- 4.0 - OPERATOR -->
+        <rect x="730" y="418" width="165" height="15" rx="3" fill="#FFFFFF" opacity="0.95"/>
+        <text x="812" y="429">Real-Time Sidebar Alert Cards</text>
+
+        <!-- EXTERNAL - 1.0 -->
+        <rect x="1050" y="698" width="185" height="15" rx="3" fill="#FFFFFF" opacity="0.95"/>
+        <text x="1142" y="709">FBI / CBI / TrackChild Wanted Feed</text>
+
+        <!-- ADMIN - 5.0 -->
+        <rect x="420" y="718" width="175" height="15" rx="3" fill="#FFFFFF" opacity="0.95"/>
+        <text x="507" y="729">DPDP §8(9) Erasure & Retention</text>
+
+        <!-- 5.0 - D5 -->
+        <rect x="1060" y="718" width="135" height="14" rx="2" fill="#FFFFFF" opacity="0.95"/>
+        <text x="1127" y="728">Immutable Audit Records</text>
+
+        <!-- ADMIN - 6.0 -->
+        <rect x="415" y="798" width="185" height="15" rx="3" fill="#FFFFFF" opacity="0.95"/>
+        <text x="507" y="809">System Settings & Threshold Tuning</text>
+
+        <!-- 6.0 - D6 -->
+        <rect x="1070" y="802" width="115" height="14" rx="2" fill="#FFFFFF" opacity="0.95"/>
+        <text x="1127" y="812">Configuration Updates</text>
+
+        <!-- 6.0 - ADMIN -->
+        <rect x="420" y="835" width="175" height="15" rx="3" fill="#FFFFFF" opacity="0.95"/>
+        <text x="507" y="846">Executive KPIs & Forensic Reports</text>
+      </g>
+    </svg>
+
+    <!-- ==================== EXTERNAL ENTITIES ==================== -->
+    <!-- SURVEILLANCE OPERATOR -->
+    <div class="entity-rect entity-operator" style="top: 300px; left: 45px; width: 165px; height: 235px;">
+      <span style="font-size: 14px; font-weight: 800; margin-bottom: 8px;">SURVEILLANCE<br/>OPERATOR</span>
+      <span style="font-size: 10px; font-weight: 500; color: #166534;">
+        • Live Monitor<br/>
+        • Target Enrollment<br/>
+        • Alert Acknowledgment<br/>
+        • Camera Feeds
+      </span>
+    </div>
+
+    <!-- SYSTEM ADMINISTRATOR -->
+    <div class="entity-rect entity-admin" style="top: 710px; left: 45px; width: 165px; height: 80px;">
+      <span style="font-size: 13px; font-weight: 800;">SYSTEM<br/>ADMINISTRATOR</span>
+    </div>
+
+    <!-- AI VISION & INFERENCE SERVICE -->
+    <div class="entity-rect entity-ai" style="top: 140px; left: 810px; width: 300px; height: 55px;">
+      <span style="font-size: 12.5px; font-weight: 800;">AI / ML INFERENCE SERVICE</span>
+      <span style="font-size: 10px; font-weight: 500; color: #581C87;">YuNet Detection • SFace Recognition • OSNet Re-ID</span>
+    </div>
+
+    <!-- FIELD OFFICER / DISPATCH UNIT -->
+    <div class="entity-rect entity-officer" style="top: 440px; left: 1600px; width: 175px; height: 110px;">
+      <span style="font-size: 13px; font-weight: 800; margin-bottom: 4px;">FIELD OFFICER /<br/>DISPATCH UNIT</span>
+      <span style="font-size: 9.5px; font-weight: 500; color: #713F12;">Tactical Response Team</span>
+    </div>
+
+    <!-- EXTERNAL WATCHLIST APIS -->
+    <div class="entity-rect entity-external" style="top: 670px; left: 1600px; width: 175px; height: 80px;">
+      <span style="font-size: 12px; font-weight: 800; margin-bottom: 4px;">EXTERNAL WATCHLIST<br/>SERVICES</span>
+      <span style="font-size: 9.5px; font-weight: 500; color: #0C4A6E;">FBI • CBI • TrackChild</span>
+    </div>
+
+    <!-- ==================== PROCESSES (CIRCLES) ==================== -->
+    <!-- 1.0 -->
+    <div class="process-circle" style="top: 275px; left: 460px;">
+      <span class="process-num">1.0</span>
+      TARGET &amp; IDENTITY<br/>MANAGEMENT
+    </div>
+
+    <!-- 2.0 -->
+    <div class="process-circle" style="top: 460px; left: 460px;">
+      <span class="process-num">2.0</span>
+      STREAM INGESTION<br/>&amp; DISPATCH
+    </div>
+
+    <!-- 3.0 -->
+    <div class="process-circle" style="top: 285px; left: 895px; width: 115px; height: 115px;">
+      <span class="process-num">3.0</span>
+      AI BIOMETRIC<br/>DETECTION &amp;<br/>MATCHING
+    </div>
+
+    <!-- 4.0 -->
+    <div class="process-circle" style="top: 460px; left: 1315px; width: 110px; height: 110px;">
+      <span class="process-num">4.0</span>
+      MULTI-FRAME GATE<br/>&amp; ALERT DISPATCH
+    </div>
+
+    <!-- 5.0 -->
+    <div class="process-circle" style="top: 675px; left: 895px; width: 105px; height: 105px;">
+      <span class="process-num">5.0</span>
+      AUDIT &amp; DPDP<br/>COMPLIANCE<br/>MANAGEMENT
+    </div>
+
+    <!-- 6.0 -->
+    <div class="process-circle" style="top: 765px; left: 895px; width: 105px; height: 105px;">
+      <span class="process-num">6.0</span>
+      FORENSIC<br/>REPORTING &amp;<br/>TELEMETRY
+    </div>
+
+    <!-- ==================== DATA STORES ==================== -->
+    <!-- D1 -->
+    <div class="datastore-capsule" style="top: 440px; left: 450px;">
+      <span class="datastore-id">D1</span>
+      TARGET &amp; EMBEDDINGS
+    </div>
+
+    <!-- D2 -->
+    <div class="datastore-capsule" style="top: 620px; left: 450px;">
+      <span class="datastore-id">D2</span>
+      CAMERA CONFIG &amp; FEEDS
+    </div>
+
+    <!-- D3 -->
+    <div class="datastore-capsule" style="top: 620px; left: 1305px;">
+      <span class="datastore-id">D3</span>
+      DETECTION &amp; MATCH LOGS
+    </div>
+
+    <!-- D4 -->
+    <div class="datastore-capsule" style="top: 620px; left: 1030px;">
+      <span class="datastore-id">D4</span>
+      TACTICAL ALERT QUEUE
+    </div>
+
+    <!-- D5 -->
+    <div class="datastore-capsule" style="top: 710px; left: 1260px;">
+      <span class="datastore-id">D5</span>
+      AUDIT &amp; CONSENT STORE
+    </div>
+
+    <!-- D6 -->
+    <div class="datastore-capsule" style="top: 790px; left: 1260px;">
+      <span class="datastore-id">D6</span>
+      SETTINGS &amp; TELEMETRY
+    </div>
+
+    <!-- Diagram Bottom Caption -->
+    <div class="diagram-caption">
+      6 core processes (1.0–6.0) and data stores D1–D6 covering targets, camera feeds, biometric inference, alerts, compliance &amp; forensic logs.
+    </div>
+  </div>
+
+  <!-- Outer Slide Footer -->
+  <div class="slide-outer-footer">
+    <span>DRISHTIX — AI-POWERED TACTICAL SURVEILLANCE PLATFORM</span>
+    <span>11</span>
+  </div>
+
+</body>
+</html>

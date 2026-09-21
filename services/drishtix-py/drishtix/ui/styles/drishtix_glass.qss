@@ -1,37 +1,10 @@
+
+
 /* ==========================================================================
-   DrishtiX v4.0 — Light Glassmorphism + Soft Neumorphism Theme (QSS)
+   DrishtiX v5.0 — Light Glassmorphism + Soft Neumorphism Theme (QSS)
    ==========================================================================
-   Design Tokens (translated from Tailwind spec):
-     Canvas 50:            #F8FAFC
-     Canvas 100:           #F1F5F9
-     Surface Glass:        rgba(255,255,255,174)  — 0.68 opacity
-     Surface Glass Heavy:  rgba(255,255,255,220)  — 0.86 opacity
-     Ink 900:              #0F172A   (headings, primary)
-     Ink 700:              #334155   (body text)
-     Ink 500:              #64748B   (metadata)
-     Ink 400:              #94A3B8   (timestamps)
-     Ink 300:              #CBD5E1   (borders)
-     Accent:               #4F6BFB
-     Accent Hover:         #3E56E0
-     Accent Soft:          #EEF2FF
-     Safe:                 #10B981   — active/ok
-     Safe BG:              #ECFDF5
-     Safe Border:          #A7F3D0
-     Review:               #F59E0B   — needs attention
-     Review BG:            #FFFBEB
-     Review Border:        #FDE68A
-     Critical:             #F43F5E   — alert/danger
-     Critical BG:          #FFF1F2
-     Critical Border:      #FECDD3
-     Info:                 #06B6D4   — informational
-     Info BG:              #ECFEFF
-     Info Border:          #A5F3FC
-     Hairline:             rgba(255,255,255,180)
-     Hairline Ink:         rgba(15,23,42,20)
-     Radius Tile:          22px
-     Radius Card:          18px
-     Radius Control:       12px
-     Radius Pill:          999px
+   GENERATED from theme_tokens.py — do NOT hand-edit this file.
+   Run: python tools/generate_qss.py
    ========================================================================== */
 
 
@@ -39,16 +12,16 @@
    1. GLOBAL RESET & WINDOW — Ambient Canvas
    ═══════════════════════════════════════════════════════════════════════════ */
 QWidget {
-    background-color: #F8FAFC;
+    background-color: #F7F8FA;
     color: #0F172A;
     font-family: "Inter", "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
     font-size: 13px;
-    selection-background-color: #4F6BFB;
+    selection-background-color: #3E56E0;
     selection-color: #FFFFFF;
 }
 
 QMainWindow {
-    background-color: #F8FAFC;
+    background-color: #F7F8FA;
 }
 
 
@@ -56,122 +29,225 @@ QMainWindow {
    2. FRAMES & BENTO CARDS — Glassmorphic Surfaces
    ═══════════════════════════════════════════════════════════════════════════ */
 QFrame[class="bento-card"], QFrame[class="card-panel"] {
-    background-color: rgba(255, 255, 255, 220);
-    border: 1px solid rgba(255, 255, 255, 180);
-    border-radius: 18px;
+    background-color: rgba(255,255,255,0.88);
+    border: 1px solid rgba(255, 255, 255, 220);
+    border-radius: 20px;
 }
 
 QFrame[class="bento-card"]:hover, QFrame[class="card-panel"]:hover {
     border: 1px solid #FFFFFF;
 }
 
+/* Glass Card Variants */
+QFrame[class="glass-card"] {
+    background-color: rgba(255,255,255,0.78);
+    border: 1px solid rgba(255, 255, 255, 230);
+    border-radius: 20px;
+}
+
+QFrame[class="glass-card"]:hover {
+    border: 1px solid #FFFFFF;
+}
+
+QFrame[class="glass-card-heavy"] {
+    background-color: rgba(255,255,255,0.88);
+    border: 1px solid rgba(255, 255, 255, 240);
+    border-radius: 20px;
+}
+
+QFrame[class="glass-card-elevated"] {
+    background-color: rgba(255,255,255,0.82);
+    border: 1px solid rgba(255, 255, 255, 240);
+    border-radius: 20px;
+}
+
+QFrame[class="glass-sidebar"] {
+    background-color: rgba(255,255,255,0.96);
+    border: 1px solid rgba(255, 255, 255, 240);
+    border-radius: 0px;
+}
+
+QFrame[class="glass-overlay"] {
+    background-color: rgba(255,255,255,0.88);
+    border: 1px solid rgba(255, 255, 255, 220);
+    border-radius: 22px;
+}
+
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   3. NAVIGATION SIDEBAR — Frosted Glass Panel
+   2b. NEUMORPHIC VARIANTS
+   ═══════════════════════════════════════════════════════════════════════════ */
+QFrame[class="neu-raised"] {
+    background-color: #F0F2F6;
+    border-top: 1px solid #FFFFFF;
+    border-left: 1px solid #FFFFFF;
+    border-bottom: 1px solid #CAD1DC;
+    border-right: 1px solid #CAD1DC;
+    border-radius: 20px;
+}
+
+QFrame[class="neu-raised"]:hover {
+    background-color: #FFFFFF;
+}
+
+QFrame[class="neu-inset"] {
+    background-color: #F0F2F6;
+    border-top: 1px solid #CAD1DC;
+    border-left: 1px solid #CAD1DC;
+    border-bottom: 1px solid #FFFFFF;
+    border-right: 1px solid #FFFFFF;
+    border-radius: 12px;
+}
+
+QFrame[class="neu-pressed"] {
+    background-color: #E1E5EC;
+    border-top: 1px solid #CAD1DC;
+    border-left: 1px solid #CAD1DC;
+    border-bottom: 1px solid #FFFFFF;
+    border-right: 1px solid #FFFFFF;
+    border-radius: 12px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   2c. BENTO TILES
+   ═══════════════════════════════════════════════════════════════════════════ */
+QFrame[class="bento-tile"] {
+    background-color: transparent;
+    border: none;
+    border-radius: 0px;
+}
+
+QFrame[class="bento-tile-hero"] {
+    background-color: transparent;
+    border: none;
+    border-radius: 0px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   3. NAVIGATION SIDEBAR — Modern Command Strip
    ═══════════════════════════════════════════════════════════════════════════ */
 QFrame#NavSidebar {
     background-color: #FFFFFF;
-    border-right: 1px solid #E2E8F0;
+    border-right: 1px solid #E1E5EC;
 }
 
 QPushButton[class="nav-btn"] {
     background-color: transparent;
-    color: #64748B;
+    color: #475569;
     text-align: left;
-    padding: 10px 16px;
-    border-radius: 10px;
+    padding: 10px 14px;
+    border-radius: 12px;
     font-weight: 500;
-    font-size: 13px;
+    font-size: 13.5px;
     border: none;
 }
 
-QPushButton[class="nav-btn"]:hover {
+QPushButton[class="nav-btn"]:hover:!checked {
     background-color: #EEF2FF;
-    color: #334155;
+    color: #0F172A;
 }
 
 QPushButton[class="nav-btn"]:checked {
-    background-color: #EEF2FF;
-    color: #4F6BFB;
+    background: transparent;
+    color: #FFFFFF;
     font-weight: 600;
-    border-left: 3px solid #4F6BFB;
-    border-radius: 0px 10px 10px 0px;
+    border: none;
+    border-radius: 12px;
 }
 
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   4. BUTTONS — Neumorphic Raised Controls
+   4. BUTTONS — Neumorphic & Accent Controls
    ═══════════════════════════════════════════════════════════════════════════ */
 QPushButton {
-    background-color: #F1F5F9;
+    background-color: #F0F2F6;
     color: #0F172A;
-    border: 1px solid rgba(255, 255, 255, 200);
+    border: 1px solid rgba(255, 255, 255, 220);
     border-radius: 12px;
     padding: 8px 16px;
     font-weight: 500;
-    min-height: 20px;
+    min-height: 22px;
 }
 
 QPushButton:hover {
     background-color: #FFFFFF;
-    border-color: #E2E8F0;
+    border-color: #E1E5EC;
 }
 
 QPushButton:pressed {
-    background-color: #E2E8F0;
-    border-top: 1px solid #CBD5E1;
-    border-left: 1px solid #CBD5E1;
+    background-color: #E1E5EC;
+    border-top: 1px solid #CAD1DC;
+    border-left: 1px solid #CAD1DC;
     border-bottom: 1px solid #FFFFFF;
     border-right: 1px solid #FFFFFF;
 }
 
 QPushButton:disabled {
-    background-color: #F1F5F9;
-    color: #94A3B8;
-    border-color: #E2E8F0;
+    background-color: #F0F2F6;
+    color: #94A0B2;
+    border-color: #E1E5EC;
 }
 
 QPushButton[class="btn-primary"] {
-    background-color: #4F6BFB;
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #4F6BFB, stop:1 #3E56E0);
     color: #FFFFFF;
-    border: 1px solid #4F6BFB;
+    border: 1px solid #3347C7;
     font-weight: 600;
     border-radius: 12px;
+    padding: 8px 18px;
 }
 
 QPushButton[class="btn-primary"]:hover {
-    background-color: #3E56E0;
-    border-color: #3E56E0;
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #3347C7, stop:1 #283593);
+    border-color: #283593;
 }
 
 QPushButton[class="btn-primary"]:pressed {
-    background-color: #3347C7;
+    background-color: #283593;
 }
 
 QPushButton[class="btn-danger"] {
     background-color: #FFF1F2;
-    color: #F43F5E;
+    color: #DC2626;
     border: 1px solid #FECDD3;
     font-weight: 600;
+    border-radius: 12px;
 }
 
 QPushButton[class="btn-danger"]:hover {
-    background-color: #F43F5E;
+    background-color: #DC2626;
     color: #FFFFFF;
-    border-color: #F43F5E;
+    border-color: #B91C1C;
+}
+
+QPushButton[class="btn-danger-ghost"] {
+    background-color: transparent;
+    color: #F43F5E;
+    border: 1px solid transparent;
+    font-weight: 500;
+    border-radius: 12px;
+}
+
+QPushButton[class="btn-danger-ghost"]:hover {
+    background-color: #FFF1F2;
+    border-color: #FECDD3;
+    color: #DC2626;
 }
 
 QPushButton[class="btn-success"] {
     background-color: #ECFDF5;
-    color: #10B981;
+    color: #047857;
     border: 1px solid #A7F3D0;
     font-weight: 600;
+    border-radius: 12px;
 }
 
 QPushButton[class="btn-success"]:hover {
     background-color: #10B981;
     color: #FFFFFF;
-    border-color: #10B981;
+    border-color: #047857;
 }
 
 
@@ -179,24 +255,24 @@ QPushButton[class="btn-success"]:hover {
    5. INPUT FIELDS — Neumorphic Inset
    ═══════════════════════════════════════════════════════════════════════════ */
 QLineEdit, QTextEdit, QPlainTextEdit, QSpinBox, QDoubleSpinBox, QComboBox {
-    background-color: #F1F5F9;
+    background-color: #F0F2F6;
     color: #0F172A;
-    border-top: 1px solid #CBD5E1;
-    border-left: 1px solid #CBD5E1;
+    border-top: 1px solid #CAD1DC;
+    border-left: 1px solid #CAD1DC;
     border-bottom: 1px solid #FFFFFF;
     border-right: 1px solid #FFFFFF;
     border-radius: 12px;
-    padding: 6px 12px;
+    padding: 7px 12px;
 }
 
 QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus,
 QSpinBox:focus, QDoubleSpinBox:focus, QComboBox:focus {
-    border: 2px solid rgba(79, 107, 251, 0.35);
+    border: 2px solid rgba(62,86,224,0.30);
     background-color: #FFFFFF;
 }
 
 QLineEdit::placeholder {
-    color: #94A3B8;
+    color: #94A0B2;
 }
 
 QComboBox::drop-down {
@@ -206,48 +282,49 @@ QComboBox::drop-down {
 
 QComboBox QAbstractItemView {
     background-color: #FFFFFF;
-    border: 1px solid #E2E8F0;
+    border: 1px solid #E1E5EC;
     border-radius: 12px;
     selection-background-color: #EEF2FF;
-    selection-color: #4F6BFB;
+    selection-color: #3E56E0;
 }
 
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   6. TABLES & LISTS — Neumorphic Inset Container with Raised Rows
+   6. TABLES & LISTS — Modern Clean Container
    ═══════════════════════════════════════════════════════════════════════════ */
 QTableView, QTableWidget, QListView, QListWidget, QTreeView {
-    background-color: #F1F5F9;
-    border: 1px solid #E2E8F0;
+    background-color: #FFFFFF;
+    border: 1px solid #E1E5EC;
     border-radius: 12px;
     gridline-color: transparent;
-    alternate-background-color: #F8FAFC;
+    alternate-background-color: #F7F8FA;
 }
 
 QHeaderView::section {
-    background-color: #F8FAFC;
+    background-color: #F7F8FA;
     color: #64748B;
-    padding: 8px 10px;
+    padding: 10px 12px;
     border: none;
-    border-bottom: 1px solid #E2E8F0;
-    border-right: 1px solid #F1F5F9;
+    border-bottom: 1px solid #E1E5EC;
+    border-right: 1px solid #F0F2F6;
     font-weight: 600;
     font-size: 12px;
+    letter-spacing: 0.3px;
 }
 
 QTableView::item, QTableWidget::item {
-    padding: 6px 10px;
-    border-bottom: 1px solid #F1F5F9;
+    padding: 8px 12px;
+    border-bottom: 1px solid #F0F2F6;
     color: #0F172A;
 }
 
 QTableView::item:selected, QTableWidget::item:selected {
     background-color: #EEF2FF;
-    color: #4F6BFB;
+    color: #3E56E0;
 }
 
 QTableView::item:hover, QTableWidget::item:hover {
-    background-color: rgba(79, 107, 251, 0.06);
+    background-color: rgba(79, 107, 251, 0.05);
 }
 
 
@@ -262,13 +339,13 @@ QScrollBar:vertical {
 }
 
 QScrollBar::handle:vertical {
-    background: rgba(15, 23, 42, 0.10);
+    background: rgba(15, 23, 42, 0.12);
     min-height: 20px;
     border-radius: 3px;
 }
 
 QScrollBar::handle:vertical:hover {
-    background: rgba(15, 23, 42, 0.20);
+    background: rgba(15, 23, 42, 0.24);
 }
 
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical,
@@ -286,13 +363,13 @@ QScrollBar:horizontal {
 }
 
 QScrollBar::handle:horizontal {
-    background: rgba(15, 23, 42, 0.10);
+    background: rgba(15, 23, 42, 0.12);
     min-width: 20px;
     border-radius: 3px;
 }
 
 QScrollBar::handle:horizontal:hover {
-    background: rgba(15, 23, 42, 0.20);
+    background: rgba(15, 23, 42, 0.24);
 }
 
 QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal,
@@ -308,7 +385,7 @@ QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
    ═══════════════════════════════════════════════════════════════════════════ */
 QFrame#StatusBar {
     background-color: #FFFFFF;
-    border-top: 1px solid #E2E8F0;
+    border-top: 1px solid #E1E5EC;
 }
 
 QLabel[class="status-metric"] {
@@ -323,103 +400,361 @@ QLabel[class="metric-value"] {
     color: #10B981;
 }
 
+/* Status Bar Capsules */
+QLabel[class="status-capsule-safe"] {
+    background-color: #ECFDF5;
+    color: #047857;
+    border: 1px solid #A7F3D0;
+    border-radius: 8px;
+    padding: 3px 10px;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+QLabel[class="status-capsule-warning"] {
+    background-color: #FFFBEB;
+    color: #B45309;
+    border: 1px solid #FDE68A;
+    border-radius: 8px;
+    padding: 3px 10px;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+QLabel[class="status-capsule-critical"] {
+    background-color: #FFF1F2;
+    color: #F43F5E;
+    border: 1px solid #FECDD3;
+    border-radius: 8px;
+    padding: 3px 10px;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+QLabel[class="status-capsule-info"] {
+    background-color: #ECFEFF;
+    color: #0369A1;
+    border: 1px solid #A5F3FC;
+    border-radius: 8px;
+    padding: 3px 10px;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+QLabel[class="status-capsule-neutral"] {
+    background-color: #F0F2F6;
+    color: #64748B;
+    border: 1px solid #E1E5EC;
+    border-radius: 8px;
+    padding: 3px 10px;
+    font-weight: 600;
+    font-size: 11px;
+}
+
+QLabel[class="status-capsule-accent"] {
+    background-color: #EEF2FF;
+    color: #3E56E0;
+    border: 1px solid #C7D2FE;
+    border-radius: 8px;
+    padding: 3px 10px;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+QLabel[mono="true"] {
+    font-family: "JetBrains Mono", "Consolas", monospace;
+}
+
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   9. BENTO KPI CARDS — Neumorphic Raised
+   9. BENTO KPI CARDS — Neumorphic / Glass Hybrid
    ═══════════════════════════════════════════════════════════════════════════ */
 QFrame[class="kpi-card"] {
-    background-color: #F1F5F9;
-    border: 1px solid rgba(255, 255, 255, 200);
-    border-radius: 18px;
-    padding: 12px;
+    background-color: rgba(255,255,255,0.82);
+    border: 1px solid rgba(255, 255, 255, 240);
+    border-radius: 20px;
+    padding: 14px 16px;
 }
 
 QFrame[class="kpi-card"]:hover {
     background-color: #FFFFFF;
+    border-color: #E1E5EC;
 }
 
 QLabel[class="kpi-title"] {
     color: #64748B;
-    font-size: 11px;
+    font-size: 11.5px;
     font-weight: 600;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.6px;
 }
 
 QLabel[class="kpi-val"] {
     color: #0F172A;
-    font-size: 24px;
+    font-size: 26px;
     font-weight: 700;
+    letter-spacing: -0.5px;
 }
 
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   10. BADGES & TAGS — Semantic Status Chips
+   10. PILLS & BADGES — Semantic Status
    ═══════════════════════════════════════════════════════════════════════════ */
-
-/* Criminal → High-Contrast Solid Crimson Pill */
-QLabel[class="badge-criminal"] {
-    background-color: #DC2626;
-    color: #FFFFFF;
-    border: 1px solid #B91C1C;
+QLabel[class="pill-live"] {
+    background-color: #ECFDF5;
+    color: #047857;
+    border: 1px solid #A7F3D0;
     border-radius: 999px;
-    padding: 2px 10px;
+    padding: 3px 12px;
+    font-weight: 700;
     font-size: 11px;
-    font-weight: 800;
 }
 
-/* Missing → High-Contrast Solid Electric Cyan Pill */
-QLabel[class="badge-missing"] {
-    background-color: #0284C7;
-    color: #FFFFFF;
-    border: 1px solid #0369A1;
+QLabel[class="pill-offline"] {
+    background-color: #FFF1F2;
+    color: #F43F5E;
+    border: 1px solid #FECDD3;
     border-radius: 999px;
-    padding: 2px 10px;
+    padding: 3px 12px;
+    font-weight: 700;
     font-size: 11px;
-    font-weight: 800;
+}
+
+QLabel[class="pill-safe"] {
+    background-color: #ECFDF5;
+    color: #047857;
+    border: 1px solid #A7F3D0;
+    border-radius: 999px;
+    padding: 3px 12px;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+QLabel[class="pill-warning"] {
+    background-color: #FFFBEB;
+    color: #B45309;
+    border: 1px solid #FDE68A;
+    border-radius: 999px;
+    padding: 3px 12px;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+QLabel[class="pill-critical"] {
+    background-color: #FFF1F2;
+    color: #F43F5E;
+    border: 1px solid #FECDD3;
+    border-radius: 999px;
+    padding: 3px 12px;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+QLabel[class="pill-info"] {
+    background-color: #ECFEFF;
+    color: #0369A1;
+    border: 1px solid #A5F3FC;
+    border-radius: 999px;
+    padding: 3px 12px;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+QLabel[class="pill-accent"] {
+    background-color: #EEF2FF;
+    color: #3E56E0;
+    border: 1px solid #C7D2FE;
+    border-radius: 999px;
+    padding: 3px 12px;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+QLabel[class="pill-neutral"] {
+    background-color: #F0F2F6;
+    color: #64748B;
+    border: 1px solid #CAD1DC;
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-weight: 600;
+    font-size: 10.5px;
+}
+
+/* Category badges (Softer, modern pills) */
+QLabel[class="badge-criminal"] {
+    background-color: #FFF1F2;
+    color: #DC2626;
+    border: 1px solid #FECDD3;
+    border-radius: 999px;
+    padding: 3px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+QLabel[class="badge-missing"] {
+    background-color: #ECFEFF;
+    color: #0369A1;
+    border: 1px solid #A5F3FC;
+    border-radius: 999px;
+    padding: 3px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
 }
 
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   11. ALERT SIDEBAR & FROSTED GLASS NOTIFICATION CARDS
+   11. TYPOGRAPHY SCALE CLASSES
+   ═══════════════════════════════════════════════════════════════════════════ */
+QLabel[class="type-display"] {
+    font-size: 28px;
+    font-weight: 700;
+    color: #0F172A;
+    letter-spacing: -0.5px;
+}
+
+QLabel[class="type-h1"] {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0F172A;
+    letter-spacing: -0.3px;
+}
+
+QLabel[class="type-h2"] {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0F172A;
+    letter-spacing: -0.2px;
+}
+
+QLabel[class="type-h3"] {
+    font-size: 15px;
+    font-weight: 600;
+    color: #0F172A;
+    letter-spacing: -0.1px;
+}
+
+QLabel[class="type-body"] {
+    font-size: 13px;
+    font-weight: 500;
+    color: #334155;
+}
+
+QLabel[class="type-caption"] {
+    font-size: 11px;
+    font-weight: 500;
+    color: #475569;
+    letter-spacing: 0.2px;
+}
+
+QLabel[class="type-micro"] {
+    font-size: 10px;
+    font-weight: 600;
+    color: #64748B;
+    letter-spacing: 0.4px;
+}
+
+/* Backward compatibility aliases */
+QLabel[class="view-title"] {
+    font-weight: 700;
+    font-size: 16px;
+    color: #0F172A;
+    letter-spacing: -0.2px;
+}
+
+QLabel[class="view-subtitle"] {
+    font-size: 12px;
+    color: #475569;
+    letter-spacing: 0.1px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   12. VIDEO SURFACE — Dark Inset Bezel
+   ═══════════════════════════════════════════════════════════════════════════ */
+QLabel[class="video-surface"] {
+    background-color: #0F172A;
+    border-radius: 12px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   13. ALERT SIDEBAR & FROSTED GLASS NOTIFICATION CARDS
    ═══════════════════════════════════════════════════════════════════════════ */
 QFrame#AlertSidebar {
-    background-color: rgba(255, 255, 255, 235);
-    border-left: 1px solid #E2E8F0;
+    background-color: rgba(255,255,255,0.96);
+    border-left: 1px solid #E1E5EC;
 }
 
 QFrame[class~="alert-card"] {
-    border-radius: 16px;
+    border-radius: 14px;
 }
 
-/* Criminal → Blurred Red Frosted Glass Box */
 QFrame[class~="alert-card-criminal"] {
-    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 rgba(254, 226, 226, 0.96), stop:0.45 rgba(254, 205, 211, 0.88), stop:1 rgba(253, 164, 175, 0.76));
-    border: 1.5px solid rgba(239, 68, 68, 0.65);
-    border-left: 6px solid #DC2626;
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 rgba(255, 241, 242, 0.95), stop:1 rgba(254, 226, 226, 0.85));
+    border: 1px solid rgba(239, 68, 68, 0.40);
+    border-left: 4px solid #DC2626;
 }
 
 QFrame[class~="alert-card-criminal"]:hover {
-    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #FEE2E2, stop:0.45 #FECDD3, stop:1 #FDA4AF);
-    border: 1.5px solid #DC2626;
-    border-left: 6px solid #B91C1C;
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #FFF1F2, stop:1 #FEE2E2);
+    border: 1px solid #F43F5E;
+    border-left: 4px solid #B91C1C;
 }
 
-/* Missing Person → Vivid Electric Cyan-Blue Frosted Glass Box */
 QFrame[class~="alert-card-missing"] {
-    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 rgba(224, 242, 254, 0.96), stop:0.45 rgba(186, 230, 253, 0.88), stop:1 rgba(125, 211, 252, 0.76));
-    border: 1.5px solid rgba(6, 182, 212, 0.75);
-    border-left: 6px solid #00D4FF;
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 rgba(236, 254, 255, 0.95), stop:1 rgba(224, 242, 254, 0.85));
+    border: 1px solid rgba(6, 182, 212, 0.40);
+    border-left: 4px solid #00D4FF;
 }
 
 QFrame[class~="alert-card-missing"]:hover {
-    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #E0F2FE, stop:0.45 #BAE6FD, stop:1 #7DD3FC);
-    border: 1.5px solid #0891B2;
-    border-left: 6px solid #0E7490;
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #ECFEFF, stop:1 #E0F2FE);
+    border: 1px solid #0891B2;
+    border-left: 4px solid #0369A1;
+}
+
+/* Alert card sub-elements */
+QFrame[class="alert-thumb-criminal"] {
+    background-color: #FFF1F2;
+    border-radius: 10px;
+    border: 1.5px solid rgba(239,68,68,0.45);
+}
+
+QFrame[class="alert-thumb-missing"] {
+    background-color: #ECFEFF;
+    border-radius: 10px;
+    border: 1.5px solid rgba(6,182,212,0.45);
 }
 
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   12. CHECKBOXES — Light Theme
+   14. EMPTY & LOADING STATES
+   ═══════════════════════════════════════════════════════════════════════════ */
+QFrame[class="empty-state"] {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px dashed #CAD1DC;
+    border-radius: 16px;
+    padding: 30px 16px;
+}
+
+QLabel[class="empty-state-icon"] {
+    font-size: 28px;
+    background: transparent;
+    border: none;
+}
+
+QLabel[class="empty-state-message"] {
+    color: #64748B;
+    font-size: 12.5px;
+    font-weight: 500;
+    background: transparent;
+    border: none;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   15. CHECKBOXES — Light Theme
    ═══════════════════════════════════════════════════════════════════════════ */
 QCheckBox {
     color: #334155;
@@ -430,61 +765,67 @@ QCheckBox::indicator {
     width: 18px;
     height: 18px;
     border-radius: 4px;
-    border: 1px solid #CBD5E1;
-    background-color: #F1F5F9;
+    border: 1px solid #CAD1DC;
+    background-color: #F0F2F6;
 }
 
 QCheckBox::indicator:checked {
-    background-color: #4F6BFB;
-    border-color: #4F6BFB;
+    background-color: #3E56E0;
+    border-color: #3E56E0;
 }
 
 QCheckBox::indicator:hover {
-    border-color: #4F6BFB;
+    border-color: #3E56E0;
 }
 
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   13. GROUP BOXES — Glass Card Containers
+   16. GROUP BOXES — Glass Card Containers
    ═══════════════════════════════════════════════════════════════════════════ */
 QGroupBox {
-    background-color: rgba(255, 255, 255, 220);
-    border: 1px solid #E2E8F0;
-    border-radius: 18px;
+    background-color: rgba(255,255,255,0.88);
+    border: 1px solid #E1E5EC;
+    border-radius: 20px;
     margin-top: 14px;
     padding-top: 20px;
     font-weight: 600;
-    color: #4F6BFB;
+    color: #3E56E0;
 }
 
 QGroupBox::title {
     subcontrol-origin: margin;
     subcontrol-position: top left;
     padding: 4px 12px;
-    background-color: #F8FAFC;
+    background-color: #F7F8FA;
     border-radius: 8px;
     left: 14px;
 }
 
+/* Per-section colored group boxes */
+QGroupBox[class="grp-camera"]    { color: #3E56E0; }
+QGroupBox[class="grp-dnn"]      { color: #10B981; }
+QGroupBox[class="grp-alert"]    { color: #F43F5E; }
+QGroupBox[class="grp-database"] { color: #F59E0B; }
+
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   14. PROGRESS BAR — Accent Stripe
+   17. PROGRESS BAR — Accent Stripe
    ═══════════════════════════════════════════════════════════════════════════ */
 QProgressBar {
-    background-color: #F1F5F9;
+    background-color: #F0F2F6;
     border: none;
-    border-radius: 2px;
+    border-radius: 3px;
     text-align: center;
 }
 
 QProgressBar::chunk {
-    background-color: #4F6BFB;
-    border-radius: 2px;
+    background-color: #3E56E0;
+    border-radius: 3px;
 }
 
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   15. TOOLTIP — Ink Popup
+   18. TOOLTIP — Ink Popup
    ═══════════════════════════════════════════════════════════════════════════ */
 QToolTip {
     background-color: #0F172A;
@@ -497,21 +838,21 @@ QToolTip {
 
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   16. SEPARATOR
+   19. SEPARATOR
    ═══════════════════════════════════════════════════════════════════════════ */
 QSplitter::handle {
-    background-color: #E2E8F0;
+    background-color: #E1E5EC;
     width: 2px;
 }
 
 QFrame[class="separator"] {
-    background-color: #E2E8F0;
+    background-color: #E1E5EC;
     max-height: 1px;
 }
 
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   17. SCROLL AREA — Transparent Container
+   20. SCROLL AREA — Transparent Container
    ═══════════════════════════════════════════════════════════════════════════ */
 QScrollArea {
     background-color: transparent;
@@ -524,16 +865,16 @@ QScrollArea > QWidget > QWidget {
 
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   18. TAB WIDGET (if ever used)
+   21. TAB WIDGET
    ═══════════════════════════════════════════════════════════════════════════ */
 QTabWidget::pane {
-    border: 1px solid #E2E8F0;
+    border: 1px solid #E1E5EC;
     border-radius: 12px;
     background-color: #FFFFFF;
 }
 
 QTabBar::tab {
-    background-color: #F1F5F9;
+    background-color: #F0F2F6;
     color: #64748B;
     padding: 8px 16px;
     border-radius: 8px 8px 0 0;
@@ -542,18 +883,18 @@ QTabBar::tab {
 
 QTabBar::tab:selected {
     background-color: #FFFFFF;
-    color: #4F6BFB;
+    color: #3E56E0;
     font-weight: 600;
 }
 
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   19. DIALOG — Glassmorphic Modal
+   22. DIALOG — Glassmorphic Modal
    ═══════════════════════════════════════════════════════════════════════════ */
 QDialog {
-    background-color: #F8FAFC;
+    background-color: #F7F8FA;
     color: #0F172A;
-    border-radius: 18px;
+    border-radius: 20px;
 }
 
 QMessageBox {
@@ -562,4 +903,14 @@ QMessageBox {
 
 QMessageBox QLabel {
     color: #334155;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   23. FOCUS RINGS — Universal Accessibility
+   ═══════════════════════════════════════════════════════════════════════════ */
+QPushButton:focus, QLineEdit:focus, QTextEdit:focus,
+QComboBox:focus, QSpinBox:focus, QDoubleSpinBox:focus,
+QCheckBox:focus, QTableView:focus, QListView:focus {
+    border: 2px solid rgba(62,86,224,0.30);
 }

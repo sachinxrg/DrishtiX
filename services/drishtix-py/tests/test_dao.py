@@ -127,3 +127,46 @@ def test_config_dao():
         ConfigDAO.set_value(session, "alert_cooldown", "45", "Cooldown in seconds")
         val = ConfigDAO.get_value(session, "alert_cooldown")
         assert val == "45"
+
+
+def test_target_deletion_with_detection_logs():
+    """Verify deleting a target with detection logs succeeds and cascades cleanly without NOT NULL errors."""
+    with get_session() as session:
+        cam = CameraSource(camera_name="Gate A", source_uri="0", is_active=True)
+        CameraDAO.create(session, cam)
+
+        target = TargetRegistry(
+            full_name="Cascade Target",
+            category="CRIMINAL",
+            case_number="CAS-2026-99",
+            is_active=True,
+        )
+        TargetDAO.create(session, target)
+        target_id = target.target_id
+
+        # Create multiple detection logs
+        for i in range(5):
+            log = DetectionLog(
+                target_id=target_id,
+                camera_id=cam.camera_id,
+                match_confidence=0.90 + (i * 0.01),
+                location_tag=f"Perimeter {i}",
+            )
+            DetectionLogDAO.create(session, log)
+
+    # Verify logs exist
+    with get_session() as session:
+        logs_before = DetectionLogDAO.get_recent(session, limit=20)
+        assert len(logs_before) == 5
+
+    # Delete target via TargetDAO
+    with get_session() as session:
+        deleted = TargetDAO.delete(session, target_id)
+        assert deleted is True
+
+    # Verify target and its logs are both deleted
+    with get_session() as session:
+        assert TargetDAO.get_by_id(session, target_id) is None
+        logs_after = DetectionLogDAO.get_recent(session, limit=20)
+        assert len(logs_after) == 0
+

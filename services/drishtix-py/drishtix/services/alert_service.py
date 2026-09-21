@@ -5,14 +5,12 @@ Coordinates alert generation, audio playback, database persistence,
 per-target cooldown suppression, and snapshot saving.
 """
 
+import asyncio
 import logging
 import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
-from pathlib import Path
 from typing import Dict, Optional, Tuple
-
-import asyncio
 
 import cv2
 import numpy as np
@@ -29,6 +27,7 @@ from drishtix.models.detection_log import DetectionLog
 from drishtix.services.gallery_manager import MatchResult
 from drishtix.services.telegram_service import TelegramService
 from drishtix.utils.image_utils import mat_to_qpixmap, safe_crop
+from drishtix.utils.path_utils import to_stored_path
 from drishtix.utils.sound_player import SoundPlayer
 
 logger = logging.getLogger(__name__)
@@ -128,6 +127,8 @@ class AlertService:
         bbox: Tuple[int, int, int, int],
         camera_id: Optional[int] = None,
         location_tag: Optional[str] = "Main Entrance",
+        age: Optional[int] = None,
+        gender: Optional[str] = None,
     ) -> Optional[dict]:
         """
         Process a positive face recognition match.
@@ -144,6 +145,11 @@ class AlertService:
             bbox: (x, y, w, h) bounding box.
             camera_id: Optional source camera id.
             location_tag: String location identifier.
+            age: Optional estimated age from the demographics pass.
+            gender: Optional estimated gender ("M"/"F") from the demographics
+                pass. AlertCard renders a demographics chip from these, so
+                without them every live-camera alert card showed no chip even
+                though InsightFace had already computed the values.
 
         Returns:
             Alert payload dictionary if alert was triggered, None if suppressed.
@@ -181,7 +187,13 @@ class AlertService:
         else:
             snapshot_path = None
 
-        rel_snapshot_str = str(snapshot_path.relative_to(Path.cwd())) if snapshot_path and snapshot_path.exists() else None
+        # Stored relative to the project root, not to cwd — a cwd-relative path
+        # resolved against whatever directory the app was launched from, so the
+        # erasure service could not find the snapshot to delete it and the
+        # detection log pointed at nothing.
+        rel_snapshot_str: Optional[str] = None
+        if snapshot_path is not None and snapshot_path.exists():
+            rel_snapshot_str = to_stored_path(snapshot_path)
 
         # Persist to database
         log_entry_id = None
@@ -224,6 +236,8 @@ class AlertService:
             "timestamp": now_dt,
             "bbox": bbox,
             "location_tag": location_tag,
+            "age": age,
+            "gender": gender,
         }
 
         # Emit signal to UI

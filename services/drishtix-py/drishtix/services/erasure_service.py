@@ -23,10 +23,10 @@ Usage:
 import logging
 import time
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import List, Optional
 
 from drishtix.dao.session import get_session
+from drishtix.utils.path_utils import resolve_stored_path
 
 logger = logging.getLogger(__name__)
 
@@ -149,7 +149,11 @@ class ErasureService:
 
                 for log_entry in det_logs:
                     if log_entry.snapshot_path:
-                        snap_path = Path(log_entry.snapshot_path)
+                        # Anchored to the project root: the stored value is
+                        # relative, and resolving it against cwd meant .exists()
+                        # was False whenever the app was launched from elsewhere,
+                        # so the erasure silently deleted no image at all.
+                        snap_path = resolve_stored_path(log_entry.snapshot_path)
                         try:
                             if snap_path.exists():
                                 snap_path.unlink()
@@ -165,7 +169,7 @@ class ErasureService:
 
                 # 4. Delete profile image file from disk
                 if target.profile_image_path:
-                    profile_path = Path(target.profile_image_path)
+                    profile_path = resolve_stored_path(target.profile_image_path)
                     try:
                         if profile_path.exists():
                             profile_path.unlink()

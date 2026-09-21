@@ -2,23 +2,20 @@
 DrishtiX v4.0 — Application Bootstrap and Lifecycle Manager.
 
 Initializes configuration, database schema, in-memory face embedding gallery,
-PySide6 QApplication, dark tactical QSS stylesheets, and background worker threads.
+PySide6 QApplication, the glassmorphism QSS stylesheet, and background worker threads.
 """
 
 import logging
 import sys
 from pathlib import Path
 
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QFont, QIcon
+from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QApplication
 
 from drishtix.core.config import get_settings
 from drishtix.core.constants import APP_NAME, APP_VERSION
-from drishtix.dao.session import initialize as init_db, shutdown as shutdown_db
+from drishtix.dao.session import initialize as init_db
 from drishtix.services.gallery_manager import GalleryManager
-from drishtix.services.face_detection import FaceDetectionService
-from drishtix.services.face_recognition import FaceRecognitionService
 from drishtix.ui.main_window import MainWindow
 from drishtix.workers.capture_worker import CaptureWorker
 from drishtix.workers.ingestion_worker import IngestionWorker
@@ -89,7 +86,7 @@ def setup_logging(log_level: str = "INFO") -> None:
 
 
 def load_stylesheet(app: QApplication) -> None:
-    """Load and apply the dark tactical command QSS stylesheet."""
+    """Load and apply the glassmorphism command QSS stylesheet."""
     qss_path = Path(__file__).parent / "ui" / "styles" / "drishtix_glass.qss"
     if qss_path.exists():
         with open(qss_path, "r", encoding="utf-8") as f:
@@ -100,12 +97,13 @@ def load_stylesheet(app: QApplication) -> None:
         logger.warning("Stylesheet not found at %s", qss_path)
 
 
-def create_app() -> tuple[QApplication, MainWindow, CaptureWorker]:
+def create_app() -> tuple[QApplication, MainWindow, CaptureWorker, IngestionWorker]:
     """
     Bootstrap the complete DrishtiX application environment.
 
     Returns:
-        Tuple of (QApplication, MainWindow, CaptureWorker).
+        Tuple of (QApplication, MainWindow, CaptureWorker, IngestionWorker).
+        Both workers are returned so the caller can stop them on shutdown.
     """
     settings = get_settings()
     setup_logging(settings.app.log_level)
@@ -169,4 +167,4 @@ def create_app() -> tuple[QApplication, MainWindow, CaptureWorker]:
     # 7. Start Video Capture Loop
     capture_worker.start()
 
-    return app, main_window, capture_worker
+    return app, main_window, capture_worker, ingestion_worker

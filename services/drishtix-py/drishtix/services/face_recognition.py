@@ -77,9 +77,23 @@ class FaceRecognitionService:
             return cls._instance
 
     @property
+    def _insightface_active(self) -> bool:
+        """
+        True when InsightFace is the selected engine *and* actually loaded.
+
+        This exact three-part condition was repeated at every dispatch point,
+        so a change to the readiness rule had to be made in four places.
+        """
+        return (
+            self.engine == RECOGNITION_ENGINE_INSIGHTFACE
+            and self._insightface_service is not None
+            and self._insightface_service.is_available()
+        )
+
+    @property
     def embedding_dim(self) -> int:
         """Return the output vector dimensionality of the active engine."""
-        if self.engine == RECOGNITION_ENGINE_INSIGHTFACE and self._insightface_service and self._insightface_service.is_available():
+        if self._insightface_active:
             return INSIGHTFACE_EMBEDDING_DIM
         return SFACE_EMBEDDING_DIM
 
@@ -135,7 +149,7 @@ class FaceRecognitionService:
 
     def is_initialized(self) -> bool:
         """Return True if at least one recognition engine is loaded."""
-        if self.engine == RECOGNITION_ENGINE_INSIGHTFACE and self._insightface_service and self._insightface_service.is_available():
+        if self._insightface_active:
             return True
         return self._sface_recognizer is not None
 
@@ -173,7 +187,7 @@ class FaceRecognitionService:
             return None
 
         # 1. InsightFace ArcFace (512-D)
-        if self.engine == RECOGNITION_ENGINE_INSIGHTFACE and self._insightface_service and self._insightface_service.is_available():
+        if self._insightface_active:
             vec = self._insightface_service.extract_embedding(frame, raw_detection_row)
             if vec is not None:
                 return vec
@@ -226,7 +240,7 @@ class FaceRecognitionService:
             return None, None
 
         # 1. InsightFace: single-pass combined extraction
-        if self.engine == RECOGNITION_ENGINE_INSIGHTFACE and self._insightface_service and self._insightface_service.is_available():
+        if self._insightface_active:
             emb, demo = self._insightface_service.extract_embedding_and_demographics(frame, raw_detection_row)
             if emb is not None:
                 return emb, demo

@@ -21,7 +21,7 @@ import asyncio
 import logging
 from typing import Optional
 
-from PySide6.QtCore import QObject, QThread, QTimer, Signal
+from PySide6.QtCore import QMetaObject, QObject, Qt, QThread, QTimer, Signal, Slot
 
 from drishtix.services.ingestion_service import IngestionService
 
@@ -59,6 +59,7 @@ class _IngestionHandler(QObject):
         self._initial_timer.setSingleShot(True)
         self._initial_timer.timeout.connect(self._on_initial_sync)
 
+    @Slot()
     def start_timers(self) -> None:
         """Start the periodic synchronization timer and schedule initial sync."""
         if self.enabled:
@@ -75,12 +76,14 @@ class _IngestionHandler(QObject):
         else:
             logger.info("FBI Ingestion Worker is DISABLED. No automatic syncing.")
 
+    @Slot()
     def stop_timers(self) -> None:
         """Stop all timers."""
         self._timer.stop()
         self._initial_timer.stop()
         logger.info("FBI Ingestion Worker stopped.")
 
+    @Slot()
     def trigger_sync_now(self) -> None:
         """Immediately trigger a sync (can be called from UI button)."""
         self._on_sync_timer()
@@ -163,6 +166,22 @@ class IngestionWorker(QObject):
         # Start timers once the thread's event loop is running
         self._thread.started.connect(self._handler.start_timers)
 
+    def _invoke_on_handler(self, method: str) -> None:
+        """
+        Run a handler slot on the ingestion thread.
+
+        The handler and its QTimers are owned by `self._thread`; calling into
+        them directly from the main thread is undefined behaviour in Qt (timers
+        cannot be started/stopped across threads) and would run the blocking
+        sync on the UI thread. A queued invocation hands the call to the
+        handler's own event loop instead.
+        """
+        QMetaObject.invokeMethod(self._handler, method, Qt.ConnectionType.QueuedConnection)
+
+    def is_running(self) -> bool:
+        """Whether the dedicated ingestion thread is alive."""
+        return self._thread.isRunning()
+
     def start(self) -> None:
         """Start the dedicated ingestion thread."""
         if not self._thread.isRunning():
@@ -171,7 +190,11 @@ class IngestionWorker(QObject):
 
     def stop(self) -> None:
         """Stop the ingestion thread and clean up."""
-        self._handler.stop_timers()
+        if not self._thread.isRunning():
+            return
+        # Queued so the timers are stopped on their owning thread; the quit
+        # event is processed after it.
+        self._invoke_on_handler("stop_timers")
         self._thread.quit()
         self._thread.wait(3000)
         logger.info("IngestionWorker thread stopped.")
@@ -180,11 +203,16 @@ class IngestionWorker(QObject):
         """Enable or disable automatic sync at runtime."""
         self._handler.enabled = enabled
         if enabled:
-            self.start()
+            if self._thread.isRunning():
+                self._invoke_on_handler("start_timers")
+            else:
+                self.start()  # started signal fires start_timers
         else:
-            self._handler.stop_timers()
+            self._invoke_on_handler("stop_timers")
 
     def trigger_sync_now(self) -> None:
         """Immediately trigger a sync (can be called from UI button)."""
-        self._handler.trigger_sync_now()
+        if not self._thread.isRunning():
+            self.start()
+        self._invoke_on_handler("trigger_sync_now")
 

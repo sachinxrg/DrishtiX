@@ -24,9 +24,19 @@ def setup_analytics_db(tmp_path):
         TargetDAO.create(session, t2)
 
         # Log detections
-        DetectionLogDAO.create(session, DetectionLog(target_id=t1.target_id, match_confidence=0.92, location_tag="Cam A"))
-        DetectionLogDAO.create(session, DetectionLog(target_id=t1.target_id, match_confidence=0.88, location_tag="Cam A"))
-        DetectionLogDAO.create(session, DetectionLog(target_id=t2.target_id, match_confidence=0.95, location_tag="Cam B"))
+        for target, confidence, cam in (
+            (t1, 0.92, "Cam A"),
+            (t1, 0.88, "Cam A"),
+            (t2, 0.95, "Cam B"),
+        ):
+            DetectionLogDAO.create(
+                session,
+                DetectionLog(
+                    target_id=target.target_id,
+                    match_confidence=confidence,
+                    location_tag=cam,
+                ),
+            )
 
     yield
     shutdown()

@@ -201,7 +201,10 @@ class GalleryManager:
                     session=session,
                     action="GALLERY_RELOADED",
                     entity_type="GalleryManager",
-                    details=f"Loaded {count} centroid templates from {total_embeddings} embeddings across {len(new_targets)} targets",
+                    details=(
+                        f"Loaded {count} centroid templates from "
+                        f"{total_embeddings} embeddings across {len(new_targets)} targets"
+                    ),
                 )
             except Exception as e:
                 logger.debug("Failed to write gallery reload audit entry: %s", e)

@@ -1,6 +1,7 @@
 """Unit tests for Whole-Body Re-Identification, Torso Expansion, and Sensor Fusion Matrix."""
 
 import numpy as np
+
 from drishtix.services.reid_tracking import (
     BODY_EMBEDDING_DIM,
     DnnBodyReIdService,

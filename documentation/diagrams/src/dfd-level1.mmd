@@ -1,0 +1,24 @@
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'Inter, sans-serif', 'primaryColor': '#EEF2FF', 'primaryBorderColor': '#3E56E0', 'lineColor': '#64748B'}}}%%
+flowchart TD
+    CAM[Camera Source] -->|Frames| P1((1.0<br/>Video Capture &<br/>Frame Buffer))
+    P1 -->|Clean Frame| P2((2.0<br/>Face Detection &<br/>Quality Gate))
+    P2 -->|Aligned Face Crop| P3((3.0<br/>Biometric Feature<br/>Extraction))
+    
+    OP[Operator] -->|Enroll Data| P4((4.0<br/>Target & Watchlist<br/>Enrollment))
+    FBI[FBI API] -->|Mugshot Data| P4
+    P4 -->|Store Profile| D1[(D1: target_registry)]
+    P4 -->|Store Image| D2[(D2: target_image)]
+    P4 -->|Extract & Store| D3[(D3: face_embedding)]
+    
+    D3 -->|Load Matrix| GM[(In-Memory<br/>Gallery Matrix)]
+    P3 -->|128-D Query Vector| P5((5.0<br/>Vector Cosine<br/>Matching))
+    GM -->|Centroid Embeddings| P5
+    
+    P5 -->|Candidate Match| P6((6.0<br/>Multi-Frame Gate &<br/>Alert Dispatch))
+    P6 -->|Save Event| D4[(D4: detection_log)]
+    P6 -->|Forensic Push| TG[Telegram API]
+    P6 -->|Visual HUD / Audio| OP
+    
+    ADM[Administrator] -->|Purge Request| P7((7.0<br/>DPDP Erasure &<br/>Retention Purge))
+    P7 -->|Cascade Delete| D1
+    P7 -->|Audit Event| D5[(D5: audit_log)]

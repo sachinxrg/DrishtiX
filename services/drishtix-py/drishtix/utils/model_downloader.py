@@ -18,8 +18,9 @@ from drishtix.core.constants import (
 
 logger = logging.getLogger(__name__)
 
-YUNET_URL = "https://github.com/opencv/opencv_zoo/raw/main/models/face_detection_yunet/face_detection_yunet_2023mar.onnx"
-SFACE_URL = "https://github.com/opencv/opencv_zoo/raw/main/models/face_recognition_sface/face_recognition_sface_2021dec.onnx"
+_ZOO_BASE = "https://github.com/opencv/opencv_zoo/raw/main/models"
+YUNET_URL = f"{_ZOO_BASE}/face_detection_yunet/face_detection_yunet_2023mar.onnx"
+SFACE_URL = f"{_ZOO_BASE}/face_recognition_sface/face_recognition_sface_2021dec.onnx"
 
 
 def ensure_models(dest_dir: Optional[Path] = None) -> bool:

@@ -8,10 +8,11 @@ Migrated from: com.drishtix.service.TelegramAlertService (Java)
 
 import asyncio
 import logging
+import threading
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-import threading
 import httpx
 
 logger = logging.getLogger(__name__)
@@ -69,7 +70,10 @@ class TelegramService:
             f"<b>Case/FIR:</b> {case_number}\n"
             f"<b>Confidence:</b> {confidence * 100:.1f}%\n"
             f"<b>Location:</b> {location}\n"
-            f"<b>Timestamp:</b> <code>{Path(__file__).name}</code>"
+            # Was Path(__file__).name, so every alert that reached an operator's
+            # phone read "Timestamp: telegram_service.py" — the one field needed
+            # to know when the sighting happened carried the source filename.
+            f"<b>Timestamp:</b> <code>{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</code>"
         )
 
         base_url = f"https://api.telegram.org/bot{self.bot_token}"

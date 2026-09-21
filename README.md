@@ -1,147 +1,240 @@
 <div align="center">
-  <img src="DRISHTIX logo.png" alt="DrishtiX Logo" width="300"/>
+  <img src="docs/drishtixlogo.png" alt="DrishtiX Logo" width="280"/>
 
-  # DrishtiX 
-  **Next-Generation Edge-AI Tactical Facial Recognition & Surveillance Ecosystem**
+  # DrishtiX v5.0
 
-  [![Python Version](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org/)
-  [![PySide6 Version](https://img.shields.io/badge/PySide6-Qt6-green.svg)](https://pypi.org/project/PySide6/)
-  [![OpenCV Version](https://img.shields.io/badge/OpenCV-4.9.0-green.svg)](https://opencv.org/)
-  [![SQLAlchemy Version](https://img.shields.io/badge/SQLAlchemy-2.0%2B-red.svg)](https://www.sqlalchemy.org/)
-  [![Tests Passing](https://img.shields.io/badge/pytest-passing-brightgreen.svg)]()
-  [![License](https://img.shields.io/badge/License-MIT-blue.svg)]()
+  ### ⚡ Edge AI Tactical Facial Recognition & Perimeter Intelligence
 
-  *Real-Time Edge AI Detection, Cross-Camera Identification, Automated Target Ingestion, and Multi-Channel Tactical Alerting.*
+  [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+  [![PySide6](https://img.shields.io/badge/PySide6-Qt6-41CD52?style=for-the-badge&logo=qt&logoColor=white)](https://pypi.org/project/PySide6/)
+  [![OpenCV](https://img.shields.io/badge/OpenCV-4.9+-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white)](https://opencv.org/)
+  [![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0+-D71F00?style=for-the-badge&logo=sqlalchemy&logoColor=white)](https://www.sqlalchemy.org/)
+  [![Tests](https://img.shields.io/badge/Tests-59%20Passed-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)]()
+  [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
+
+  *Sub-second facial identification • Automated watchlist sync • Multi-channel tactical alerts • 21st.dev UI*
+
+  ---
+
+  [**Features**](#-features) · [**Screenshots**](#-screenshots) · [**Quick Start**](#-quick-start) · [**Architecture**](#-architecture) · [**Tech Stack**](#-tech-stack) · [**Team**](#-team)
+
 </div>
 
 ---
 
-## 📑 Table of Contents
-- [About the Project](#-about-the-project)
-- [Key Capabilities](#-key-capabilities)
-- [Repository Directory Structure](#-repository-directory-structure)
-- [Tech Stack & Architecture](#-tech-stack--architecture)
-  - [Python Stack (`drishtix-py` — Active)](#1-python-stack-drishtix-py--active)
-  - [Legacy Java Stack (`drishtix-app` — Reference)](#2-legacy-java-stack-drishtix-app--reference)
-  - [5-Tier Concurrency Pipeline](#3-5-tier-concurrency-pipeline)
-  - [Entity-Relationship Model](#4-entity-relationship-model)
-- [Getting Started](#-getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Quick Start (Python Stack)](#quick-start-python-stack)
-  - [Running Tests](#running-tests)
-- [Usage Guide](#-usage-guide)
-- [Roadmap](#-roadmap)
-- [Contributing](#-contributing)
-- [License & Maintainer](#-license--maintainer)
+## 🎯 What is DrishtiX?
+
+**DrishtiX** transforms standard video feeds into proactive, automated security perimeters. It deploys deep neural networks directly at the edge — running **YuNet** face detection and **SFace** 128-dimensional embedding extraction — to cross-reference live camera streams against local target registries and external law enforcement databases in real-time.
+
+> **🔑 Key differentiator:** Zero-cloud dependency. All inference runs locally on commodity hardware. No frames leave your network.
+
+<div align="center">
+
+| Metric | Performance |
+|:---|:---|
+| 🧠 Face Detection Latency | **~2ms** (YuNet ONNX) |
+| 📐 Embedding Extraction | **128-D SFace** vectors |
+| 🎯 Match Threshold | Cosine similarity ≥ 0.363 |
+| 🧪 Test Coverage | **59/59 tests passing** |
+| 🖥️ UI Framework | PySide6 + 21st.dev Design System |
+
+</div>
 
 ---
 
-## 🎯 About the Project
+## ✨ Features
 
-**DrishtiX** transforms standard video feeds into proactive, automated security perimeters. Traditional surveillance setups rely on manual monitoring, leading to fatigue and missed detections. DrishtiX bridges this gap by deploying deep neural networks (YuNet face detector & SFace 128-dimensional vector embeddings) directly at the edge to cross-reference video feeds against local target registries and external intelligence feeds (including automated background ingestion of the FBI Wanted API).
+<table>
+<tr>
+<td width="50%">
 
-Whether deployed at critical infrastructure checkpoints, transit hubs, or private facilities, DrishtiX delivers sub-second face identification, spatial tracking, and instant multi-channel tactical alerts (Telegram push notifications with forensic snapshots, audio alarms, and desktop dashboard cards).
+### 🔴 Real-Time Edge AI
+- Sub-millisecond face localization with **YuNet ONNX**
+- 128-D age-invariant **SFace** embedding vectors
+- In-memory vectorized cosine similarity gallery search
+- Configurable match thresholds per deployment
+
+</td>
+<td width="50%">
+
+### 🛡️ Tactical Alerting
+- **Telegram Bot** push notifications with forensic snapshots
+- Audible alarm chimes with configurable cooldowns
+- Live sidebar alert queue with 50-card memory pruning
+- Glassmorphic alert cards with biometric metadata
+
+</td>
+</tr>
+<tr>
+<td>
+
+### 📊 Intelligence Analytics
+- 24-hour detection timeline bar charts
+- Category breakdown donut visualization
+- Multi-day trend analysis with sparklines
+- Top identified targets leaderboard
+- KPI cards with animated counters
+
+</td>
+<td>
+
+### 🔍 Forensic Scanner
+- Batch scan crowd photos for watchlist matches
+- Multi-face detection (40+ faces per image)
+- Demographic estimation (age & gender)
+- Annotated output with tactical bounding boxes
+
+</td>
+</tr>
+<tr>
+<td>
+
+### 🌐 Automated Ingestion
+- Scheduled FBI Wanted API background sync
+- Zero-FPS-impact asynchronous polling
+- Automatic profile photo + embedding extraction
+- Deduplication via case number matching
+
+</td>
+<td>
+
+### 🎨 21st.dev UI Design System
+- Custom SVG vector icon system (Lucide/21st style)
+- Animated sliding navigation pill indicator
+- Cross-fade view transitions (220ms OutCubic)
+- Live radar breathing status dots
+- Interactive card hover elevation & glow
+
+</td>
+</tr>
+</table>
 
 ---
 
-## ✨ Key Capabilities
+## 📸 Screenshots
 
-- **Real-Time Edge AI Inference:** Sub-millisecond face localization with YuNet and high-precision 128-dimensional embedding generation via SFace.
-- **In-Memory Gallery Vector Search:** Vectorized cosine similarity scoring against enrolled target profiles with configurable matching thresholds.
-- **Decoupled Asynchronous Workers:** Zero UI stuttering through dedicated `QThread` workers for video capture, recognition inference, and external API polling.
-- **Automated External Ingestion:** Scheduled background sync with external law enforcement registries (e.g., FBI Wanted API) without degrading camera FPS.
-- **Tactical Multi-Channel Alerting:** Instant push notifications via Telegram Bot API with attached high-resolution forensic snapshot frames, case IDs, and timestamps.
-- **Forensic Image Scanner:** Batch scan forensic images against the enrolled watchlist to identify persons of interest from offline evidence.
-- **Comprehensive Analytics & Telemetry:** Interactive Matplotlib dashboards tracking detection frequency, category breakdowns, and hardware telemetry.
+<div align="center">
+
+### Tactical Command Dashboard
+*Real-time KPI metrics, live video feed, system health telemetry, and 24-hour activity heatmap*
+
+<img src="docs/Dashboard.png" alt="Dashboard View" width="90%"/>
 
 ---
 
-## 📂 Repository Directory Structure
+### Target Watchlist Registry
+*Biometric identity management with FBI case references, category badges, and inline photo previews*
 
-```text
-DrishtiX/
-├── .agents/                               # Antigravity agent workflows & development rules
-│   └── workflows/                         # Automated iteration and lifecycle workflows
-├── database/                              # Database schemas, seeds, and migration scripts
-│   ├── drishtix_init.js                   # MongoDB legacy initialization script
-│   └── schema.sql                         # SQL database schema definitions
-├── docs/                                  # Comprehensive architectural and project documentation
-│   ├── Chapter_1_Introduction.md          # Project introduction, scope, and objectives
-│   ├── Chapter_2_Survey_of_Technologies.md# Comparative tech survey (Java vs Python, OpenCV vs Dlib)
-│   ├── Chapter_3_Requirements_and_Analysis.md # Requirements, use cases, and concurrency model
-│   └── DrishtiX_v3_Documentation.md       # Full architectural specification and diagrams
-├── scripts/                               # Automation, test runners, and maintenance utilities
-│   ├── generate_ch1_ch2.py                # Documentation build script
-│   ├── generate_diagrams_docx.py          # Diagram extraction and documentation compiler
-│   └── run_py_tests.bat                   # Batch runner for Python pytest test suite
-├── services/                              # Application microservices & core packages
-│   ├── drishtix-py/                       # Primary Python-centric edge AI application
-│   │   ├── assets/                        # Static assets (sounds, notification audio)
-│   │   ├── drishtix/                      # Core Python source package
-│   │   │   ├── core/                      # Configuration, constants, enums, signals bus
-│   │   │   ├── dao/                       # SQLAlchemy Data Access Objects & session management
-│   │   │   ├── models/                    # Declarative ORM schemas (Target, Log, Camera, Audit)
-│   │   │   ├── services/                  # Business logic (Detection, Recognition, Ingestion, Telegram)
-│   │   │   ├── ui/                        # PySide6 desktop GUI (Views, custom widgets, dark QSS)
-│   │   │   ├── utils/                     # Vector math, model downloader, audio synthesizer
-│   │   │   └── workers/                   # Asynchronous QThread workers (Capture, Recognition, Ingestion)
-│   │   ├── models/                        # Pretrained ONNX weights (YuNet detector & SFace recognizer)
-│   │   ├── tests/                         # Pytest test suite (DAO, Vector Math, Analytics)
-│   │   ├── config.yaml                    # Application runtime configuration
-│   │   ├── main.py                        # Python application entry point
-│   │   ├── pyproject.toml                 # PEP 517/518 build configuration
-│   │   ├── requirements.txt               # Python package dependencies
-│   │   └── README.md                      # Service-specific documentation
-│   ├── drishtix-app/                      # Legacy Java 17 / JavaFX application (reference)
-│   │   ├── src/                           # Java source code
-│   │   └── pom.xml                        # Maven configuration
-│   └── reid-service/                      # Legacy Python Re-ID service (now unified in drishtix-py)
-├── .gitignore                             # Git hygiene, artifact, and secret exclusion rules
-├── DRISHTIX logo.png                      # Project branding logo
-├── pom.xml                                # Root Maven parent configuration
-├── README.md                              # Main repository documentation & guide
-├── start_drishtix_py.bat                  # One-click launcher for Python desktop application
-└── stop_drishtix_py.bat                   # Graceful process termination script for Python runtime
+<img src="docs/Target_Registry.png" alt="Target Registry" width="90%"/>
+
+---
+
+### Intelligence Analytics Dashboard
+*Hourly detection timelines, category distribution, multi-day trends, and top target rankings*
+
+<img src="docs/Analytics_KPIs.png" alt="Analytics Dashboard" width="90%"/>
+
+---
+
+### Forensic Crowd Image Scanner
+*Deep neural multi-face identification with demographic analysis on static imagery*
+
+<img src="docs/Forensic_Scanner.png" alt="Forensic Scanner" width="90%"/>
+
+---
+
+### System Configuration
+*Camera inputs, DNN hyperparameters, alert channels, and database diagnostics*
+
+<img src="docs/Settings_Config.png" alt="Settings Config" width="90%"/>
+
+</div>
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+| Requirement | Version |
+|:---|:---|
+| Python | 3.11+ |
+| Camera | USB webcam or RTSP stream |
+| OS | Windows 10/11, Linux, macOS |
+
+### One-Click Launch (Windows)
+
+```cmd
+git clone https://github.com/sachinxrg/DrishtiX.git
+cd DrishtiX
+start_drishtix_py.bat
+```
+
+> The launcher automatically provisions the virtual environment, installs all dependencies, downloads ONNX models, and boots the application.
+
+### Manual Setup
+
+```bash
+# Clone & navigate
+git clone https://github.com/sachinxrg/DrishtiX.git
+cd DrishtiX/services/drishtix-py
+
+# Create virtual environment
+python -m venv venv
+
+# Activate (Windows)
+venv\Scripts\activate
+
+# Activate (Linux/macOS)
+# source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Launch DrishtiX
+python main.py
+```
+
+### Running Tests
+
+```bash
+cd services/drishtix-py
+
+# Run full test suite (59 tests)
+venv\Scripts\pytest.exe tests/ -v
+
+# Quick summary
+venv\Scripts\pytest.exe tests/ -q
+```
+
+```
+...........................................................  [100%]
+59 passed in 12.28s
 ```
 
 ---
 
-## 🏗️ Tech Stack & Architecture
+## 🏗️ Architecture
 
-### 1. Python Stack (`drishtix-py` — Active)
-- **Language:** Python 3.11+
-- **GUI Framework:** PySide6 (Qt6) with custom dark glassmorphic styling
-- **Computer Vision & AI:** OpenCV DNN 4.9.0+, ONNX Runtime (YuNet face detector, SFace 128-d recognizer)
-- **Data Persistence:** SQLAlchemy 2.0+ ORM with SQLite / MySQL backends
-- **Data Serialization & Validation:** Pydantic v2 & PyYAML
-- **Asynchronous Networking:** HTTPX
-- **Visual Analytics:** Matplotlib & NumPy
-- **Testing:** Pytest & Pytest-Qt
-
-### 2. Legacy Java Stack (`drishtix-app` — Reference)
-- **Language:** Java 17 LTS
-- **Build Tool:** Apache Maven
-- **GUI:** JavaFX 21 & ControlsFX
-- **Computer Vision:** OpenCV / JavaCV
-- **Database:** MongoDB Sync Driver
-
-### 3. 5-Tier Concurrency Pipeline
+### 5-Tier Concurrency Pipeline
 
 ```mermaid
 flowchart TD
-    CAM["📷 Video Stream / USB Webcam"] --> CW["🟦 Capture Worker (QThread)"]
-    CW -->|"Raw Frame"| YUNET["🧠 YuNet Detection (~2ms)"]
-    YUNET -->|"Annotated Video Frame"| UI["🟩 Main UI Thread (PySide6)"]
-    YUNET -->|"Face Crop (112x112)"| RW["🟧 Recognition Worker (QThread)"]
-    RW --> SFACE["🧠 SFace Embedding (128-dim)"]
-    SFACE --> MATCH{"Cosine Similarity ≥ 0.363"}
-    MATCH -- "Target Matched" --> ALERT["🚨 Alert Service (Telegram + Audio)"]
-    MATCH -- "Target Matched" --> DB[("💾 SQLAlchemy ORM / DB")]
-    MATCH -- "Target Matched" --> UI_ALERT["📋 Alert Sidebar & Status Update"]
-    IW["🌐 Ingestion Worker (QThread)"] -->|"FBI Wanted API Sync"| DB
+    CAM["📷 Video Stream / USB Webcam"] --> CW["🟦 Capture Worker<br/>(QThread)"]
+    CW -->|"Raw Frame"| YUNET["🧠 YuNet Detection<br/>(~2ms ONNX)"]
+    YUNET -->|"Annotated Frame"| UI["🟩 Main UI Thread<br/>(PySide6 + 21st UI)"]
+    YUNET -->|"Face Crop 112×112"| RW["🟧 Recognition Worker<br/>(QThread)"]
+    RW --> SFACE["🧠 SFace Embedding<br/>(128-dim vector)"]
+    SFACE --> MATCH{"Cosine Similarity<br/>≥ 0.363?"}
+    MATCH -- "✅ Match" --> ALERT["🚨 Alert Service"]
+    MATCH -- "✅ Match" --> DB[("💾 SQLAlchemy ORM")]
+    MATCH -- "✅ Match" --> UI_ALERT["📋 Live Alert Sidebar"]
+    IW["🌐 Ingestion Worker<br/>(QThread)"] -->|"FBI API Sync"| DB
+    ALERT --> TG["📱 Telegram Bot"]
+    ALERT --> AUDIO["🔊 Audio Alarm"]
 ```
 
-### 4. Entity-Relationship Model
+### Entity-Relationship Model
 
 ```mermaid
 erDiagram
@@ -193,105 +286,144 @@ erDiagram
     CAMERA_SOURCES ||--o{ DETECTION_LOGS : "captured_by"
 ```
 
+### Project Structure
+
+```
+DrishtiX/
+├── services/drishtix-py/           # Primary Python Edge AI Application
+│   ├── drishtix/                   # Core source package
+│   │   ├── core/                   # Config, constants, signals, feature flags
+│   │   ├── dao/                    # SQLAlchemy session & data access layer
+│   │   ├── models/                 # ORM schemas (Target, DetectionLog, Camera)
+│   │   ├── services/               # Business logic (Detection, Recognition, Alerts)
+│   │   ├── ui/                     # PySide6 GUI + 21st.dev design system
+│   │   │   ├── icons.py            # SVG vector icon renderer (Lucide paths)
+│   │   │   ├── motion.py           # Animations: fading, pulsing, sliding pill
+│   │   │   ├── theme_tokens.py     # Design tokens: colors, spacing, elevation
+│   │   │   ├── views/              # Dashboard, Registry, Logs, Analytics, Scanner, Settings
+│   │   │   └── widgets/            # GlassCard, KPICard, NavButton, AlertSidebar, etc.
+│   │   ├── utils/                  # Vector math, model downloader, audio
+│   │   └── workers/                # QThread workers (Capture, Recognition, Ingestion)
+│   ├── tests/                      # Pytest test suite (59 tests)
+│   ├── tools/                      # QSS generator, development utilities
+│   ├── config.yaml                 # Runtime configuration
+│   ├── main.py                     # Application entry point
+│   └── requirements.txt            # Python dependencies
+├── docs/                           # Screenshots & project documentation
+├── start_drishtix_py.bat           # One-click Windows launcher
+└── stop_drishtix_py.bat            # Graceful shutdown script
+```
+
 ---
 
-## 🚀 Getting Started
+## 🛠️ Tech Stack
 
-### Prerequisites
-- [Python 3.11+](https://www.python.org/downloads/) installed and added to your `PATH`.
-- A connected USB Webcam or accessible RTSP camera stream.
-- [Git](https://git-scm.com/) installed.
+<div align="center">
 
-### Quick Start (Python Stack)
+| Layer | Technology |
+|:---|:---|
+| **Language** | Python 3.11+ |
+| **GUI** | PySide6 (Qt6) + 21st.dev glassmorphic design system |
+| **Computer Vision** | OpenCV DNN 4.9+, ONNX Runtime |
+| **Face Detection** | YuNet (real-time, ~2ms per frame) |
+| **Face Recognition** | SFace (128-D embeddings, cosine similarity) |
+| **ORM & Persistence** | SQLAlchemy 2.0+ with SQLite (WAL mode) |
+| **Validation** | Pydantic v2 |
+| **Async Networking** | HTTPX (FBI API ingestion) |
+| **Charting** | Matplotlib + NumPy |
+| **Testing** | Pytest (59 tests across DAO, UI, vectors, analytics) |
+| **Notifications** | Telegram Bot API |
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/sachinxrg/DrishtiX.git
-   cd DrishtiX
-   ```
-
-2. **Launch using the automated script (Windows):**
-   ```cmd
-   start_drishtix_py.bat
-   ```
-   *This automatically verifies the virtual environment, installs dependencies from `requirements.txt`, checks ONNX models, and boots the application.*
-
-3. **Or run manually via terminal:**
-   ```bash
-   cd services/drishtix-py
-   python -m venv venv
-   # Windows:
-   venv\Scripts\activate
-   # Linux/macOS:
-   source venv/bin/activate
-
-   pip install -r requirements.txt
-   python main.py
-   ```
-
-### Running Tests
-Execute the automated test suite covering DAO models, vector mathematics, and analytics aggregation:
-```bash
-# Run via batch script
-scripts\run_py_tests.bat
-
-# Or directly with pytest
-pytest services/drishtix-py/tests -v
-```
+</div>
 
 ---
 
 ## 📖 Usage Guide
 
-1. **Enrolling Targets:**
-   - Navigate to the **Target Registry** view.
-   - Click **Add Target**, input personal details, select a category (`CRIMINAL`, `MISSING_PERSON`, etc.), and upload a reference photo.
-   - DrishtiX automatically extracts and stores the 128-dimensional facial embedding in the gallery.
+<details>
+<summary><b>1. 🎯 Enrolling Targets</b></summary>
 
-2. **Live Monitoring:**
-   - Switch to the **Dashboard** view.
-   - Click **Start Camera** to activate the video capture and detection pipeline.
-   - Recognized individuals trigger a high-visibility bounding box, audible chime, Telegram push notification, and sidebar entry.
+Navigate to **Target Registry** → Click **+ Register New Target** → Enter name, category (Criminal/Missing Person), case reference → Upload a reference photo. DrishtiX automatically extracts and stores the 128-D facial embedding.
 
-3. **Forensic Image Scan:**
-   - Navigate to the **Forensic Scanner** tab.
-   - Drop suspect or crowd images to perform offline recognition against the enrolled database.
+</details>
 
-4. **Analytics & Reports:**
-   - Review detection patterns, hourly frequencies, and export formal law enforcement audit logs in CSV/PDF format via the **Analytics** view.
+<details>
+<summary><b>2. 📹 Live Monitoring</b></summary>
+
+Switch to the **Dashboard** → Click **Start Feed** to activate the camera pipeline. Recognized targets trigger bounding box overlays, audible chimes, Telegram notifications, and sidebar alert cards — all simultaneously.
+
+</details>
+
+<details>
+<summary><b>3. 🔍 Forensic Scanning</b></summary>
+
+Navigate to **Forensic Scanner** → Select a crowd image → Click **Run Deep Scan**. DrishtiX identifies all faces, cross-references against the enrolled database, and annotates matches with confidence scores and demographics.
+
+</details>
+
+<details>
+<summary><b>4. 📊 Analytics & Reporting</b></summary>
+
+The **Analytics** view provides hourly detection timelines, category distribution donut charts, multi-day trend lines, and a top identified targets ranking. Export CSV audit logs for formal reporting.
+
+</details>
+
+<details>
+<summary><b>5. ⚙️ Configuration</b></summary>
+
+The **Settings** view allows tuning camera sources, DNN thresholds, recognition engine selection (SFace/ArcFace), alert cooldowns, Telegram bot credentials, and database diagnostics.
+
+</details>
 
 ---
 
 ## 🗺️ Roadmap
 
-- [x] Python-centric architecture migration with PySide6 & OpenCV ONNX.
-- [x] Multi-threaded decoupled producer-consumer inference pipeline.
-- [x] Automated FBI Wanted API background ingestion.
-- [x] Multi-channel tactical alerting (Telegram bot + Audio).
-- [ ] Multi-camera RTSP stream grid multiplexer.
-- [ ] Deep SORT / ByteTrack integration for long-term multi-camera re-identification.
-- [ ] Edge Docker containerization (`docker-compose` deployment).
+- [x] Python-centric architecture migration (PySide6 + OpenCV ONNX)
+- [x] Multi-threaded decoupled producer-consumer inference pipeline
+- [x] Automated FBI Wanted API background ingestion
+- [x] Multi-channel tactical alerting (Telegram + Audio)
+- [x] 21st.dev UI design system with SVG vector icons & fluid animations
+- [x] Animated sliding navigation pill indicator (Framer Motion style)
+- [x] Interactive card hover elevation with border glow
+- [x] Comprehensive test suite (59 automated tests)
+- [ ] Multi-camera RTSP stream grid multiplexer
+- [ ] Deep SORT / ByteTrack cross-camera re-identification
+- [ ] Edge Docker containerization (`docker-compose`)
+
+---
+
+## 👥 Team
+
+| Role | Name |
+|:---|:---|
+| 🎯 **Project Manager** | Sachidanand Gond |
+| 🏗️ **System Designer** | Arjun Prajapati |
+| 🧪 **Tester / QA** | Rohan Mallah |
+| 💻 **Developer** | Tejas Gohil |
+| 🚀 **Deployer** | Amos Raj Kennedy |
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Follow these steps to contribute:
-1. Fork the project.
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`).
-3. Commit your changes following [Conventional Commits](https://www.conventionalcommits.org/) (`git commit -m 'feat(core): add feature'`).
-4. Push to your branch (`git push origin feature/AmazingFeature`).
-5. Open a Pull Request.
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit using [Conventional Commits](https://www.conventionalcommits.org/) (`git commit -m 'feat(core): add feature'`)
+4. Push to your branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ---
 
-## 📄 License & Maintainer
+## 📄 License
 
 Distributed under the **MIT License**.
 
-- **Maintainer:** Sachidanand  
-- **Repository:** [https://github.com/sachinxrg/DrishtiX](https://github.com/sachinxrg/DrishtiX)
+**Repository:** [github.com/sachinxrg/DrishtiX](https://github.com/sachinxrg/DrishtiX)
 
 <div align="center">
-  <i>Engineered with precision for tactical edge surveillance operations.</i>
+  <br/>
+  <sub>Engineered with precision for tactical edge surveillance operations.</sub>
+  <br/><br/>
+  <img src="docs/drishtixlogo.png" alt="DrishtiX" width="80"/>
 </div>

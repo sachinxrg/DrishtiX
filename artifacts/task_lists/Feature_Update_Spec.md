@@ -1,134 +1,69 @@
-# DrishtiX — Feature Update Spec v2.0
+# Feature Update Spec: Fix Target Deletion ForeignKey Integrity Error & Complete Cascade Deletion
 
-> **Date**: 2026-07-20  
-> **Status**: PENDING APPROVAL  
-> **Baseline**: Master Blueprint v1.2.0 (JavaFX MVC + MongoDB + OpenCV/JavaCV)
-
----
-
-## Feature 1: Multi-Camera Person Re-Identification (ReID)
-
-### Problem Statement
-The current DrishtiX system identifies targets using LBPH facial recognition on a single camera feed. When a target moves from one camera's field of view to another, or when their face is not clearly visible (occluded, turned away), the system loses tracking entirely. Security operators have no way to correlate the same person across multiple camera streams based on body appearance.
-
-### User Stories
-
-#### US-1.1: Python ReID Microservice
-> **As a** system operator,  
-> **I want** a standalone Python microservice running alongside DrishtiX,  
-> **So that** heavy AI processing (PyTorch/OSNet) stays out of the JVM and can be scaled independently.
-
-**Acceptance Criteria:**
-- [ ] A FastAPI microservice exists at `services/reid-service/` with a single `POST /extract` endpoint
-- [ ] The endpoint accepts a JPEG/PNG image (person crop) as `multipart/form-data`
-- [ ] It loads the OSNet model (`osnet_x1_0`) from the `torchreid` library on startup
-- [ ] It returns a JSON response: `{ "embedding": [0.123, -0.456, ...], "dimensions": 512 }`
-- [ ] The service starts on a configurable port (default: `8100`) and includes a health check at `GET /health`
-- [ ] A `requirements.txt` and startup script are provided
-
-#### US-1.2: JavaFX → Python HTTP Integration
-> **As a** DrishtiX operator,  
-> **I want** the app to automatically send detected person crops to the ReID service,  
-> **So that** feature embeddings are extracted without blocking the video feed.
-
-**Acceptance Criteria:**
-- [ ] A new `ReIDService.java` singleton uses `java.net.http.HttpClient` (Java 11+) to POST image bytes to the Python service
-- [ ] The HTTP call is executed asynchronously via `CompletableFuture` on the existing Video Inference thread pool
-- [ ] The service gracefully handles connection failures (Python service down) — logs a warning and continues face recognition without crashing
-- [ ] The ReID endpoint URL is configurable via `alert_config` collection (key: `reid_service_url`, default: `http://localhost:8100`)
-
-#### US-1.3: Vector Storage in MongoDB
-> **As a** system,  
-> **I need to** persist the 512-dimensional embedding vector alongside each detection log,  
-> **So that** future detections can be compared against historical sightings.
-
-**Acceptance Criteria:**
-- [ ] A new `person_embeddings` collection stores: `{ target_id, camera_id, embedding: [512 doubles], snapshot_path, timestamp }`
-- [ ] A new `PersonEmbeddingDAO` handles CRUD operations for this collection
-- [ ] Embeddings are stored as a BSON array of doubles in MongoDB
-- [ ] The database init script `drishtix_init.js` is updated with the new collection and indexes (incremental, non-destructive)
-
-#### US-1.4: Cosine Similarity Matching
-> **As a** security operator,  
-> **I want** the system to automatically match a new person sighting against all recent embeddings,  
-> **So that** I can track a suspect across multiple camera feeds.
-
-**Acceptance Criteria:**
-- [ ] A `VectorMathUtil.java` utility provides a `cosineSimilarity(double[], double[])` method
-- [ ] When a new embedding is obtained, the system compares it against the last N embeddings from different cameras (configurable window, default: last 100)
-- [ ] A match is declared when cosine similarity exceeds 85% (configurable via `alert_config` key: `reid_similarity_threshold`, default: `0.85`)
-- [ ] On a match, the system creates a `ReIDMatch` event linking the two sightings (camera A → camera B)
-- [ ] A match triggers the existing alert pipeline (sound + visual popup + detection log)
+**Date:** 2026-09-01  
+**Author:** Product Manager & Systems Architect (AI)  
+**Status:** Pending User Approval  
+**Scope:** Data Tier (`target_registry.py`, `detection_log.py`, `target_dao.py`), Presentation Tier (`registry_view.py`), and Integration Tests
 
 ---
 
-## Feature 2: Multi-Channel Instant Push Engine
+## 1. Problem Statement
 
-### Problem Statement
-Currently, when a target is detected, the system plays an audio alert and shows an in-app popup overlay. However, field security staff who are not sitting at the DrishtiX workstation receive no notification. Additionally, the current popup overlay blocks the camera feed and requires manual dismissal.
+When attempting to delete a target from the Target Watchlist Registry (`RegistryView`), the operation fails with a modal error:
+```
+(sqlite3.IntegrityError) NOT NULL constraint failed: detection_log.target_id
+[SQL: UPDATE detection_log SET target_id=? WHERE detection_log.log_id = ?]
+```
 
-### User Stories
-
-#### US-2.1: Non-Blocking Desktop Notifications (ControlsFX)
-> **As a** DrishtiX operator,  
-> **I want** smooth sliding notification toasts that don't block the camera feed,  
-> **So that** I can see alerts while continuing to monitor the live video.
-
-**Acceptance Criteria:**
-- [ ] ControlsFX library is added to `pom.xml`
-- [ ] A new `NotificationService.java` singleton wraps `org.controlsfx.control.Notifications`
-- [ ] Notifications display: target name, category (Criminal/Missing), confidence %, camera name, and a thumbnail of the snapshot
-- [ ] Criminal alerts use a red-themed notification; Missing Person alerts use blue-themed
-- [ ] Notifications auto-dismiss after 8 seconds but can be manually closed
-- [ ] Notifications slide in from the bottom-right corner, stacking if multiple arrive
-- [ ] The existing `showAlertPopup()` blocking overlay is preserved as a fallback but the default behavior switches to non-blocking toasts
-- [ ] All UI updates are dispatched via `Platform.runLater()` to ensure thread safety
-
-#### US-2.2: Telegram Bot Integration
-> **As a** field security team member,  
-> **I want to** receive Telegram messages with the suspect's photo and location details,  
-> **So that** I can take immediate action even when I'm not at the DrishtiX workstation.
-
-**Acceptance Criteria:**
-- [ ] A new `TelegramAlertService.java` singleton uses `java.net.http.HttpClient` to call the Telegram Bot API
-- [ ] The service sends a photo message via `POST https://api.telegram.org/bot<TOKEN>/sendPhoto` using `multipart/form-data`
-- [ ] The message caption includes: Target Name, Category, Case #, Confidence %, Camera Name, Location Tag, and Timestamp
-- [ ] The Telegram Bot Token and Chat ID are stored in `alert_config` collection:
-  - `telegram_bot_token` — the bot API token
-  - `telegram_chat_id` — the target chat/group ID
-  - `telegram_enabled` — master switch (default: `false`)
-- [ ] Telegram sending is fully asynchronous (does not block the video pipeline)
-- [ ] If Telegram is disabled or fails, the system logs a warning and continues without crashing
-- [ ] A "Test Telegram" button exists in the Settings UI to verify the bot configuration
-
-#### US-2.3: Alert Pipeline Orchestration
-> **As a** system operator,  
-> **I want** all alert channels (Audio + Desktop Notification + Telegram) to fire simultaneously on detection,  
-> **So that** no time is lost between detection and field response.
-
-**Acceptance Criteria:**
-- [ ] The `AlertService.triggerAlert()` method orchestrates all three channels in parallel
-- [ ] Each channel is independent — one channel failing does not prevent others from firing
-- [ ] The existing per-target cooldown applies uniformly across all channels
-- [ ] Config keys `audio_enabled`, `telegram_enabled` independently toggle each channel
+### Root Cause Analysis
+1. **Missing Cascade Specification on `TargetRegistry.detection_logs` Relationship:**
+   - In `TargetRegistry`, `images` and `embeddings` have `cascade="all, delete-orphan"`, but `detection_logs` was configured without a cascade option (`relationship(back_populates="target")`).
+   - When `session.delete(target)` is invoked, SQLAlchemy's default behavior for a one-to-many relationship without a delete cascade is to disassociate child records by setting their foreign key to `NULL` (`UPDATE detection_log SET target_id=NULL WHERE log_id=?`).
+   - Because `detection_log.target_id` is defined as `nullable=False`, the SQL `UPDATE` fails with `NOT NULL constraint failed: detection_log.target_id`.
+2. **Missing `ondelete="CASCADE"` on `DetectionLog.target_id` ForeignKey:**
+   - Unlike `FaceEmbedding` and `TargetImage` which specify `ForeignKey("target_registry.target_id", ondelete="CASCADE")`, `DetectionLog.target_id` only specifies `ForeignKey("target_registry.target_id")`.
+3. **Incomplete Cleanup in `RegistryView._delete_target`:**
+   - `RegistryView._delete_target` directly calls `TargetDAO.delete()`, bypassing `ErasureService.erase_target()`, which leaves orphaned snapshot image files on disk and does not purge in-memory Re-ID gallery profiles.
 
 ---
 
-## Success Metrics
+## 2. User Stories & Acceptance Criteria
 
-| Metric | Target |
-|---|---|
-| ReID vector extraction latency | < 200ms per crop (Python service) |
-| ReID matching accuracy | > 85% cosine similarity for same-person across cameras |
-| Telegram alert delivery time | < 3 seconds from detection to message receipt |
-| Desktop notification display time | < 100ms from detection event |
-| Zero regression on existing LBPH pipeline | All existing face detection/recognition flows unaffected |
+### US-1: Clean Target Deletion with Cascade
+**As an** operator, **I want** to delete any watchlist target even if it has hundreds of historical detection logs, **so that** the deletion succeeds without database integrity errors.
+
+**Acceptance Criteria:**
+- Deleting a target with existing detection log entries removes the target, its face embeddings, target images, and detection logs in a single atomic transaction.
+- Zero `sqlite3.IntegrityError` exceptions raised.
+
+### US-2: Complete Multi-Layer Data Erasure via UI
+**As a** system administrator, **I want** deleting a target from the Registry View to perform full physical file and memory cleanup (DPDP Act §8(9) compliance), **so that** disk space is reclaimed and in-memory matching galleries are purged immediately.
+
+**Acceptance Criteria:**
+- `RegistryView._delete_target()` utilizes `ErasureService.erase_target()` (with `TargetDAO.delete()` fallback).
+- In-memory gallery and Re-ID profiles are automatically reloaded/purged.
+
+### US-3: Automated Regression & Cascade Tests
+**As a** developer, **I want** unit and integration tests verifying target deletion with associated detection logs, **so that** future schema changes never reintroduce cascade deletion regressions.
+
+**Acceptance Criteria:**
+- Automated test `test_target_deletion_with_detection_logs` added to `tests/test_dao.py`.
+- 100% pass rate across the full pytest suite (42+ tests).
 
 ---
 
-## Non-Goals (Explicitly Out of Scope)
-- Converting the JavaFX desktop app to Spring Boot or a web application
-- Building a web dashboard (the frontend remains JavaFX)
-- Multi-GPU inference optimization for the ReID service
-- Real-time video streaming to Telegram (only snapshot photos)
-- Person tracking within a single camera frame (only cross-camera ReID)
+## 3. Technical Architecture & Modifications
+
+### Database Models
+1. **`drishtix/models/detection_log.py`**:
+   - Update `target_id` column definition to include `ForeignKey("target_registry.target_id", ondelete="CASCADE")`.
+2. **`drishtix/models/target_registry.py`**:
+   - Update `detection_logs` relationship to include `cascade="all, delete-orphan", passive_deletes=True`.
+
+### Business & Presentation Logic
+3. **`drishtix/ui/views/registry_view.py`**:
+   - Refactor `_delete_target()` to call `ErasureService.erase_target()` with `TargetDAO.delete()` fallback, ensuring forensic snapshots on disk and Re-ID cache are also purged.
+
+### Verification
+4. **`tests/test_dao.py`**:
+   - Add integration test for deleting targets that contain detection logs.

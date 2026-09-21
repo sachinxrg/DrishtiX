@@ -126,23 +126,27 @@ To guarantee zero UI freezing and maintain a steady 30 FPS video pipeline, tasks
 4. **Spatial Tracking Manager (`FaceTrackingManager`):** Real-time centroid and IoU association across intermediate frames to eliminate bounding box flicker.
 5. **Background Ingestion Worker (`IngestionWorker` QThread):** Low-priority scheduled task polling external intelligence APIs (e.g. FBI Wanted) with rate-limiting and thread-safe gallery reload.
 
-### 4. Presentation Layer (Light Glassmorphism + Bento Grid)
-- **Design System:** Custom 559-line Qt StyleSheet (`drishtix_glass.qss`).
-- **Visual Primitives:**
-  - Translucent frosted glass card containers (`rgba(255, 255, 255, 0.86)` with white hairlines).
-  - Neumorphic raised buttons and inset form inputs.
-  - Semantic status badge system:
-    - **Safe / Active:** Emerald Green (`#10B981`)
-    - **Review / Scanning:** Amber (`#F59E0B`)
-    - **Critical / Criminal:** Crimson Rose (`#F43F5E`)
-    - **Informational / Missing:** Cyan (`#06B6D4`)
-- **6 Core Operational Views:**
-  1. **Dashboard:** Live camera stream, tactical HUD with demographic chips, live alert queue sidebar.
-  2. **Target Registry:** Watchlist table, modal registration with automatic SFace/ArcFace embedding extraction.
-  3. **Detection Logs:** Filterable historical log table with instant CSV export.
-  4. **Analytics & KPIs:** Matplotlib charts (24-hour timeline, category donut, 7-day trend, top detected targets).
-  5. **Forensic Image Scanner:** High-density crowd image scanner capable of simultaneous recognition of 40+ faces.
-  6. **Settings & Hardware Delegates:** Runtime configuration for camera sources, DNN thresholds, engine selectors (`buffalo_s` vs `buffalo_l`), database health, and Telegram API.
+### 4. Presentation Layer (Light Glassmorphism + Responsive Bento Grid v2)
+- **Token Build Pipeline:** 2-tier token architecture (`theme_tokens.py`) compiling into `drishtix_glass.qss` (849 lines) via Jinja2 template (`tools/generate_qss.py`). Single source of truth with zero manual hex duplication.
+- **Visual Primitives & Components:**
+  - `GlassCard`: Typed `CardVariant` (GLASS, GLASS_HEAVY, NEU_RAISED, NEU_INSET) with 3-tier drop shadow elevation (`Elevation.RESTING`, `HOVER`, `OVERLAY`).
+  - `FrostedPanel`: Cached, debounced offscreen blur snapshot engine for sidebar/modal backdrops (O(1) paint budget, never attached to live video feeds).
+  - `BentoGrid` / `ResponsiveBentoGrid`: 12-column responsive layout mixin with automatic reflow across `COMPACT` (1100px) and `WIDE` (1440px) breakpoints.
+  - `AmbientBackground`: Subtle multi-stop gradient mesh canvas behind the main content workspace.
+  - `PillBadge` / `StatusCapsule`: Semantic status badges (`SAFE`, `WARNING`, `CRITICAL`, `INFO`, `ACCENT`, `NEUTRAL`) driven by `apply_class()` unpolish/polish cycle.
+  - `EmptyStateWidget`: Reusable actionable zero-state panel with plain-language copy.
+  - `KPICard`: Reusable bento metric tile with dynamic value scaling.
+  - `SectionHeader`: Standardized view title, subtitle, and action toolbar.
+  - `Motion System`: `motion.py` `QPropertyAnimation`-driven elevation hover lift respecting OS reduced-motion preferences.
+- **Accessibility & Compliance:** 100% WCAG 2.1 AA compliant text contrast ratios audited by automated `check_contrast.py` gate. Focus rings on all interactive controls. Screen reader `QAccessible` metadata on all custom DS widgets.
+- **Zero Inline Styles:** 100% elimination of ad-hoc `setStyleSheet()` calls across the entire UI codebase in favor of class-based QSS selectors.
+- **6 Core Operational Views (Bento Refactored):**
+  1. **Dashboard:** Live camera stream in `GlassCard` with HUD crosshairs, `PillBadge` live indicators, and `AlertSidebar`.
+  2. **Target Registry:** Watchlist table in `GlassCard`, `SectionHeader`, modal registration with automatic SFace/ArcFace embedding extraction.
+  3. **Detection Logs:** Filterable historical log table in `GlassCard`, `neu-inset` filter bar, and `EmptyStateWidget`.
+  4. **Analytics & KPIs:** Matplotlib charts (24-hour timeline, category donut, 7-day trend, top detected targets) themed via design tokens with transparent patches.
+  5. **Forensic Image Scanner:** High-density crowd image scanner in `GlassCard` capable of simultaneous recognition of 40+ faces.
+  6. **Settings & Hardware Delegates:** Runtime configuration for camera sources, DNN thresholds, engine selectors (`buffalo_s` vs `buffalo_l`), database health, and Telegram API styled via QSS group classes.
 
 ---
 
@@ -280,4 +284,4 @@ cd services/drishtix-py
 cd services/drishtix-py
 .\venv\Scripts\python.exe -m pytest tests/ -v
 ```
-**Current Status:** `16 passed in 1.86s` (100% pass rate).
+**Current Status:** `53 passed in 11.14s` (100% pass rate across core AI, concurrency, DAO, lifecycle erasure, and design system components).

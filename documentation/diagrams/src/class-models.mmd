@@ -1,0 +1,101 @@
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'Inter, sans-serif', 'primaryColor': '#EEF2FF', 'primaryBorderColor': '#3E56E0', 'lineColor': '#64748B'}}}%%
+classDiagram
+    direction TB
+    class Base {
+        <<declarative_base>>
+    }
+    class TargetRegistry {
+        +Integer target_id PK
+        +String full_name
+        +TargetCategory category
+        +String case_number UK
+        +String description
+        +String profile_image_path
+        +Boolean is_active
+        +DateTime created_at
+        +DateTime updated_at
+        +images: List~TargetImage~
+        +embeddings: List~FaceEmbedding~
+        +consents: List~ConsentRecord~
+        +detections: List~DetectionLog~
+    }
+    class TargetImage {
+        +Integer image_id PK
+        +Integer target_id FK
+        +String image_path
+        +Integer image_order
+        +DateTime uploaded_at
+        +target: TargetRegistry
+    }
+    class FaceEmbedding {
+        +Integer embedding_id PK
+        +Integer target_id FK
+        +Integer source_image_id FK
+        +bytes embedding_vector
+        +String model_version
+        +DateTime created_at
+        +target: TargetRegistry
+        +source_image: TargetImage
+    }
+    class ConsentRecord {
+        +Integer consent_id PK
+        +Integer target_id FK
+        +LegalBasis legal_basis
+        +String notice_version
+        +String collected_by
+        +String consent_text
+        +Boolean is_active
+        +DateTime collected_at
+        +DateTime withdrawn_at
+        +target: TargetRegistry
+    }
+    class CameraSource {
+        +Integer camera_id PK
+        +String camera_name
+        +String source_uri
+        +Boolean is_active
+        +DateTime created_at
+        +detections: List~DetectionLog~
+    }
+    class DetectionLog {
+        +Integer log_id PK
+        +Integer target_id FK
+        +Integer camera_id FK
+        +Float match_confidence
+        +String snapshot_path
+        +String location_tag
+        +DateTime detection_timestamp
+        +DateTime created_at
+        +target: TargetRegistry
+        +camera: CameraSource
+    }
+    class AuditLog {
+        +Integer audit_id PK
+        +String action
+        +String entity_type
+        +Integer entity_id
+        +String details
+        +DateTime timestamp
+    }
+    class AppConfig {
+        +Integer config_id PK
+        +String config_key UK
+        +String config_value
+        +String description
+        +DateTime updated_at
+    }
+
+    Base <|-- TargetRegistry
+    Base <|-- TargetImage
+    Base <|-- FaceEmbedding
+    Base <|-- ConsentRecord
+    Base <|-- CameraSource
+    Base <|-- DetectionLog
+    Base <|-- AuditLog
+    Base <|-- AppConfig
+
+    TargetRegistry "1" *-- "0..*" TargetImage : contains
+    TargetRegistry "1" *-- "0..*" FaceEmbedding : generates
+    TargetRegistry "1" *-- "0..*" ConsentRecord : governed by
+    TargetRegistry "1" <-- "0..*" DetectionLog : identifies
+    CameraSource "1" <-- "0..*" DetectionLog : feeds

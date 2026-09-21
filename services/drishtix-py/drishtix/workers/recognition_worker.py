@@ -82,6 +82,8 @@ class RecognitionWorker(QRunnable):
                         bbox=self.bbox,
                         camera_id=self.camera_id,
                         location_tag=self.location_tag,
+                        age=age,
+                        gender=gender,
                     )
 
             # Direct callback invocation for instant identity synchronization
