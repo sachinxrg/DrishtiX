@@ -1,11 +1,11 @@
 """
-DrishtiX v4.0 — Static Image Scan View.
+DrishtiX v5.0 — Static Image Scan View.
 
 High-density multi-target face detection and recognition for static crowd photos.
 Can identify 40+ individuals simultaneously in forensic imagery.
-Migrated from: com.drishtix.controller.ImageScanController (Java)
 """
 
+import logging
 import time
 from pathlib import Path
 from typing import List, Optional
@@ -16,7 +16,6 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import (
     QFileDialog,
-    QFrame,
     QHBoxLayout,
     QLabel,
     QProgressBar,
@@ -30,13 +29,21 @@ from drishtix.services.alert_service import AlertService
 from drishtix.services.face_detection import FaceDetectionService
 from drishtix.services.face_recognition import FaceRecognitionService
 from drishtix.services.gallery_manager import GalleryManager, MatchResult
+from drishtix.ui.icons import render_svg_icon
+from drishtix.ui.style_utils import apply_class
+from drishtix.ui.theme_tokens import Color, Spacing
 from drishtix.ui.widgets.alert_card import AlertCard
+from drishtix.ui.widgets.glass_card import CardVariant, GlassCard
+from drishtix.ui.widgets.pill_badge import PillBadge, PillStatus
+from drishtix.ui.widgets.section_header import SectionHeader
 from drishtix.ui.widgets.video_label import VideoLabel
 from drishtix.utils.image_utils import draw_tactical_bbox, mat_to_qpixmap
 
+logger = logging.getLogger(__name__)
+
 
 class ImageScanView(QWidget):
-    """Forensic static image scanning view."""
+    """Forensic static crowd image scanning view."""
 
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
@@ -51,32 +58,32 @@ class ImageScanView(QWidget):
 
     def _init_ui(self) -> None:
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(16, 16, 16, 16)
-        layout.setSpacing(12)
+        layout.setContentsMargins(Spacing.LG, Spacing.LG, Spacing.LG, Spacing.LG)
+        layout.setSpacing(Spacing.MD)
 
         # ─── Top Control Toolbar ─────────────────────────────────────
-        toolbar = QHBoxLayout()
-        lbl_title = QLabel("FORENSIC CROWD IMAGE SCANNER")
-        lbl_title.setStyleSheet("font-weight: 700; font-size: 13px; color: #E8EAED; letter-spacing: 0.5px;")
-        toolbar.addWidget(lbl_title)
+        header = SectionHeader(
+            "FORENSIC CROWD IMAGE SCANNER",
+            "Deep neural multi-face identification and demographic analysis",
+            icon="scanner",
+        )
 
-        toolbar.addStretch()
-
-        self.lbl_status = QLabel("Load high-resolution image to analyze")
-        self.lbl_status.setStyleSheet("color: #9AA0A6; font-size: 12px; margin-right: 12px;")
-        toolbar.addWidget(self.lbl_status)
+        self.lbl_status = PillBadge("Awaiting forensic image", PillStatus.NEUTRAL)
+        header.add_action(self.lbl_status)
 
         btn_load = QPushButton("Select Image...")
+        btn_load.setIcon(render_svg_icon("camera", size=14))
         btn_load.clicked.connect(self._select_image)
-        toolbar.addWidget(btn_load)
+        header.add_action(btn_load)
 
         self.btn_scan = QPushButton("Run Deep Scan")
-        self.btn_scan.setProperty("class", "btn-primary")
+        self.btn_scan.setIcon(render_svg_icon("zap", normal_color=Color.WHITE, size=14))
+        apply_class(self.btn_scan, "btn-primary")
         self.btn_scan.setEnabled(False)
         self.btn_scan.clicked.connect(self._run_scan)
-        toolbar.addWidget(self.btn_scan)
+        header.add_action(self.btn_scan)
 
-        layout.addLayout(toolbar)
+        layout.addWidget(header)
 
         # ─── Progress Bar ────────────────────────────────────────────
         self.progress_bar = QProgressBar()
@@ -85,34 +92,38 @@ class ImageScanView(QWidget):
         self.progress_bar.hide()
         layout.addWidget(self.progress_bar)
 
-        # ─── Center: Image View Surface ──────────────────────────────
+        # ─── Center: Image View Surface in GlassCard ────────────────
+        image_card = GlassCard(variant=CardVariant.GLASS)
+        image_card.set_accessible_info("Image Scan Surface", "High-density crowd image display")
+        image_card_layout = image_card.content_layout()
+        image_card_layout.setContentsMargins(10, 10, 10, 10)
         self.image_label = VideoLabel()
-        layout.addWidget(self.image_label, stretch=3)
+        image_card_layout.addWidget(self.image_label)
+        layout.addWidget(image_card, stretch=3)
 
         # ─── Bottom: Identified Matches Container ────────────────────
-        matches_frame = QFrame()
-        matches_frame.setProperty("class", "bento-card")
-        matches_frame.setFixedHeight(140)
-        matches_layout = QVBoxLayout(matches_frame)
-        matches_layout.setContentsMargins(8, 8, 8, 8)
-        matches_layout.setSpacing(4)
+        matches_frame = GlassCard(variant=CardVariant.GLASS)
+        matches_frame.setFixedHeight(160)
+        matches_layout = matches_frame.content_layout()
+        matches_layout.setContentsMargins(12, 10, 12, 10)
+        matches_layout.setSpacing(6)
 
         lbl_matches_hdr = QLabel("IDENTIFIED TARGETS IN IMAGE")
-        lbl_matches_hdr.setStyleSheet("font-weight: bold; font-size: 11px; color: #9AA0A6;")
+        apply_class(lbl_matches_hdr, "type-caption")
+        lbl_matches_hdr.setStyleSheet(f"font-weight: 700; color: {Color.TEXT_MUTED}; letter-spacing: 0.5px;")
         matches_layout.addWidget(lbl_matches_hdr)
 
         self.scroll_matches = QScrollArea()
         self.scroll_matches.setWidgetResizable(True)
-        self.scroll_matches.setStyleSheet("background: transparent; border: none;")
 
         self.matches_container = QWidget()
         self.matches_layout = QHBoxLayout(self.matches_container)
         self.matches_layout.setContentsMargins(0, 0, 0, 0)
-        self.matches_layout.setSpacing(8)
+        self.matches_layout.setSpacing(10)
         self.matches_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
         self.lbl_no_matches = QLabel("No targets identified in current image")
-        self.lbl_no_matches.setStyleSheet("color: #555A65; font-size: 11px;")
+        apply_class(self.lbl_no_matches, "empty-state-message")
         self.matches_layout.addWidget(self.lbl_no_matches)
 
         self.scroll_matches.setWidget(self.matches_container)
@@ -133,9 +144,13 @@ class ImageScanView(QWidget):
                 self._loaded_image = cv_img
                 self.image_label.set_frame(mat_to_qpixmap(cv_img))
                 self.btn_scan.setEnabled(True)
-                self.lbl_status.setText(f"Ready: {Path(file_path).name} ({cv_img.shape[1]}x{cv_img.shape[0]})")
-                self.lbl_status.setStyleSheet("color: #34D399;")
+                self.lbl_status.set_text(f"Ready: {Path(file_path).name} ({cv_img.shape[1]}×{cv_img.shape[0]})")
+                self.lbl_status.set_status(PillStatus.SAFE)
                 self._clear_matches()
+            else:
+                logger.warning("Could not decode selected image: %s", file_path)
+                self.lbl_status.set_text(f"Could not read {Path(file_path).name}")
+                self.lbl_status.set_status(PillStatus.CRITICAL)
 
     def _clear_matches(self) -> None:
         while self.matches_layout.count():
@@ -143,22 +158,31 @@ class ImageScanView(QWidget):
             if item.widget():
                 item.widget().deleteLater()
         self.lbl_no_matches = QLabel("Click 'Run Deep Scan' to analyze faces")
-        self.lbl_no_matches.setStyleSheet("color: #555A65; font-size: 11px;")
+        apply_class(self.lbl_no_matches, "empty-state-message")
         self.matches_layout.addWidget(self.lbl_no_matches)
 
     def _run_scan(self) -> None:
+        try:
+            self._run_scan_impl()
+        except Exception:
+            logger.exception("Forensic image scan failed")
+            self.progress_bar.hide()
+            self.lbl_status.set_text("Scan failed — see log for details")
+            self.lbl_status.set_status(PillStatus.CRITICAL)
+
+    def _run_scan_impl(self) -> None:
         if self._loaded_image is None:
             return
 
-        self.lbl_status.setText("Running YuNet multi-target detection & SFace matching...")
-        self.lbl_status.setStyleSheet("color: #FBBF24;")
+        self.lbl_status.set_text("Scanning YuNet & SFace...")
+        self.lbl_status.set_status(PillStatus.WARNING)
         self.progress_bar.show()
-        self.progress_bar.setRange(0, 0)  # Indeterminate animation
+        self.progress_bar.setRange(0, 0)
 
         t0 = time.time()
         annotated = self._loaded_image.copy()
 
-        # Step 1: Detect all faces (supports 40+ faces)
+        # Step 1: Detect all faces
         detections = self.detector.detect_faces(self._loaded_image)
         detected_count = len(detections)
 
@@ -168,38 +192,46 @@ class ImageScanView(QWidget):
             if item.widget():
                 item.widget().deleteLater()
 
-        matches_found: List[MatchResult] = []
+        matches_found: List[tuple[MatchResult, Optional[int], Optional[str]]] = []
 
         # Step 2: Extract embeddings & match against gallery
         for det in detections:
-            emb = self.recognizer.extract_embedding(self._loaded_image, det.raw_row)
+            emb, demographics = self.recognizer.extract_embedding_and_demographics(
+                self._loaded_image, det.raw_row
+            )
+            face_age = demographics.age if demographics else None
+            face_gender = demographics.gender if demographics else None
+
             if emb is not None:
                 match = self.gallery.match_embedding(emb)
                 if match is not None:
-                    matches_found.append(match)
-                    # Draw Tactical box for match
+                    matches_found.append((match, face_age, face_gender))
                     draw_tactical_bbox(
                         frame=annotated,
                         bbox=det.bbox,
                         name=match.target.full_name,
                         category=match.target.category,
                         confidence=match.confidence,
+                        age=face_age,
+                        gender=face_gender,
                     )
-                    # Trigger alert record
                     self.alert_service.process_match(
                         match=match,
                         frame=self._loaded_image,
                         bbox=det.bbox,
                         location_tag="Forensic Image Scan",
+                        age=face_age,
+                        gender=face_gender,
                     )
                 else:
-                    # Draw Unknown face box
                     draw_tactical_bbox(
                         frame=annotated,
                         bbox=det.bbox,
                         name="Unknown",
                         category=None,
                         confidence=None,
+                        age=face_age,
+                        gender=face_gender,
                     )
             else:
                 draw_tactical_bbox(
@@ -208,6 +240,8 @@ class ImageScanView(QWidget):
                     name="Unknown",
                     category=None,
                     confidence=None,
+                    age=face_age,
+                    gender=face_gender,
                 )
 
         # Update Display Frame
@@ -218,21 +252,23 @@ class ImageScanView(QWidget):
 
         # Populate Matches Cards
         if matches_found:
-            for m in matches_found:
+            for m, m_age, m_gender in matches_found:
                 card_data = {
                     "full_name": m.target.full_name,
                     "category": m.target.category,
                     "case_number": m.target.case_number or "N/A",
                     "confidence": m.confidence,
+                    "age": m_age,
+                    "gender": m_gender,
                 }
                 card = AlertCard(card_data, self.matches_container)
                 self.matches_layout.addWidget(card)
         else:
             lbl_none = QLabel("No registered watchlist targets recognized in image.")
-            lbl_none.setStyleSheet("color: #9AA0A6; font-size: 11px; padding: 10px;")
+            apply_class(lbl_none, "empty-state-message")
             self.matches_layout.addWidget(lbl_none)
 
-        self.lbl_status.setText(
-            f"Scan Complete: {detected_count} faces detected, {len(matches_found)} matched in {elapsed:.0f}ms"
+        self.lbl_status.set_text(
+            f"Done: {detected_count} faces, {len(matches_found)} matched ({elapsed:.0f}ms)"
         )
-        self.lbl_status.setStyleSheet("color: #34D399; font-weight: bold;")
+        self.lbl_status.set_status(PillStatus.SAFE)

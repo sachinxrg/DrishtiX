@@ -1,0 +1,11 @@
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'Inter, sans-serif', 'primaryColor': '#EEF2FF', 'primaryBorderColor': '#3E56E0', 'lineColor': '#64748B'}}}%%
+flowchart LR
+    CAM[Camera Source<br/>USB / RTSP] -->|Raw Video Frames| SYS((0.0<br/>DrishtiX Platform))
+    OP[Security Operator] -->|Target Details & Enroll Photo| SYS
+    ADM[System Administrator] -->|Config & Erasure Requests| SYS
+    FBI[FBI Wanted API] -->|Wanted Persons Data| SYS
+
+    SYS -->|HUD Video Feed & Alert Cards| OP
+    SYS -->|Audit Logs & KPI Metrics| ADM
+    SYS -->|Forensic Photo & Alert Payload| TG[Telegram Bot API]
+    SYS -->|Detection Logs & Snapshots| DB[(Local Storage<br/>SQLite + Disk)]

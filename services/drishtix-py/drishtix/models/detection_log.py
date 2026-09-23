@@ -38,7 +38,7 @@ class DetectionLog(Base):
 
     log_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     target_id: Mapped[int] = mapped_column(
-        ForeignKey("target_registry.target_id"),
+        ForeignKey("target_registry.target_id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )

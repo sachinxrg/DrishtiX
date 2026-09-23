@@ -68,6 +68,8 @@ class TargetRegistry(Base):
     )
     detection_logs: Mapped[List["DetectionLog"]] = relationship(
         back_populates="target",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )
 
     def __repr__(self) -> str:

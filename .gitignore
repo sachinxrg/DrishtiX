@@ -141,3 +141,27 @@ services/drishtix-app/graph TB.txt
 
 # Temporary scripts
 *.js
+
+# ------------------------------------------------------------------------------
+# Documentation Build Artifacts & Temp Files
+# ------------------------------------------------------------------------------
+documentation/_build/
+documentation/00_recon/
+documentation/data/
+documentation/tooling/node_modules/
+node_modules/
+docs/~$*
+docs/~WRL*
+~$*
+~WRL*
+
+# Scratch & Generated HTML
+scratch_test.html
+artifacts/dfd_level1_diagram.html
+artifacts/er_diagram.html
+artifacts/dfd_level1_diagram.png
+artifacts/er_diagram.png
+"flowchart LR.mmd"
+PROJECT_BLUEPRINT.md
+scripts/generate_diagram_htmls.py
+scripts/generate_report.py

@@ -16,6 +16,7 @@ import logging
 from contextlib import contextmanager
 from typing import Generator
 
+from sqlalchemy import text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -28,7 +29,7 @@ _engine: Engine | None = None
 _session_factory: sessionmaker | None = None
 
 
-def initialize(db_path: str = "data/drishtix.db") -> None:
+def initialize(db_path: str = "data/drishtix.db", encryption_key: str = "") -> None:
     """
     Initialize the database engine, create tables, and configure the session factory.
 
@@ -36,10 +37,11 @@ def initialize(db_path: str = "data/drishtix.db") -> None:
 
     Args:
         db_path: Path to the SQLite database file.
+        encryption_key: Optional SQLCipher encryption passphrase.
     """
     global _engine, _session_factory
 
-    _engine = create_db_engine(db_path)
+    _engine = create_db_engine(db_path, encryption_key=encryption_key)
     init_database(_engine)
     _session_factory = create_session_factory(_engine)
 
@@ -92,7 +94,7 @@ def test_connection() -> bool:
         if _engine is None:
             return False
         with _engine.connect() as conn:
-            conn.execute(conn.engine.dialect.do_ping(conn))
+            conn.execute(text("SELECT 1")).scalar_one()
         return True
     except Exception as e:
         logger.error("Database connection test failed: %s", e)

@@ -1,12 +1,13 @@
 """
-DrishtiX v4.0 — Sound player utility.
+DrishtiX v4.0 — Sound Player Utility.
 
-Non-blocking audio alert playback using PySide6.QtMultimedia.QSoundEffect
-with fallback to winsound (Windows) for zero-dependency operation.
+High-performance, non-blocking audio alert playback using native Windows Multimedia (winsound)
+with cross-platform fallback to PySide6.QtMultimedia.QSoundEffect.
 """
 
 import logging
 import sys
+import threading
 from pathlib import Path
 from typing import Optional
 
@@ -19,9 +20,10 @@ logger = logging.getLogger(__name__)
 
 
 class SoundPlayer:
-    """Non-blocking sound player for tactical alerts."""
+    """Non-blocking tactical siren and audio alert player."""
 
     _instance: Optional["SoundPlayer"] = None
+    _singleton_lock = threading.Lock()
 
     def __init__(self) -> None:
         self._effects: dict[str, QSoundEffect] = {}
@@ -29,10 +31,11 @@ class SoundPlayer:
 
     @classmethod
     def get_instance(cls) -> "SoundPlayer":
-        """Singleton accessor."""
-        if cls._instance is None:
-            cls._instance = SoundPlayer()
-        return cls._instance
+        """Thread-safe singleton accessor."""
+        with cls._singleton_lock:
+            if cls._instance is None:
+                cls._instance = SoundPlayer()
+            return cls._instance
 
     def set_enabled(self, enabled: bool) -> None:
         """Enable or disable audio alerts."""
@@ -42,12 +45,16 @@ class SoundPlayer:
         """Check if audio is enabled."""
         return self._enabled
 
+    def play_siren(self) -> None:
+        """Convenience method to trigger the emergency tactical siren."""
+        self.play("alarm_criminal.wav")
+
     def play(self, sound_filename: str) -> None:
         """
-        Play a WAV sound file asynchronously.
+        Play a WAV audio alert file asynchronously.
 
         Args:
-            sound_filename: Name of the wav file (e.g. 'alarm_criminal.wav').
+            sound_filename: Name of the wav file (e.g. 'alarm_criminal.wav' or 'siren.wav').
         """
         if not self._enabled:
             return
@@ -57,8 +64,20 @@ class SoundPlayer:
             logger.warning("Sound file not found: %s", sound_filename)
             return
 
+        # 1. Native Windows Sound Engine (Zero latency, direct thread-safe playback)
+        if sys.platform == "win32":
+            try:
+                import winsound
+                resolved_str = str(sound_path.resolve())
+                # Play asynchronously without blocking the calling thread
+                winsound.PlaySound(resolved_str, winsound.SND_FILENAME | winsound.SND_ASYNC | winsound.SND_NODEFAULT)
+                logger.info("Played tactical sound via winsound: %s", sound_filename)
+                return
+            except Exception as e:
+                logger.debug("winsound playback failed: %s, falling back to QtMultimedia", e)
+
+        # 2. PySide6 QSoundEffect fallback
         try:
-            # Try QSoundEffect
             if sound_filename not in self._effects:
                 effect = QSoundEffect()
                 effect.setSource(QUrl.fromLocalFile(str(sound_path.resolve())))
@@ -67,29 +86,19 @@ class SoundPlayer:
 
             effect = self._effects[sound_filename]
             effect.play()
-            logger.debug("Playing sound: %s", sound_filename)
-        except Exception as e:
-            logger.debug("QSoundEffect play failed, trying native fallback: %s", e)
-            self._play_fallback(sound_path)
-
-    def _play_fallback(self, sound_path: Path) -> None:
-        """Fallback to winsound on Windows if QtMultimedia encounters issues."""
-        if sys.platform == "win32":
-            try:
-                import winsound
-                winsound.PlaySound(str(sound_path), winsound.SND_FILENAME | winsound.SND_ASYNC)
-            except Exception as ex:
-                logger.error("Failed to play sound via winsound: %s", ex)
+            logger.info("Played tactical sound via QSoundEffect: %s", sound_filename)
+        except Exception as ex:
+            logger.error("All audio backends failed for %s: %s", sound_filename, ex)
 
     def _resolve_sound_path(self, sound_filename: str) -> Optional[Path]:
         """Search for sound file in standard asset locations."""
         candidates = [
             ASSETS_DIR / "sounds" / sound_filename,
-            PROJECT_ROOT / "services" / "drishtix-app" / "src" / "main" / "resources" / "sounds" / sound_filename,
-            PROJECT_ROOT / "resources" / "sounds" / sound_filename,
             Path("assets/sounds") / sound_filename,
+            PROJECT_ROOT / "assets" / "sounds" / sound_filename,
+            Path(__file__).resolve().parent.parent.parent / "assets" / "sounds" / sound_filename,
         ]
         for c in candidates:
             if c.exists():
-                return c
+                return c.resolve()
         return None

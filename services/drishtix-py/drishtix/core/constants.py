@@ -10,8 +10,8 @@ as compile-time defaults and structural limits.
 from pathlib import Path
 
 # ─── Application Identity ──────────────────────────────────────────
-APP_NAME = "DrishtiX v4.0"
-APP_VERSION = "4.0.0"
+APP_NAME = "DrishtiX v5.0"
+APP_VERSION = "5.0.0"
 
 # ─── Paths ──────────────────────────────────────────────────────────
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -36,6 +36,12 @@ SFACE_EMBEDDING_DIM = 128             # SFace output vector dimensionality
 SFACE_INPUT_SIZE = (112, 112)         # Aligned face crop input resolution
 EMBEDDING_BYTE_SIZE = SFACE_EMBEDDING_DIM * 4  # 128 float32s → 512 bytes
 
+INSIGHTFACE_EMBEDDING_DIM = 512       # InsightFace / ArcFace output vector dimensionality
+INSIGHTFACE_DEFAULT_PACK = "buffalo_s"  # Default model pack (buffalo_s for CPU, buffalo_l for GPU)
+INSIGHTFACE_MATCH_THRESHOLD = 0.45    # ArcFace cosine similarity threshold
+RECOGNITION_ENGINE_SFACE = "sface"
+RECOGNITION_ENGINE_INSIGHTFACE = "insightface"
+
 # ─── Alert System ──────────────────────────────────────────────────
 DEFAULT_ALERT_COOLDOWN_SECONDS = 30
 MAX_ALERT_QUEUE_SIZE = 50
@@ -48,10 +54,10 @@ CAPTURE_TARGET_FPS = 30
 MAX_STALE_TRACKER_FRAMES = 10
 
 # ─── UI Layout ──────────────────────────────────────────────────────
-NAV_SIDEBAR_WIDTH = 220
-ALERT_SIDEBAR_WIDTH = 380
-STATUS_BAR_HEIGHT = 32
-ALERT_CARD_THUMBNAIL_SIZE = 64
+NAV_SIDEBAR_WIDTH = 240
+ALERT_SIDEBAR_WIDTH = 340
+STATUS_BAR_HEIGHT = 36
+ALERT_CARD_THUMBNAIL_SIZE = 52
 STATUS_UPDATE_INTERVAL_MS = 500
 
 # ─── Camera ─────────────────────────────────────────────────────────

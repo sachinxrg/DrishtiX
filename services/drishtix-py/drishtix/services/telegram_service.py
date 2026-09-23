@@ -8,6 +8,8 @@ Migrated from: com.drishtix.service.TelegramAlertService (Java)
 
 import asyncio
 import logging
+import threading
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -19,6 +21,9 @@ logger = logging.getLogger(__name__)
 class TelegramService:
     """Dispatches tactical alert notifications to Telegram."""
 
+    _instance: Optional["TelegramService"] = None
+    _singleton_lock = threading.Lock()
+
     def __init__(
         self,
         bot_token: str = "",
@@ -28,6 +33,14 @@ class TelegramService:
         self.bot_token = bot_token
         self.chat_id = chat_id
         self.enabled = enabled
+
+    @classmethod
+    def get_instance(cls) -> "TelegramService":
+        """Thread-safe singleton accessor."""
+        with cls._singleton_lock:
+            if cls._instance is None:
+                cls._instance = cls()
+            return cls._instance
 
     def update_config(self, bot_token: str, chat_id: str, enabled: bool) -> None:
         """Update Telegram credentials."""
@@ -57,7 +70,10 @@ class TelegramService:
             f"<b>Case/FIR:</b> {case_number}\n"
             f"<b>Confidence:</b> {confidence * 100:.1f}%\n"
             f"<b>Location:</b> {location}\n"
-            f"<b>Timestamp:</b> <code>{Path(__file__).name}</code>"
+            # Was Path(__file__).name, so every alert that reached an operator's
+            # phone read "Timestamp: telegram_service.py" — the one field needed
+            # to know when the sighting happened carried the source filename.
+            f"<b>Timestamp:</b> <code>{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</code>"
         )
 
         base_url = f"https://api.telegram.org/bot{self.bot_token}"

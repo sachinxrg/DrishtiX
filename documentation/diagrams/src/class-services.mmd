@@ -1,0 +1,61 @@
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'Inter, sans-serif', 'primaryColor': '#EEF2FF', 'primaryBorderColor': '#3E56E0', 'lineColor': '#64748B'}}}%%
+classDiagram
+    direction TB
+    class FaceDetectionService {
+        -model_path: Path
+        -detector: cv2.FaceDetectorYN
+        +detect(frame: ndarray) List~FaceDetection~
+        +extract_landmarks(detection) ndarray
+    }
+    class FaceRecognitionService {
+        -model_path: Path
+        -recognizer: cv2.FaceRecognizerSF
+        +extract_embedding(aligned_crop: ndarray) ndarray
+        +compute_similarity(feat1, feat2) float
+    }
+    class InsightFaceService {
+        -app: FaceAnalysis
+        +extract_embedding(face_img: ndarray) ndarray
+        +is_available() bool
+    }
+    class GalleryManager {
+        -registry: Dict~int, TargetProfile~
+        -matrix: ndarray
+        -target_ids: List~int~
+        +load_gallery(session: Session) int
+        +match_face(embedding: ndarray, threshold: float) Tuple~int, float~
+        +refresh_target(target_id: int) void
+    }
+    class AlertService {
+        -window_seconds: float
+        -required_frames: int
+        -cooldown_seconds: float
+        -history: Dict~int, List~float~~
+        +process_match(target_id: int, confidence: float, frame: ndarray, bbox: tuple) Optional~AlertEvent~
+        +trigger_alert(event: AlertEvent) void
+    }
+    class TelegramService {
+        -bot_token: str
+        -chat_id: str
+        -http_client: httpx.AsyncClient
+        +send_alert_photo(image_bytes: bytes, caption: str) Task
+    }
+    class IngestionService {
+        -api_base: str
+        -sync_interval: int
+        +sync_fbi_wanted() IngestionResult
+        +download_mugshot(url: str) bytes
+    }
+    class ErasureService {
+        -db_session: Session
+        +erase_target(target_id: int) ErasureReceipt
+        +purge_snapshots(target_id: int) int
+    }
+
+    FaceDetectionService ..> FaceRecognitionService : passes aligned crop
+    FaceRecognitionService ..> GalleryManager : query vector
+    InsightFaceService ..> GalleryManager : alternative query vector
+    GalleryManager ..> AlertService : match result
+    AlertService ..> TelegramService : async dispatch
+    IngestionService ..> GalleryManager : enrolls target
+    ErasureService ..> GalleryManager : evicts target

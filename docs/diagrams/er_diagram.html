@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ER DIAGRAM — DRISHTIX AI-POWERED TACTICAL SURVEILLANCE PLATFORM</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap');
+  
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1920px;
+    height: 1080px;
+    background: #FFFFFF;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #1E293B;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Slide Header */
+  .slide-header {
+    text-align: center;
+    padding-top: 22px;
+  }
+  .slide-header h1 {
+    font-size: 26px;
+    font-weight: 800;
+    color: #1E3A8A;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .slide-header h2 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #15803D;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    margin-top: 3px;
+  }
+
+  /* Entity Card Styling */
+  .entity-card {
+    position: absolute;
+    background: #FFFFFF;
+    border: 1.5px solid #334155;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    z-index: 10;
+  }
+  .entity-header {
+    padding: 5px 8px;
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: center;
+    border-bottom: 1.2px solid #334155;
+  }
+  .entity-body {
+    padding: 5px 7px;
+    font-size: 11px;
+    line-height: 1.4;
+  }
+  .entity-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5px 0;
+  }
+  .col-keys {
+    width: 24px;
+    font-size: 10px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .pk { color: #DC2626; }
+  .fk { color: #2563EB; }
+  .col-name {
+    flex-grow: 1;
+    font-weight: 600;
+    color: #0F172A;
+    padding-left: 2px;
+  }
+  .col-type {
+    font-size: 10px;
+    color: #475569;
+    font-family: 'JetBrains Mono', monospace;
+    text-align: right;
+  }
+
+  /* Header Color Classes matching original slide */
+  .bg-purple { background: #E9D5FF; }
+  .bg-blue { background: #BFDBFE; }
+  .bg-green { background: #BBF7D0; }
+  .bg-salmon { background: #FECACA; }
+  .bg-peach { background: #FED7AA; }
+  .bg-yellow { background: #FEF08A; }
+  .bg-teal { background: #99F6E4; }
+  .bg-cyan { background: #BAE6FD; }
+  .bg-indigo { background: #C7D2FE; }
+  .bg-rose { background: #FECDD3; }
+  .bg-amber { background: #FDE68A; }
+  .bg-orange { background: #FFEDD5; }
+
+  /* SVG Connectors Layer */
+  svg.connectors-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1920px;
+    height: 1080px;
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  /* Legend & Notes */
+  .legend-box {
+    position: absolute;
+    bottom: 30px;
+    left: 45px;
+    width: 165px;
+    background: #FFFFFF;
+    border: 1.2px solid #334155;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 11px;
+    z-index: 20;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .legend-title {
+    font-weight: 800;
+    text-align: center;
+    border-bottom: 1px solid #CBD5E1;
+    padding-bottom: 4px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    font-size: 11px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 3px;
+  }
+  .legend-key {
+    width: 28px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .notes-box {
+    position: absolute;
+    bottom: 30px;
+    left: 225px;
+    width: 380px;
+    background: #FFFFFF;
+    border: 1.2px solid #334155;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 10px;
+    line-height: 1.45;
+    z-index: 20;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .notes-title {
+    font-weight: 800;
+    text-align: center;
+    border-bottom: 1px solid #CBD5E1;
+    padding-bottom: 4px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    font-size: 11px;
+  }
+
+  /* Slide Footer Page */
+  .slide-footer-page {
+    position: absolute;
+    bottom: 25px;
+    right: 50px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #64748B;
+  }
+</style>
+</head>
+<body>
+
+  <!-- Slide Header -->
+  <div class="slide-header">
+    <h1>ER DIAGRAM</h1>
+    <h2>DRISHTIX — AI-POWERED TACTICAL SURVEILLANCE PLATFORM</h2>
+  </div>
+
+  <!-- SVG Connectors & Relationship Diamonds -->
+  <svg class="connectors-layer">
+    <g stroke="#334155" stroke-width="1.3" fill="none">
+      <!-- ROLE to USER -->
+      <path d="M 210 145 L 320 145" />
+
+      <!-- USER to TARGET_REGISTRY (Enrollment) -->
+      <path d="M 520 170 L 575 170 L 575 320 L 630 320" />
+
+      <!-- WATCHLIST_CATEGORY to TARGET_REGISTRY -->
+      <path d="M 750 185 L 750 270" />
+
+      <!-- TARGET_REGISTRY to TARGET_IMAGE -->
+      <path d="M 870 300 L 1380 300 L 1380 145 L 1400 145" />
+
+      <!-- TARGET_REGISTRY to FACE_EMBEDDING -->
+      <path d="M 870 340 L 1400 340" />
+
+      <!-- TARGET_REGISTRY to DETECTION_LOG -->
+      <path d="M 750 515 L 750 605" />
+
+      <!-- CAMERA_SOURCE to DETECTION_LOG -->
+      <path d="M 1400 550 L 970 550 L 970 650 L 870 650" />
+
+      <!-- BODY_REID_FEATURE to DETECTION_LOG -->
+      <path d="M 1400 730 L 1010 730 L 1010 680 L 870 680" />
+
+      <!-- ZONE_LOCATION to CAMERA_SOURCE -->
+      <path d="M 1510 870 L 1510 665" />
+
+      <!-- DETECTION_LOG to TACTICAL_ALERT -->
+      <path d="M 630 650 L 425 650" />
+
+      <!-- USER to TACTICAL_ALERT (Receives/Acknowledges) -->
+      <path d="M 370 315 L 370 430 L 325 430 L 325 530" />
+
+      <!-- USER to REPORT_LOG (Uploads/Generates) -->
+      <path d="M 340 220 L 125 220 L 125 530" />
+
+      <!-- TARGET_REGISTRY to CONSENT_RECORD (DPDP) -->
+      <path d="M 630 400 L 585 400 L 585 860 L 630 860 L 630 885" />
+
+      <!-- USER to AUDIT_LOG -->
+      <path d="M 420 315 L 420 500 L 250 500 L 250 715" />
+
+      <!-- USER to APP_CONFIG -->
+      <path d="M 470 315 L 470 500 L 535 500 L 535 715" />
+    </g>
+
+    <!-- Diamonds & Labels -->
+    <!-- ROLE - USER -->
+    <g transform="translate(265, 145)">
+      <polygon points="0,-12 28,0 0,12 -28,0" fill="#FFFFFF" stroke="#334155" stroke-width="1.2"/>
+      <text x="0" y="3.5" font-size="8.5" font-weight="700" text-anchor="middle" fill="#1E293B">HAS</text>
+    </g>
+    <text x="218" y="140" font-size="11" font-weight="700" fill="#1E293B">1</text>
+    <text x="310" y="140" font-size="11" font-weight="700" fill="#1E293B">N</text>
+
+    <!-- WATCHLIST_CATEGORY - TARGET_REGISTRY -->
+    <g transform="translate(750, 227)">
+      <polygon points="0,-12 36,0 0,12 -36,0" fill="#FFFFFF" stroke="#334155" stroke-width="1.2"/>
+      <text x="0" y="3.5" font-size="8" font-weight="700" text-anchor="middle" fill="#1E293B">CLASSIFIES</text>
+    </g>
+    <text x="758" y="198" font-size="11" font-weight="700" fill="#1E293B">1</text>
+    <text x="758" y="265" font-size="11" font-weight="700" fill="#1E293B">N</text>
+
+    <!-- USER - TARGET_REGISTRY -->
+    <g transform="translate(575, 245)">
+      <polygon points="0,-12 30,0 0,12 -30,0" fill="#FFFFFF" stroke="#334155" stroke-width="1.2"/>
+      <text x="0" y="3.5" font-size="8" font-weight="700" text-anchor="middle" fill="#1E293B">ENROLLS</text>
+    </g>
+    <text x="525" y="165" font-size="11" font-weight="700" fill="#1E293B">1</text>
+    <text x="620" y="315" font-size="11" font-weight="700" fill="#1E293B">N</text>
+
+    <!-- TARGET_REGISTRY - TARGET_IMAGE -->
+    <g transform="translate(1380, 222)">
+      <polygon points="0,-12 28,0 0,12 -28,0" fill="#FFFFFF" stroke="#334155" stroke-width="1.2"/>
+      <text x="0" y="3.5" font-size="8.5" font-weight="700" text-anchor="middle" fill="#1E293B">HAS</text>
+    </g>
+    <text x="880" y="295" font-size="11" font-weight="700" fill="#1E293B">1</text>
+    <text x="1390" y="140" font-size="11" font-weight="700" fill="#1E293B">N</text>
+
+    <!-- TARGET_REGISTRY - FACE_EMBEDDING -->
+    <g transform="translate(1135, 340)">
+      <polygon points="0,-12 36,0 0,12 -36,0" fill="#FFFFFF" stroke="#334155" stroke-width="1.2"/>
+      <text x="0" y="3.5" font-size="8" font-weight="700" text-anchor="middle" fill="#1E293B">EXTRACTS</text>
+    </g>
+    <text x="880" y="335" font-size="11" font-weight="700" fill="#1E293B">1</text>
+    <text x="1390" y="335" font-size="11" font-weight="700" fill="#1E293B">N</text>
+
+    <!-- TARGET_REGISTRY - DETECTION_LOG -->
+    <g transform="translate(750, 560)">
+      <polygon points="0,-12 34,0 0,12 -34,0" fill="#FFFFFF" stroke="#334155" stroke-width="1.2"/>
+      <text x="0" y="3.5" font-size="8" font-weight="700" text-anchor="middle" fill="#1E293B">TRIGGERS</text>
+    </g>
+    <text x="758" y="530" font-size="11" font-weight="700" fill="#1E293B">1</text>
+    <text x="758" y="600" font-size="11" font-weight="700" fill="#1E293B">N</text>
+
+    <!-- CAMERA_SOURCE - DETECTION_LOG -->
+    <g transform="translate(1185, 550)">
+      <polygon points="0,-12 36,0 0,12 -36,0" fill="#FFFFFF" stroke="#334155" stroke-width="1.2"/>
+      <text x="0" y="3.5" font-size="8" font-weight="700" text-anchor="middle" fill="#1E293B">CAPTURES</text>
+    </g>
+    <text x="1390" y="545" font-size="11" font-weight="700" fill="#1E293B">1</text>
+    <text x="880" y="645" font-size="11" font-weight="700" fill="#1E293B">N</text>
+
+    <!-- BODY_REID_FEATURE - DETECTION_LOG -->
+    <g transform="translate(1185, 730)">
+      <polygon points="0,-12 36,0 0,12 -36,0" fill="#FFFFFF" stroke="#334155" stroke-width="1.2"/>
+      <text x="0" y="3.5" font-size="8" font-weight="700" text-anchor="middle" fill="#1E293B">FUSES_WITH</text>
+    </g>
+    <text x="1390" y="725" font-size="11" font-weight="700" fill="#1E293B">1</text>
+    <text x="880" y="675" font-size="11" font-weight="700" fill="#1E293B">N</text>
+
+    <!-- ZONE_LOCATION - CAMERA_SOURCE -->
+    <g transform="translate(1510, 767)">
+      <polygon points="0,-12 32,0 0,12 -32,0" fill="#FFFFFF" stroke="#334155" stroke-width="1.2"/>
+      <text x="0" y="3.5" font-size="8" font-weight="700" text-anchor="middle" fill="#1E293B">LOCATES</text>
+    </g>
+    <text x="1518" y="860" font-size="11" font-weight="700" fill="#1E293B">1</text>
+    <text x="1518" y="675" font-size="11" font-weight="700" fill="#1E293B">N</text>
+
+    <!-- DETECTION_LOG - TACTICAL_ALERT -->
+    <g transform="translate(527, 650)">
+      <polygon points="0,-12 36,0 0,12 -36,0" fill="#FFFFFF" stroke="#334155" stroke-width="1.2"/>
+      <text x="0" y="3.5" font-size="8" font-weight="700" text-anchor="middle" fill="#1E293B">DISPATCHES</text>
+    </g>
+    <text x="620" y="645" font-size="11" font-weight="700" fill="#1E293B">1</text>
+    <text x="430" y="645" font-size="11" font-weight="700" fill="#1E293B">N</text>
+
+    <!-- USER - TACTICAL_ALERT -->
+    <g transform="translate(325, 480)">
+      <polygon points="0,-12 38,0 0,12 -38,0" fill="#FFFFFF" stroke="#334155" stroke-width="1.2"/>
+      <text x="0" y="3.5" font-size="7.5" font-weight="700" text-anchor="middle" fill="#1E293B">RECEIVES</text>
+    </g>
+    <text x="378" y="330" font-size="11" font-weight="700" fill="#1E293B">1</text>
+    <text x="332" y="525" font-size="11" font-weight="700" fill="#1E293B">N</text>
+
+    <!-- USER - REPORT_LOG -->
+    <g transform="translate(125, 375)">
+      <polygon points="0,-12 32,0 0,12 -32,0" fill="#FFFFFF" stroke="#334155" stroke-width="1.2"/>
+      <text x="0" y="3.5" font-size="8" font-weight="700" text-anchor="middle" fill="#1E293B">EXPORTS</text>
+    </g>
+    <text x="330" y="215" font-size="11" font-weight="700" fill="#1E293B">1</text>
+    <text x="132" y="525" font-size="11" font-weight="700" fill="#1E293B">N</text>
+
+    <!-- TARGET_REGISTRY - CONSENT_RECORD -->
+    <g transform="translate(585, 630)">
+      <polygon points="0,-12 32,0 0,12 -32,0" fill="#FFFFFF" stroke="#334155" stroke-width="1.2"/>
+      <text x="0" y="3.5" font-size="8" font-weight="700" text-anchor="middle" fill="#1E293B">PROTECTS</text>
+    </g>
+    <text x="620" y="395" font-size="11" font-weight="700" fill="#1E293B">1</text>
+    <text x="638" y="880" font-size="11" font-weight="700" fill="#1E293B">N</text>
+
+    <!-- USER - AUDIT_LOG -->
+    <g transform="translate(250, 607)">
+      <polygon points="0,-12 28,0 0,12 -28,0" fill="#FFFFFF" stroke="#334155" stroke-width="1.2"/>
+      <text x="0" y="3.5" font-size="8.5" font-weight="700" text-anchor="middle" fill="#1E293B">LOGS</text>
+    </g>
+    <text x="428" y="330" font-size="11" font-weight="700" fill="#1E293B">1</text>
+    <text x="258" y="710" font-size="11" font-weight="700" fill="#1E293B">N</text>
+
+    <!-- USER - APP_CONFIG -->
+    <g transform="translate(535, 607)">
+      <polygon points="0,-12 32,0 0,12 -32,0" fill="#FFFFFF" stroke="#334155" stroke-width="1.2"/>
+      <text x="0" y="3.5" font-size="8" font-weight="700" text-anchor="middle" fill="#1E293B">UPDATES</text>
+    </g>
+    <text x="478" y="330" font-size="11" font-weight="700" fill="#1E293B">1</text>
+    <text x="542" y="710" font-size="11" font-weight="700" fill="#1E293B">1</text>
+  </svg>
+
+  <!-- ==================== ENTITY TABLES ==================== -->
+
+  <!-- ROLE -->
+  <div class="entity-card" style="top: 85px; left: 45px; width: 165px;">
+    <div class="entity-header bg-purple">ROLE</div>
+    <div class="entity-body">
+      <div class="entity-row"><span class="col-keys pk">PK</span><span class="col-name">role_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">role_name</span><span class="col-type">varchar(50)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">description</span><span class="col-type">varchar(255)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">permissions</span><span class="col-type">text</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">created_at</span><span class="col-type">timestamp</span></div>
+    </div>
+  </div>
+
+  <!-- USER -->
+  <div class="entity-card" style="top: 85px; left: 320px; width: 200px;">
+    <div class="entity-header bg-blue">USER</div>
+    <div class="entity-body">
+      <div class="entity-row"><span class="col-keys pk">PK</span><span class="col-name">user_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys fk">FK</span><span class="col-name">role_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">full_name</span><span class="col-type">varchar(100)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">email</span><span class="col-type">varchar(150)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">badge_number</span><span class="col-type">varchar(30)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">password_hash</span><span class="col-type">varchar(255)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">status</span><span class="col-type">varchar(30)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">created_at</span><span class="col-type">timestamp</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">last_login</span><span class="col-type">timestamp</span></div>
+    </div>
+  </div>
+
+  <!-- WATCHLIST_CATEGORY -->
+  <div class="entity-card" style="top: 85px; left: 650px; width: 200px;">
+    <div class="entity-header bg-green">WATCHLIST_CATEGORY</div>
+    <div class="entity-body">
+      <div class="entity-row"><span class="col-keys pk">PK</span><span class="col-name">category_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">category_name</span><span class="col-type">varchar(50)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">alert_priority</span><span class="col-type">varchar(30)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">hud_color_hex</span><span class="col-type">varchar(10)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">is_active</span><span class="col-type">tinyint(1)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">created_at</span><span class="col-type">timestamp</span></div>
+    </div>
+  </div>
+
+  <!-- TARGET_REGISTRY (Core Hub) -->
+  <div class="entity-card" style="top: 270px; left: 630px; width: 240px;">
+    <div class="entity-header bg-salmon">TARGET_REGISTRY</div>
+    <div class="entity-body">
+      <div class="entity-row"><span class="col-keys pk">PK</span><span class="col-name">target_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys fk">FK</span><span class="col-name">category_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys fk">FK</span><span class="col-name">enrolled_by</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">full_name</span><span class="col-type">varchar(200)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">case_number</span><span class="col-type">varchar(100)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">description</span><span class="col-type">text</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">profile_image_path</span><span class="col-type">varchar(500)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">threat_level</span><span class="col-type">varchar(30)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">is_active</span><span class="col-type">tinyint(1)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">recognizer_label</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">created_at</span><span class="col-type">timestamp</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">updated_at</span><span class="col-type">timestamp</span></div>
+    </div>
+  </div>
+
+  <!-- TARGET_IMAGE -->
+  <div class="entity-card" style="top: 85px; left: 1400px; width: 220px;">
+    <div class="entity-header bg-yellow">TARGET_IMAGE</div>
+    <div class="entity-body">
+      <div class="entity-row"><span class="col-keys pk">PK</span><span class="col-name">image_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys fk">FK</span><span class="col-name">target_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">image_path</span><span class="col-type">varchar(500)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">image_order</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">quality_score</span><span class="col-type">decimal(5,2)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">is_primary</span><span class="col-type">tinyint(1)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">uploaded_at</span><span class="col-type">timestamp</span></div>
+    </div>
+  </div>
+
+  <!-- FACE_EMBEDDING -->
+  <div class="entity-card" style="top: 270px; left: 1400px; width: 230px;">
+    <div class="entity-header bg-peach">FACE_EMBEDDING</div>
+    <div class="entity-body">
+      <div class="entity-row"><span class="col-keys pk">PK</span><span class="col-name">embedding_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys fk">FK</span><span class="col-name">target_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys fk">FK</span><span class="col-name">source_image_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">model_version</span><span class="col-type">varchar(50)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">dimension</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">embedding_vector</span><span class="col-type">blob</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">is_centroid</span><span class="col-type">tinyint(1)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">created_at</span><span class="col-type">timestamp</span></div>
+    </div>
+  </div>
+
+  <!-- CAMERA_SOURCE -->
+  <div class="entity-card" style="top: 475px; left: 1400px; width: 220px;">
+    <div class="entity-header bg-teal">CAMERA_SOURCE</div>
+    <div class="entity-body">
+      <div class="entity-row"><span class="col-keys pk">PK</span><span class="col-name">camera_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">camera_name</span><span class="col-type">varchar(150)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">source_uri</span><span class="col-type">varchar(500)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">fps_throttle</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">resolution</span><span class="col-type">varchar(50)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">is_active</span><span class="col-type">tinyint(1)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">created_at</span><span class="col-type">timestamp</span></div>
+    </div>
+  </div>
+
+  <!-- BODY_REID_FEATURE -->
+  <div class="entity-card" style="top: 670px; left: 1400px; width: 220px;">
+    <div class="entity-header bg-cyan">BODY_REID_FEATURE</div>
+    <div class="entity-body">
+      <div class="entity-row"><span class="col-keys pk">PK</span><span class="col-name">feature_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys fk">FK</span><span class="col-name">target_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys fk">FK</span><span class="col-name">camera_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">body_vector</span><span class="col-type">blob</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">bbox_coords</span><span class="col-type">varchar(100)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">confidence</span><span class="col-type">decimal(5,2)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">tracked_at</span><span class="col-type">timestamp</span></div>
+    </div>
+  </div>
+
+  <!-- ZONE_LOCATION -->
+  <div class="entity-card" style="top: 870px; left: 1400px; width: 220px;">
+    <div class="entity-header bg-indigo">ZONE_LOCATION</div>
+    <div class="entity-body">
+      <div class="entity-row"><span class="col-keys pk">PK</span><span class="col-name">zone_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys fk">FK</span><span class="col-name">camera_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">zone_name</span><span class="col-type">varchar(150)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">building</span><span class="col-type">varchar(100)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">floor</span><span class="col-type">varchar(50)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">security_level</span><span class="col-type">varchar(50)</span></div>
+    </div>
+  </div>
+
+  <!-- DETECTION_LOG (Transaction Hub) -->
+  <div class="entity-card" style="top: 605px; left: 630px; width: 240px;">
+    <div class="entity-header bg-teal">DETECTION_LOG</div>
+    <div class="entity-body">
+      <div class="entity-row"><span class="col-keys pk">PK</span><span class="col-name">log_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys fk">FK</span><span class="col-name">target_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys fk">FK</span><span class="col-name">camera_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys fk">FK</span><span class="col-name">verified_by</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">match_confidence</span><span class="col-type">decimal(5,4)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">snapshot_path</span><span class="col-type">varchar(500)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">location_tag</span><span class="col-type">varchar(255)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">liveness_score</span><span class="col-type">decimal(5,2)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">status</span><span class="col-type">varchar(30)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">detection_timestamp</span><span class="col-type">timestamp</span></div>
+    </div>
+  </div>
+
+  <!-- REPORT_LOG (Left Column, Top: 530) -->
+  <div class="entity-card" style="top: 530px; left: 45px; width: 165px;">
+    <div class="entity-header bg-purple">REPORT_LOG</div>
+    <div class="entity-body">
+      <div class="entity-row"><span class="col-keys pk">PK</span><span class="col-name">report_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys fk">FK</span><span class="col-name">generated_by</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">report_type</span><span class="col-type">varchar(50)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">report_title</span><span class="col-type">varchar(200)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">file_path</span><span class="col-type">varchar(500)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">generated_at</span><span class="col-type">timestamp</span></div>
+    </div>
+  </div>
+
+  <!-- TACTICAL_ALERT (Second Column, Top: 530) -->
+  <div class="entity-card" style="top: 530px; left: 230px; width: 195px;">
+    <div class="entity-header bg-rose">TACTICAL_ALERT</div>
+    <div class="entity-body">
+      <div class="entity-row"><span class="col-keys pk">PK</span><span class="col-name">alert_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys fk">FK</span><span class="col-name">log_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys fk">FK</span><span class="col-name">target_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">channel_type</span><span class="col-type">varchar(50)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">alert_level</span><span class="col-type">varchar(30)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">is_acknowledged</span><span class="col-type">tinyint(1)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">latency_ms</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">dispatched_at</span><span class="col-type">timestamp</span></div>
+    </div>
+  </div>
+
+  <!-- AUDIT_LOG (Second Column, Top: 715) -->
+  <div class="entity-card" style="top: 715px; left: 230px; width: 195px;">
+    <div class="entity-header bg-purple">AUDIT_LOG</div>
+    <div class="entity-body">
+      <div class="entity-row"><span class="col-keys pk">PK</span><span class="col-name">audit_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys fk">FK</span><span class="col-name">user_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">action</span><span class="col-type">varchar(100)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">entity_type</span><span class="col-type">varchar(50)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">details</span><span class="col-type">text</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">timestamp</span><span class="col-type">timestamp</span></div>
+    </div>
+  </div>
+
+  <!-- APP_CONFIG (Third Column, Top: 715) -->
+  <div class="entity-card" style="top: 715px; left: 445px; width: 175px;">
+    <div class="entity-header bg-cyan">APP_CONFIG</div>
+    <div class="entity-body">
+      <div class="entity-row"><span class="col-keys pk">PK</span><span class="col-name">config_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys fk">FK</span><span class="col-name">updated_by</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">config_key</span><span class="col-type">varchar(100)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">config_value</span><span class="col-type">text</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">description</span><span class="col-type">varchar(255)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">updated_at</span><span class="col-type">timestamp</span></div>
+    </div>
+  </div>
+
+  <!-- Bottom Row Entities (Standalone Masters like HOSPITAL & SHELTER in reference) -->
+  <!-- CONSENT_RECORD (DPDP Act §6) -->
+  <div class="entity-card" style="top: 885px; left: 630px; width: 220px;">
+    <div class="entity-header bg-amber">CONSENT_RECORD</div>
+    <div class="entity-body">
+      <div class="entity-row"><span class="col-keys pk">PK</span><span class="col-name">consent_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys fk">FK</span><span class="col-name">target_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">legal_basis</span><span class="col-type">varchar(50)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">notice_version</span><span class="col-type">varchar(20)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">is_active</span><span class="col-type">tinyint(1)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">collected_at</span><span class="col-type">timestamp</span></div>
+    </div>
+  </div>
+
+  <!-- WATCHLIST_SYNC -->
+  <div class="entity-card" style="top: 885px; left: 870px; width: 220px;">
+    <div class="entity-header bg-orange">WATCHLIST_SYNC</div>
+    <div class="entity-body">
+      <div class="entity-row"><span class="col-keys pk">PK</span><span class="col-name">sync_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">source_name</span><span class="col-type">varchar(100)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">feed_endpoint</span><span class="col-type">varchar(255)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">records_synced</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">sync_status</span><span class="col-type">varchar(30)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">last_synced_at</span><span class="col-type">timestamp</span></div>
+    </div>
+  </div>
+
+  <!-- SYSTEM_TELEMETRY -->
+  <div class="entity-card" style="top: 885px; left: 1110px; width: 220px;">
+    <div class="entity-header bg-yellow">SYSTEM_TELEMETRY</div>
+    <div class="entity-body">
+      <div class="entity-row"><span class="col-keys pk">PK</span><span class="col-name">telemetry_id</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">inference_fps</span><span class="col-type">decimal(5,2)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">cpu_utilization</span><span class="col-type">decimal(5,2)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">memory_mb</span><span class="col-type">int</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">thermal_celsius</span><span class="col-type">decimal(5,2)</span></div>
+      <div class="entity-row"><span class="col-keys"></span><span class="col-name">recorded_at</span><span class="col-type">timestamp</span></div>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend-box">
+    <div class="legend-title">LEGEND</div>
+    <div class="legend-item"><span class="legend-key pk">PK</span> - Primary Key</div>
+    <div class="legend-item"><span class="legend-key fk">FK</span> - Foreign Key</div>
+    <div class="legend-item"><span class="legend-key" style="color:#1E293B">1</span> - One</div>
+    <div class="legend-item"><span class="legend-key" style="color:#1E293B">&lt;</span> - Many</div>
+  </div>
+
+  <!-- Notes -->
+  <div class="notes-box">
+    <div class="notes-title">NOTES</div>
+    <p>• 1 to N : One to Many Relationship</p>
+    <p>• All relationships are strictly based on actual foreign key constraints in the database.</p>
+    <p>• WatchlistSync and SystemTelemetry are standalone master/telemetry entities.</p>
+    <p>• Nullable foreign keys are allowed where applicable (e.g. source_image_id, verified_by).</p>
+  </div>
+
+  <!-- Slide Footer Page -->
+  <div class="slide-footer-page">08</div>
+
+</body>
+</html>

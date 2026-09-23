@@ -1,0 +1,921 @@
+{# ==========================================================================
+   DrishtiX v5.0 — Light Glassmorphism + Soft Neumorphism Theme (QSS)
+   GENERATED FILE — Do not edit by hand.
+   Source: drishtix_glass.qss.j2 + theme_tokens.py
+   Rebuild: python tools/generate_qss.py
+   ========================================================================== #}
+
+/* ==========================================================================
+   DrishtiX v5.0 — Light Glassmorphism + Soft Neumorphism Theme (QSS)
+   ==========================================================================
+   GENERATED from theme_tokens.py — do NOT hand-edit this file.
+   Run: python tools/generate_qss.py
+   ========================================================================== */
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   1. GLOBAL RESET & WINDOW — Ambient Canvas
+   ═══════════════════════════════════════════════════════════════════════════ */
+QWidget {
+    background-color: {{ color.CANVAS }};
+    color: {{ color.TEXT_PRIMARY }};
+    font-family: {{ typography.SANS }};
+    font-size: 13px;
+    selection-background-color: {{ color.ACCENT }};
+    selection-color: {{ color.WHITE }};
+}
+
+QMainWindow {
+    background-color: {{ color.CANVAS }};
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   2. FRAMES & BENTO CARDS — Glassmorphic Surfaces
+   ═══════════════════════════════════════════════════════════════════════════ */
+QFrame[class="bento-card"], QFrame[class="card-panel"] {
+    background-color: {{ color.SURFACE_GLASS_HEAVY }};
+    border: 1px solid rgba(255, 255, 255, 220);
+    border-radius: {{ radius.CARD }}px;
+}
+
+QFrame[class="bento-card"]:hover, QFrame[class="card-panel"]:hover {
+    border: 1px solid {{ color.WHITE }};
+}
+
+/* Glass Card Variants */
+QFrame[class="glass-card"] {
+    background-color: {{ color.SURFACE_GLASS }};
+    border: 1px solid rgba(255, 255, 255, 230);
+    border-radius: {{ radius.CARD }}px;
+}
+
+QFrame[class="glass-card"]:hover {
+    border: 1px solid {{ color.WHITE }};
+}
+
+QFrame[class="glass-card-heavy"] {
+    background-color: {{ color.SURFACE_GLASS_HEAVY }};
+    border: 1px solid rgba(255, 255, 255, 240);
+    border-radius: {{ radius.CARD }}px;
+}
+
+QFrame[class="glass-card-elevated"] {
+    background-color: {{ color.SURFACE_CARD }};
+    border: 1px solid rgba(255, 255, 255, 240);
+    border-radius: {{ radius.CARD }}px;
+}
+
+QFrame[class="glass-sidebar"] {
+    background-color: {{ color.SURFACE_GLASS_SIDEBAR }};
+    border: 1px solid rgba(255, 255, 255, 240);
+    border-radius: 0px;
+}
+
+QFrame[class="glass-overlay"] {
+    background-color: {{ color.SURFACE_GLASS_HEAVY }};
+    border: 1px solid rgba(255, 255, 255, 220);
+    border-radius: {{ radius.TILE }}px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   2b. NEUMORPHIC VARIANTS
+   ═══════════════════════════════════════════════════════════════════════════ */
+QFrame[class="neu-raised"] {
+    background-color: {{ color.NEU_SURFACE }};
+    border-top: 1px solid {{ color.NEU_HIGHLIGHT }};
+    border-left: 1px solid {{ color.NEU_HIGHLIGHT }};
+    border-bottom: 1px solid {{ color.NEU_SHADOW }};
+    border-right: 1px solid {{ color.NEU_SHADOW }};
+    border-radius: {{ radius.CARD }}px;
+}
+
+QFrame[class="neu-raised"]:hover {
+    background-color: {{ color.WHITE }};
+}
+
+QFrame[class="neu-inset"] {
+    background-color: {{ color.NEU_SURFACE }};
+    border-top: 1px solid {{ color.NEU_SHADOW }};
+    border-left: 1px solid {{ color.NEU_SHADOW }};
+    border-bottom: 1px solid {{ color.NEU_HIGHLIGHT }};
+    border-right: 1px solid {{ color.NEU_HIGHLIGHT }};
+    border-radius: {{ radius.CONTROL }}px;
+}
+
+QFrame[class="neu-pressed"] {
+    background-color: {{ color.BORDER_SUBTLE }};
+    border-top: 1px solid {{ color.NEU_SHADOW }};
+    border-left: 1px solid {{ color.NEU_SHADOW }};
+    border-bottom: 1px solid {{ color.NEU_HIGHLIGHT }};
+    border-right: 1px solid {{ color.NEU_HIGHLIGHT }};
+    border-radius: {{ radius.CONTROL }}px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   2c. BENTO TILES
+   ═══════════════════════════════════════════════════════════════════════════ */
+QFrame[class="bento-tile"] {
+    background-color: transparent;
+    border: none;
+    border-radius: 0px;
+}
+
+QFrame[class="bento-tile-hero"] {
+    background-color: transparent;
+    border: none;
+    border-radius: 0px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   3. NAVIGATION SIDEBAR — Modern Command Strip
+   ═══════════════════════════════════════════════════════════════════════════ */
+QFrame#NavSidebar {
+    background-color: {{ color.WHITE }};
+    border-right: 1px solid {{ color.BORDER_SUBTLE }};
+}
+
+QPushButton[class="nav-btn"] {
+    background-color: transparent;
+    color: {{ color.TEXT_SECONDARY }};
+    text-align: left;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-weight: 500;
+    font-size: 13.5px;
+    border: none;
+}
+
+QPushButton[class="nav-btn"]:hover:!checked {
+    background-color: {{ color.ACCENT_SOFT }};
+    color: {{ color.TEXT_PRIMARY }};
+}
+
+QPushButton[class="nav-btn"]:checked {
+    background: transparent;
+    color: {{ color.WHITE }};
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   4. BUTTONS — Neumorphic & Accent Controls
+   ═══════════════════════════════════════════════════════════════════════════ */
+QPushButton {
+    background-color: {{ color.NEU_SURFACE }};
+    color: {{ color.TEXT_PRIMARY }};
+    border: 1px solid rgba(255, 255, 255, 220);
+    border-radius: {{ radius.CONTROL }}px;
+    padding: 8px 16px;
+    font-weight: 500;
+    min-height: 22px;
+}
+
+QPushButton:hover {
+    background-color: {{ color.WHITE }};
+    border-color: {{ color.BORDER_SUBTLE }};
+}
+
+QPushButton:pressed {
+    background-color: {{ color.BORDER_SUBTLE }};
+    border-top: 1px solid {{ color.NEU_SHADOW }};
+    border-left: 1px solid {{ color.NEU_SHADOW }};
+    border-bottom: 1px solid {{ color.NEU_HIGHLIGHT }};
+    border-right: 1px solid {{ color.NEU_HIGHLIGHT }};
+}
+
+QPushButton:disabled {
+    background-color: {{ color.NEU_SURFACE }};
+    color: {{ color.TEXT_PLACEHOLDER }};
+    border-color: {{ color.BORDER_SUBTLE }};
+}
+
+QPushButton[class="btn-primary"] {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 {{ color.ACCENT_GRADIENT_START }}, stop:1 {{ color.ACCENT_GRADIENT_END }});
+    color: {{ color.WHITE }};
+    border: 1px solid {{ color.ACCENT_HOVER }};
+    font-weight: 600;
+    border-radius: {{ radius.CONTROL }}px;
+    padding: 8px 18px;
+}
+
+QPushButton[class="btn-primary"]:hover {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 {{ color.ACCENT_HOVER }}, stop:1 {{ color.ACCENT_PRESSED }});
+    border-color: {{ color.ACCENT_PRESSED }};
+}
+
+QPushButton[class="btn-primary"]:pressed {
+    background-color: {{ color.ACCENT_PRESSED }};
+}
+
+QPushButton[class="btn-danger"] {
+    background-color: {{ color.CRITICAL_BG }};
+    color: {{ color.CRITICAL_BOLD }};
+    border: 1px solid {{ color.CRITICAL_BORDER }};
+    font-weight: 600;
+    border-radius: {{ radius.CONTROL }}px;
+}
+
+QPushButton[class="btn-danger"]:hover {
+    background-color: {{ color.CRITICAL_BOLD }};
+    color: {{ color.WHITE }};
+    border-color: {{ color.CRITICAL_DARK }};
+}
+
+QPushButton[class="btn-danger-ghost"] {
+    background-color: transparent;
+    color: {{ color.CRITICAL }};
+    border: 1px solid transparent;
+    font-weight: 500;
+    border-radius: {{ radius.CONTROL }}px;
+}
+
+QPushButton[class="btn-danger-ghost"]:hover {
+    background-color: {{ color.CRITICAL_BG }};
+    border-color: {{ color.CRITICAL_BORDER }};
+    color: {{ color.CRITICAL_BOLD }};
+}
+
+QPushButton[class="btn-success"] {
+    background-color: {{ color.SAFE_BG }};
+    color: {{ color.SAFE_BOLD }};
+    border: 1px solid {{ color.SAFE_BORDER }};
+    font-weight: 600;
+    border-radius: {{ radius.CONTROL }}px;
+}
+
+QPushButton[class="btn-success"]:hover {
+    background-color: {{ color.SAFE }};
+    color: {{ color.WHITE }};
+    border-color: {{ color.SAFE_BOLD }};
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   5. INPUT FIELDS — Neumorphic Inset
+   ═══════════════════════════════════════════════════════════════════════════ */
+QLineEdit, QTextEdit, QPlainTextEdit, QSpinBox, QDoubleSpinBox, QComboBox {
+    background-color: {{ color.NEU_SURFACE }};
+    color: {{ color.TEXT_PRIMARY }};
+    border-top: 1px solid {{ color.NEU_SHADOW }};
+    border-left: 1px solid {{ color.NEU_SHADOW }};
+    border-bottom: 1px solid {{ color.NEU_HIGHLIGHT }};
+    border-right: 1px solid {{ color.NEU_HIGHLIGHT }};
+    border-radius: {{ radius.CONTROL }}px;
+    padding: 7px 12px;
+}
+
+QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus,
+QSpinBox:focus, QDoubleSpinBox:focus, QComboBox:focus {
+    border: 2px solid {{ color.ACCENT_FOCUS }};
+    background-color: {{ color.WHITE }};
+}
+
+QLineEdit::placeholder {
+    color: {{ color.TEXT_PLACEHOLDER }};
+}
+
+QComboBox::drop-down {
+    border: none;
+    padding-right: 8px;
+}
+
+QComboBox QAbstractItemView {
+    background-color: {{ color.WHITE }};
+    border: 1px solid {{ color.BORDER_SUBTLE }};
+    border-radius: {{ radius.CONTROL }}px;
+    selection-background-color: {{ color.ACCENT_SOFT }};
+    selection-color: {{ color.ACCENT }};
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   6. TABLES & LISTS — Modern Clean Container
+   ═══════════════════════════════════════════════════════════════════════════ */
+QTableView, QTableWidget, QListView, QListWidget, QTreeView {
+    background-color: {{ color.WHITE }};
+    border: 1px solid {{ color.BORDER_SUBTLE }};
+    border-radius: {{ radius.CONTROL }}px;
+    gridline-color: transparent;
+    alternate-background-color: {{ color.CANVAS }};
+}
+
+QHeaderView::section {
+    background-color: {{ color.CANVAS }};
+    color: {{ color.TEXT_MUTED }};
+    padding: 10px 12px;
+    border: none;
+    border-bottom: 1px solid {{ color.BORDER_SUBTLE }};
+    border-right: 1px solid {{ color.NEU_SURFACE }};
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.3px;
+}
+
+QTableView::item, QTableWidget::item {
+    padding: 8px 12px;
+    border-bottom: 1px solid {{ color.NEU_SURFACE }};
+    color: {{ color.TEXT_PRIMARY }};
+}
+
+QTableView::item:selected, QTableWidget::item:selected {
+    background-color: {{ color.ACCENT_SOFT }};
+    color: {{ color.ACCENT }};
+}
+
+QTableView::item:hover, QTableWidget::item:hover {
+    background-color: rgba(79, 107, 251, 0.05);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   7. SCROLLBARS — Minimal Translucent
+   ═══════════════════════════════════════════════════════════════════════════ */
+QScrollBar:vertical {
+    background: transparent;
+    width: 6px;
+    margin: 0px;
+    border-radius: 3px;
+}
+
+QScrollBar::handle:vertical {
+    background: rgba(15, 23, 42, 0.12);
+    min-height: 20px;
+    border-radius: 3px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: rgba(15, 23, 42, 0.24);
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical,
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background: none;
+    border: none;
+    height: 0px;
+}
+
+QScrollBar:horizontal {
+    background: transparent;
+    height: 6px;
+    margin: 0px;
+    border-radius: 3px;
+}
+
+QScrollBar::handle:horizontal {
+    background: rgba(15, 23, 42, 0.12);
+    min-width: 20px;
+    border-radius: 3px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background: rgba(15, 23, 42, 0.24);
+}
+
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal,
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
+    background: none;
+    border: none;
+    width: 0px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   8. STATUS BAR — Frosted Glass Bottom Strip
+   ═══════════════════════════════════════════════════════════════════════════ */
+QFrame#StatusBar {
+    background-color: {{ color.WHITE }};
+    border-top: 1px solid {{ color.BORDER_SUBTLE }};
+}
+
+QLabel[class="status-metric"] {
+    font-family: {{ typography.MONO }};
+    font-size: 11px;
+    color: {{ color.TEXT_MUTED }};
+}
+
+QLabel[class="metric-value"] {
+    font-family: {{ typography.MONO }};
+    font-weight: bold;
+    color: {{ color.SAFE }};
+}
+
+/* Status Bar Capsules */
+QLabel[class="status-capsule-safe"] {
+    background-color: {{ color.SAFE_BG }};
+    color: {{ color.SAFE_BOLD }};
+    border: 1px solid {{ color.SAFE_BORDER }};
+    border-radius: {{ radius.CAPSULE }}px;
+    padding: 3px 10px;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+QLabel[class="status-capsule-warning"] {
+    background-color: {{ color.WARNING_BG }};
+    color: {{ color.WARNING_BOLD }};
+    border: 1px solid {{ color.WARNING_BORDER }};
+    border-radius: {{ radius.CAPSULE }}px;
+    padding: 3px 10px;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+QLabel[class="status-capsule-critical"] {
+    background-color: {{ color.CRITICAL_BG }};
+    color: {{ color.CRITICAL }};
+    border: 1px solid {{ color.CRITICAL_BORDER }};
+    border-radius: {{ radius.CAPSULE }}px;
+    padding: 3px 10px;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+QLabel[class="status-capsule-info"] {
+    background-color: {{ color.INFO_BG }};
+    color: {{ color.INFO_SKY }};
+    border: 1px solid {{ color.INFO_BORDER }};
+    border-radius: {{ radius.CAPSULE }}px;
+    padding: 3px 10px;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+QLabel[class="status-capsule-neutral"] {
+    background-color: {{ color.NEU_SURFACE }};
+    color: {{ color.TEXT_MUTED }};
+    border: 1px solid {{ color.BORDER_SUBTLE }};
+    border-radius: {{ radius.CAPSULE }}px;
+    padding: 3px 10px;
+    font-weight: 600;
+    font-size: 11px;
+}
+
+QLabel[class="status-capsule-accent"] {
+    background-color: {{ color.ACCENT_SOFT }};
+    color: {{ color.ACCENT }};
+    border: 1px solid {{ color.ACCENT_BORDER }};
+    border-radius: {{ radius.CAPSULE }}px;
+    padding: 3px 10px;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+QLabel[mono="true"] {
+    font-family: {{ typography.MONO }};
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   9. BENTO KPI CARDS — Neumorphic / Glass Hybrid
+   ═══════════════════════════════════════════════════════════════════════════ */
+QFrame[class="kpi-card"] {
+    background-color: {{ color.SURFACE_CARD }};
+    border: 1px solid rgba(255, 255, 255, 240);
+    border-radius: {{ radius.CARD }}px;
+    padding: 14px 16px;
+}
+
+QFrame[class="kpi-card"]:hover {
+    background-color: {{ color.WHITE }};
+    border-color: {{ color.BORDER_SUBTLE }};
+}
+
+QLabel[class="kpi-title"] {
+    color: {{ color.TEXT_MUTED }};
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+}
+
+QLabel[class="kpi-val"] {
+    color: {{ color.TEXT_PRIMARY }};
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   10. PILLS & BADGES — Semantic Status
+   ═══════════════════════════════════════════════════════════════════════════ */
+QLabel[class="pill-live"] {
+    background-color: {{ color.SAFE_BG }};
+    color: {{ color.SAFE_BOLD }};
+    border: 1px solid {{ color.SAFE_BORDER }};
+    border-radius: {{ radius.PILL }}px;
+    padding: 3px 12px;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+QLabel[class="pill-offline"] {
+    background-color: {{ color.CRITICAL_BG }};
+    color: {{ color.CRITICAL }};
+    border: 1px solid {{ color.CRITICAL_BORDER }};
+    border-radius: {{ radius.PILL }}px;
+    padding: 3px 12px;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+QLabel[class="pill-safe"] {
+    background-color: {{ color.SAFE_BG }};
+    color: {{ color.SAFE_BOLD }};
+    border: 1px solid {{ color.SAFE_BORDER }};
+    border-radius: {{ radius.PILL }}px;
+    padding: 3px 12px;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+QLabel[class="pill-warning"] {
+    background-color: {{ color.WARNING_BG }};
+    color: {{ color.WARNING_BOLD }};
+    border: 1px solid {{ color.WARNING_BORDER }};
+    border-radius: {{ radius.PILL }}px;
+    padding: 3px 12px;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+QLabel[class="pill-critical"] {
+    background-color: {{ color.CRITICAL_BG }};
+    color: {{ color.CRITICAL }};
+    border: 1px solid {{ color.CRITICAL_BORDER }};
+    border-radius: {{ radius.PILL }}px;
+    padding: 3px 12px;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+QLabel[class="pill-info"] {
+    background-color: {{ color.INFO_BG }};
+    color: {{ color.INFO_SKY }};
+    border: 1px solid {{ color.INFO_BORDER }};
+    border-radius: {{ radius.PILL }}px;
+    padding: 3px 12px;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+QLabel[class="pill-accent"] {
+    background-color: {{ color.ACCENT_SOFT }};
+    color: {{ color.ACCENT }};
+    border: 1px solid {{ color.ACCENT_BORDER }};
+    border-radius: {{ radius.PILL }}px;
+    padding: 3px 12px;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+QLabel[class="pill-neutral"] {
+    background-color: {{ color.NEU_SURFACE }};
+    color: {{ color.TEXT_MUTED }};
+    border: 1px solid {{ color.BORDER_MUTED }};
+    border-radius: {{ radius.PILL }}px;
+    padding: 2px 8px;
+    font-weight: 600;
+    font-size: 10.5px;
+}
+
+/* Category badges (Softer, modern pills) */
+QLabel[class="badge-criminal"] {
+    background-color: {{ color.CRITICAL_BG }};
+    color: {{ color.CRITICAL_BOLD }};
+    border: 1px solid {{ color.CRITICAL_BORDER }};
+    border-radius: {{ radius.PILL }}px;
+    padding: 3px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+QLabel[class="badge-missing"] {
+    background-color: {{ color.INFO_BG }};
+    color: {{ color.INFO_SKY }};
+    border: 1px solid {{ color.INFO_BORDER }};
+    border-radius: {{ radius.PILL }}px;
+    padding: 3px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   11. TYPOGRAPHY SCALE CLASSES
+   ═══════════════════════════════════════════════════════════════════════════ */
+QLabel[class="type-display"] {
+    font-size: {{ typography.DISPLAY.size }}px;
+    font-weight: {{ typography.DISPLAY.weight }};
+    color: {{ color.TEXT_PRIMARY }};
+    letter-spacing: -0.5px;
+}
+
+QLabel[class="type-h1"] {
+    font-size: {{ typography.H1.size }}px;
+    font-weight: {{ typography.H1.weight }};
+    color: {{ color.TEXT_PRIMARY }};
+    letter-spacing: -0.3px;
+}
+
+QLabel[class="type-h2"] {
+    font-size: {{ typography.H2.size }}px;
+    font-weight: {{ typography.H2.weight }};
+    color: {{ color.TEXT_PRIMARY }};
+    letter-spacing: -0.2px;
+}
+
+QLabel[class="type-h3"] {
+    font-size: {{ typography.H3.size }}px;
+    font-weight: {{ typography.H3.weight }};
+    color: {{ color.TEXT_PRIMARY }};
+    letter-spacing: -0.1px;
+}
+
+QLabel[class="type-body"] {
+    font-size: {{ typography.BODY.size }}px;
+    font-weight: {{ typography.BODY.weight }};
+    color: {{ color.TEXT_BODY }};
+}
+
+QLabel[class="type-caption"] {
+    font-size: {{ typography.CAPTION.size }}px;
+    font-weight: {{ typography.CAPTION.weight }};
+    color: {{ color.TEXT_SECONDARY }};
+    letter-spacing: 0.2px;
+}
+
+QLabel[class="type-micro"] {
+    font-size: {{ typography.MICRO.size }}px;
+    font-weight: {{ typography.MICRO.weight }};
+    color: {{ color.TEXT_MUTED }};
+    letter-spacing: 0.4px;
+}
+
+/* Backward compatibility aliases */
+QLabel[class="view-title"] {
+    font-weight: 700;
+    font-size: 16px;
+    color: {{ color.TEXT_PRIMARY }};
+    letter-spacing: -0.2px;
+}
+
+QLabel[class="view-subtitle"] {
+    font-size: 12px;
+    color: {{ color.TEXT_SECONDARY }};
+    letter-spacing: 0.1px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   12. VIDEO SURFACE — Dark Inset Bezel
+   ═══════════════════════════════════════════════════════════════════════════ */
+QLabel[class="video-surface"] {
+    background-color: {{ color.TEXT_PRIMARY }};
+    border-radius: {{ radius.CONTROL }}px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   13. ALERT SIDEBAR & FROSTED GLASS NOTIFICATION CARDS
+   ═══════════════════════════════════════════════════════════════════════════ */
+QFrame#AlertSidebar {
+    background-color: {{ color.SURFACE_GLASS_SIDEBAR }};
+    border-left: 1px solid {{ color.BORDER_SUBTLE }};
+}
+
+QFrame[class~="alert-card"] {
+    border-radius: 14px;
+}
+
+QFrame[class~="alert-card-criminal"] {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 rgba(255, 241, 242, 0.95), stop:1 rgba(254, 226, 226, 0.85));
+    border: 1px solid rgba(239, 68, 68, 0.40);
+    border-left: 4px solid {{ color.CRITICAL_BOLD }};
+}
+
+QFrame[class~="alert-card-criminal"]:hover {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #FFF1F2, stop:1 #FEE2E2);
+    border: 1px solid {{ color.CRITICAL }};
+    border-left: 4px solid {{ color.CRITICAL_DARK }};
+}
+
+QFrame[class~="alert-card-missing"] {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 rgba(236, 254, 255, 0.95), stop:1 rgba(224, 242, 254, 0.85));
+    border: 1px solid rgba(6, 182, 212, 0.40);
+    border-left: 4px solid {{ color.CYAN_VIVID }};
+}
+
+QFrame[class~="alert-card-missing"]:hover {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #ECFEFF, stop:1 #E0F2FE);
+    border: 1px solid {{ color.INFO_BOLD }};
+    border-left: 4px solid {{ color.INFO_SKY }};
+}
+
+/* Alert card sub-elements */
+QFrame[class="alert-thumb-criminal"] {
+    background-color: {{ color.ALERT_CRIMINAL_THUMB_BG }};
+    border-radius: 10px;
+    border: 1.5px solid {{ color.ALERT_CRIMINAL_THUMB_BD }};
+}
+
+QFrame[class="alert-thumb-missing"] {
+    background-color: {{ color.ALERT_MISSING_THUMB_BG }};
+    border-radius: 10px;
+    border: 1.5px solid {{ color.ALERT_MISSING_THUMB_BD }};
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   14. EMPTY & LOADING STATES
+   ═══════════════════════════════════════════════════════════════════════════ */
+QFrame[class="empty-state"] {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px dashed {{ color.BORDER_MUTED }};
+    border-radius: 16px;
+    padding: 30px 16px;
+}
+
+QLabel[class="empty-state-icon"] {
+    font-size: 28px;
+    background: transparent;
+    border: none;
+}
+
+QLabel[class="empty-state-message"] {
+    color: {{ color.TEXT_MUTED }};
+    font-size: 12.5px;
+    font-weight: 500;
+    background: transparent;
+    border: none;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   15. CHECKBOXES — Light Theme
+   ═══════════════════════════════════════════════════════════════════════════ */
+QCheckBox {
+    color: {{ color.TEXT_BODY }};
+    spacing: 8px;
+}
+
+QCheckBox::indicator {
+    width: 18px;
+    height: 18px;
+    border-radius: {{ radius.CHECKBOX }}px;
+    border: 1px solid {{ color.BORDER_MUTED }};
+    background-color: {{ color.NEU_SURFACE }};
+}
+
+QCheckBox::indicator:checked {
+    background-color: {{ color.ACCENT }};
+    border-color: {{ color.ACCENT }};
+}
+
+QCheckBox::indicator:hover {
+    border-color: {{ color.ACCENT }};
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   16. GROUP BOXES — Glass Card Containers
+   ═══════════════════════════════════════════════════════════════════════════ */
+QGroupBox {
+    background-color: {{ color.SURFACE_GLASS_HEAVY }};
+    border: 1px solid {{ color.BORDER_SUBTLE }};
+    border-radius: {{ radius.CARD }}px;
+    margin-top: 14px;
+    padding-top: 20px;
+    font-weight: 600;
+    color: {{ color.ACCENT }};
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    padding: 4px 12px;
+    background-color: {{ color.CANVAS }};
+    border-radius: {{ radius.SMALL }}px;
+    left: 14px;
+}
+
+/* Per-section colored group boxes */
+QGroupBox[class="grp-camera"]    { color: {{ color.ACCENT }}; }
+QGroupBox[class="grp-dnn"]      { color: {{ color.SAFE }}; }
+QGroupBox[class="grp-alert"]    { color: {{ color.CRITICAL }}; }
+QGroupBox[class="grp-database"] { color: {{ color.WARNING }}; }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   17. PROGRESS BAR — Accent Stripe
+   ═══════════════════════════════════════════════════════════════════════════ */
+QProgressBar {
+    background-color: {{ color.NEU_SURFACE }};
+    border: none;
+    border-radius: 3px;
+    text-align: center;
+}
+
+QProgressBar::chunk {
+    background-color: {{ color.ACCENT }};
+    border-radius: 3px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   18. TOOLTIP — Ink Popup
+   ═══════════════════════════════════════════════════════════════════════════ */
+QToolTip {
+    background-color: {{ color.TEXT_PRIMARY }};
+    color: {{ color.WHITE }};
+    border: none;
+    border-radius: {{ radius.SMALL }}px;
+    padding: 6px 10px;
+    font-size: 11px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   19. SEPARATOR
+   ═══════════════════════════════════════════════════════════════════════════ */
+QSplitter::handle {
+    background-color: {{ color.BORDER_SUBTLE }};
+    width: 2px;
+}
+
+QFrame[class="separator"] {
+    background-color: {{ color.BORDER_SUBTLE }};
+    max-height: 1px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   20. SCROLL AREA — Transparent Container
+   ═══════════════════════════════════════════════════════════════════════════ */
+QScrollArea {
+    background-color: transparent;
+    border: none;
+}
+
+QScrollArea > QWidget > QWidget {
+    background-color: transparent;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   21. TAB WIDGET
+   ═══════════════════════════════════════════════════════════════════════════ */
+QTabWidget::pane {
+    border: 1px solid {{ color.BORDER_SUBTLE }};
+    border-radius: {{ radius.CONTROL }}px;
+    background-color: {{ color.WHITE }};
+}
+
+QTabBar::tab {
+    background-color: {{ color.NEU_SURFACE }};
+    color: {{ color.TEXT_MUTED }};
+    padding: 8px 16px;
+    border-radius: {{ radius.SMALL }}px {{ radius.SMALL }}px 0 0;
+    font-weight: 500;
+}
+
+QTabBar::tab:selected {
+    background-color: {{ color.WHITE }};
+    color: {{ color.ACCENT }};
+    font-weight: 600;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   22. DIALOG — Glassmorphic Modal
+   ═══════════════════════════════════════════════════════════════════════════ */
+QDialog {
+    background-color: {{ color.CANVAS }};
+    color: {{ color.TEXT_PRIMARY }};
+    border-radius: {{ radius.CARD }}px;
+}
+
+QMessageBox {
+    background-color: {{ color.WHITE }};
+}
+
+QMessageBox QLabel {
+    color: {{ color.TEXT_BODY }};
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   23. FOCUS RINGS — Universal Accessibility
+   ═══════════════════════════════════════════════════════════════════════════ */
+QPushButton:focus, QLineEdit:focus, QTextEdit:focus,
+QComboBox:focus, QSpinBox:focus, QDoubleSpinBox:focus,
+QCheckBox:focus, QTableView:focus, QListView:focus {
+    border: 2px solid {{ color.ACCENT_FOCUS }};
+}

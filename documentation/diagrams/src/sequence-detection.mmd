@@ -1,0 +1,28 @@
+%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'Inter, sans-serif', 'primaryColor': '#EEF2FF', 'primaryBorderColor': '#3E56E0', 'lineColor': '#64748B'}}}%%
+sequenceDiagram
+    autonumber
+    actor Cam as Camera (USB/RTSP)
+    participant VT as VideoThread
+    participant FD as FaceDetectionService
+    participant FR as FaceRecognitionService
+    participant GM as GalleryManager
+    participant AS as AlertService
+    participant DB as SQLite DB
+    participant UI as DashboardView
+    participant TG as TelegramService
+
+    Cam->>VT: Grab frame (720p @ 30fps)
+    VT->>FD: detect(frame)
+    FD-->>VT: BoundingBox + Landmarks + Quality OK
+    VT->>FR: extract_embedding(aligned_crop)
+    FR-->>VT: 128-D Vector
+    VT->>GM: match_face(query_vector, threshold=0.58)
+    GM-->>VT: Match Found (Target #42, Sim: 0.84)
+    VT->>AS: process_match(target_id=42, sim=0.84, crop)
+    Note over AS: Check Multi-Frame Gate<br/>(N >= 2 within 5s window)
+    AS->>AS: Confirm Match (Frame 2 of 2)
+    AS->>DB: Save DetectionLog & Snapshot on disk
+    AS->>UI: emit alert_created(AlertEvent)
+    UI->>UI: Render AlertCard & Trigger Audio Chime
+    AS->>TG: async send_alert_photo(snapshot, metadata)
+    TG-->>AS: HTTP 200 OK

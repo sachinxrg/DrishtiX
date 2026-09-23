@@ -1,0 +1,102 @@
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'fontFamily': 'Inter, -apple-system, system-ui, sans-serif',
+    'primaryColor': '#eef2ff',
+    'primaryTextColor': '#1e1b4b',
+    'primaryBorderColor': '#6366f1',
+    'lineColor': '#64748b'
+  }
+}}%%
+erDiagram
+    classDef coreRegistry fill:#eef2ff,stroke:#6366f1,stroke-width:1px
+    classDef surveillance fill:#f0fdf4,stroke:#22c55e,stroke-width:1px
+    classDef governance fill:#fef9c3,stroke:#eab308,stroke-width:1px
+
+    target_registry {
+        INTEGER target_id PK
+        VARCHAR full_name "max 255 chars, indexed"
+        VARCHAR category "CRIMINAL or MISSING_PERSON, indexed"
+        VARCHAR case_number UK "unique, max 100 chars"
+        TEXT description "optional case notes"
+        VARCHAR profile_image_path "max 500 chars"
+        BOOLEAN is_active "indexed"
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+    }
+
+    target_image {
+        INTEGER image_id PK
+        INTEGER target_id FK "CASCADE on delete, indexed"
+        VARCHAR image_path "max 500 chars"
+        INTEGER image_order "default 0"
+        TIMESTAMP uploaded_at
+    }
+
+    face_embedding {
+        INTEGER embedding_id PK
+        INTEGER target_id FK "CASCADE on delete, indexed"
+        INTEGER source_image_id FK "SET NULL on delete, nullable"
+        BLOB embedding_vector "128 or 512 float32 raw bytes"
+        VARCHAR model_version "sface_128 or arcface_512"
+        TIMESTAMP created_at
+    }
+
+    consent_record {
+        INTEGER consent_id PK
+        INTEGER target_id FK "CASCADE on delete, indexed"
+        VARCHAR legal_basis "CONSENT, LAW_ENFORCEMENT, MISSING_PERSON, PUBLIC_INTEREST"
+        VARCHAR notice_version "notice version e.g. 1.0"
+        VARCHAR collected_by "operator name, max 100 chars"
+        TEXT consent_text "consent statement acknowledged"
+        BOOLEAN is_active "false if withdrawn"
+        TIMESTAMP collected_at
+        TIMESTAMP withdrawn_at "nullable, DPDP Section 6(6)"
+    }
+
+    camera_source {
+        INTEGER camera_id PK
+        VARCHAR camera_name "max 255 chars"
+        VARCHAR source_uri "device index (int) or RTSP/HTTP URL"
+        BOOLEAN is_active "default true"
+        TIMESTAMP created_at
+    }
+
+    detection_log {
+        INTEGER log_id PK
+        INTEGER target_id FK "indexed"
+        INTEGER camera_id FK "nullable"
+        FLOAT match_confidence "cosine similarity 0.0 to 1.0"
+        VARCHAR snapshot_path "max 500 chars"
+        VARCHAR location_tag "max 255 chars"
+        TIMESTAMP detection_timestamp "indexed"
+        TIMESTAMP created_at
+    }
+
+    audit_log {
+        INTEGER audit_id PK
+        VARCHAR action "indexed, max 100 chars"
+        VARCHAR entity_type "max 50 chars"
+        INTEGER entity_id "nullable"
+        TEXT details "action description"
+        TIMESTAMP timestamp "indexed"
+    }
+
+    app_config {
+        INTEGER config_id PK
+        VARCHAR config_key UK "unique, indexed, max 100 chars"
+        TEXT config_value "serialized value"
+        TEXT description "setting documentation"
+        TIMESTAMP updated_at
+    }
+
+    class target_registry,target_image,face_embedding,consent_record coreRegistry
+    class camera_source,detection_log surveillance
+    class audit_log,app_config governance
+
+    target_registry ||--o{ target_image : "has images"
+    target_registry ||--o{ face_embedding : "has embeddings"
+    target_image ||--o{ face_embedding : "generates"
+    target_registry ||--o{ consent_record : "covered by"
+    target_registry ||--o{ detection_log : "identified in"
+    camera_source ||--o{ detection_log : "captures"
