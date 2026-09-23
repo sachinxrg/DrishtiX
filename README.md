@@ -11,12 +11,13 @@
   [![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0+-D71F00?style=for-the-badge&logo=sqlalchemy&logoColor=white)](https://www.sqlalchemy.org/)
   [![Tests](https://img.shields.io/badge/Tests-59%20Passed-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)]()
   [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
+  [![Google Drive](https://img.shields.io/badge/Google%20Drive-Project%20Drive%20%26%20Docs-4285F4?style=for-the-badge&logo=googledrive&logoColor=white)](https://drive.google.com/drive/folders/15jWJ4Uz9eRBjYTOT5l0MzCCJr_kVqbDv?usp=sharing)
 
   *Sub-second facial identification • Automated watchlist sync • Multi-channel tactical alerts • 21st.dev UI*
 
   ---
 
-  [**Features**](#-features) · [**Screenshots**](#-screenshots) · [**Quick Start**](#-quick-start) · [**Architecture**](#-architecture) · [**Tech Stack**](#-tech-stack) · [**Team**](#-team)
+  [**Features**](#-features) · [**Screenshots**](#-screenshots) · [**Quick Start**](#-quick-start) · [**Architecture**](#-architecture) · [**Tech Stack**](#-tech-stack) · [**Documentation & Drive**](#-documentation--project-drive) · [**Team**](#-team)
 
 </div>
 
@@ -390,6 +391,33 @@ The **Settings** view allows tuning camera sources, DNN thresholds, recognition 
 - [ ] Multi-camera RTSP stream grid multiplexer
 - [ ] Deep SORT / ByteTrack cross-camera re-identification
 - [ ] Edge Docker containerization (`docker-compose`)
+
+---
+
+## 📁 Documentation & Project Drive
+
+All consolidated master documentation & video recordings are archived and accessible via Google Drive:
+
+<div align="center">
+
+[![Open in Google Drive](https://img.shields.io/badge/Google%20Drive-Access%20Project%20Folder-4285F4?style=for-the-badge&logo=googledrive&logoColor=white)](https://drive.google.com/drive/folders/15jWJ4Uz9eRBjYTOT5l0MzCCJr_kVqbDv?usp=sharing)
+
+**Direct Google Drive URL:**  
+[`https://drive.google.com/drive/folders/15jWJ4Uz9eRBjYTOT5l0MzCCJr_kVqbDv?usp=sharing`](https://drive.google.com/drive/folders/15jWJ4Uz9eRBjYTOT5l0MzCCJr_kVqbDv?usp=sharing)
+
+</div>
+
+### 📑 What's Inside the Drive:
+- 📘 **Master Comprehensive Project Report (`DX-MST`)**: Full consolidated Word document (`DrishtiX_Master_Project_Report.docx`) and complete academic dissertation.
+- 📚 **Individual Documentation Suite (PDF & DOCX)**:
+  - `DX-SDD`: System Design Document (5-Tier Architecture, UML Suite, DFDs, Data Dictionary, DPDP Act 2023 compliance, 22 ADRs)
+  - `DX-BED`: Backend Specification (16 business services, 7 DAOs, 8 ORM models, 4 background workers, AI/CV pipeline)
+  - `DX-FED`: Frontend Specification (2-tier token system, 917-line glassmorphic QSS, 21 custom widgets, screen walkthrough)
+  - `DX-TST`: SQA & Testing Document (59 automated test cases, defect logs BUG-01 to BUG-05, latency benchmarks)
+  - `DX-EVD`: Engineering Evidence Pack (Sprint logs, Jira epics, velocity charts, 51 Git commits, CodeRabbit reviews)
+  - `DX-FPR`: Final Project Report & Academic Dissertation (Literature survey, version evolution v1.0–v5.0, 22-question viva defense script)
+- 🖼️ **Visual Assets & Snapshots**: High-resolution UI screenshots (`Dashboard.png`, `Target_Registry.png`, `Forensic_Scanner.png`, `Analytics_KPIs.png`, `Settings_Config.png`) and architectural diagrams.
+- 🎥 **Demonstration Media**: Screen recordings of live face detection, Telegram push alerts, and batch forensic scans.
 
 ---
 
